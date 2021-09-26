@@ -1,8 +1,9 @@
-﻿using System.Runtime.CompilerServices;
-using ColossalFramework;
+﻿using ColossalFramework;
 using ColossalFramework.Math;
-using UnityEngine;
 using MoveIt;
+using System.Runtime.CompilerServices;
+using UnityEngine;
+using EManagersLib.API;
 
 namespace PropAnarchy {
     public partial class PAManager : SingletonLite<PAManager> {
@@ -16,19 +17,17 @@ namespace PropAnarchy {
             m_propScales = new float[maxSize];
         }
 
-        private float CalculateCustomScale(float val, uint treeID) {
+        private float CalculateCustomScale(float val, uint propID) {
             float[] propScales = m_propScales;
-            float scale = val + propScales[treeID];
-            if (scale > maxScale) propScales[treeID] -= scaleStep;
-            else if (scale < minScale) propScales[treeID] += scaleStep;
-            return val + propScales[treeID];
+            float scale = val + propScales[propID];
+            if (scale > maxScale) propScales[propID] -= scaleStep;
+            else if (scale < minScale) propScales[propID] += scaleStep;
+            return val + propScales[propID];
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static float CalcPropScale(ref Randomizer randomizer, uint propID, PropInfo propInfo) => instance.CalcPropScaleImpl(ref randomizer, propID, propInfo);
-
-        private float CalcPropScaleImpl(ref Randomizer randomizer, uint propID, PropInfo propInfo) =>
-            CalculateCustomScale(propInfo.m_minScale + randomizer.Int32(10000u) * (propInfo.m_maxScale - propInfo.m_minScale) * 0.0001f, propID);
+        public static float CalcPropScale(ref Randomizer randomizer, uint propID, PropInfo propInfo) =>
+            instance.CalculateCustomScale(propInfo.m_minScale + randomizer.Int32(10000u) * (propInfo.m_maxScale - propInfo.m_minScale) * 0.0001f, propID);
 
         public static float GetSeedPropScale(ref Randomizer randomizer, uint propID, PropInfo propInfo) {
             if (propInfo is null) return 0;
@@ -39,13 +38,13 @@ namespace PropAnarchy {
         public void IncrementPropSize() {
             PropTool propTool = ToolsModifierControl.GetCurrentTool<PropTool>();
             uint propID = m_currentPropID;
-            if (propTool is not null && propTool.m_mode == PropTool.Mode.Single && Cursor.visible && propID > 1) {
+            if (!(propTool is null) && propTool.m_mode == PropTool.Mode.Single && Cursor.visible && propID > 1) {
                 m_propScales[propID] += scaleStep;
             } else if ((MoveItTool.ToolState == MoveItTool.ToolStates.Default) &&
                        UIToolOptionPanel.instance.isVisible && Action.selection.Count > 0) {
                 foreach (Instance instance in Action.selection) {
-                    if (instance is MoveableProp && !instance.id.IsEmpty && instance.id.Prop > 0) {
-                        m_propScales[instance.id.Prop] += scaleStep;
+                    if (instance is MoveableProp && !instance.id.IsEmpty && instance.id.GetProp32() > 0) {
+                        m_propScales[instance.id.GetProp32()] += scaleStep;
                     }
                 }
             }
@@ -54,13 +53,13 @@ namespace PropAnarchy {
         public void DecrementPropSize() {
             PropTool propTool = ToolsModifierControl.GetCurrentTool<PropTool>();
             uint propID = m_currentPropID;
-            if (propTool is not null && propTool.m_mode == PropTool.Mode.Single && Cursor.visible && propID > 1) {
+            if (!(propTool is null) && propTool.m_mode == PropTool.Mode.Single && Cursor.visible && propID > 1) {
                 m_propScales[propID] -= scaleStep;
             } else if ((MoveItTool.ToolState == MoveItTool.ToolStates.Default) &&
                        UIToolOptionPanel.instance.isVisible && Action.selection.Count > 0) {
                 foreach (Instance instance in Action.selection) {
-                    if (instance is MoveableTree && !instance.id.IsEmpty && instance.id.Tree > 0) {
-                        m_propScales[instance.id.Tree] -= scaleStep;
+                    if (instance is MoveableTree && !instance.id.IsEmpty && instance.id.GetProp32() > 0) {
+                        m_propScales[instance.id.GetProp32()] -= scaleStep;
                     }
                 }
             }

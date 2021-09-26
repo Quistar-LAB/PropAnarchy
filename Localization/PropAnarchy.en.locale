@@ -13,6 +13,10 @@ TreeAnarchy Default Locale Template
     <!-- Indicator Messages -->
     <string name="PropAnarchyIsOff">Prop Anarchy is OFF</string>
     <string name="PropAnarchyIsOn">Prop Anarchy is ON</string>
+    <!-- Prop Snapping -->
+    <string name="PropSnapping">Prop Snapping</string>
+    <!-- Decal Prop Fix -->
+    <string name="DecalPropFix">Decal Prop Fix</string>
     <!-- Prop Anarchy -->
     <string name="PropAnarchy">Prop Anarchy</string>
     <string name="PropAnarchyDesc">Allows you to place props anywhere. When you place networks or buildings, you may use the following setting to hide the prop or delete the prop</string>
@@ -25,13 +29,13 @@ TreeAnarchy Default Locale Template
     <string name="PressAnyKey">Press any key</string>
     <!-- Tab Strips -->
     <string name="MainOptionTab">Main Options</string>
-    <string name="PropAnarchyTab">Tree Anarchy</string>
+    <string name="ExtraFunctionsTab">Extra Functions</string>
     <string name="KeyboardShortcutTab">Key Binding</string>
     <string name="KeyBindDescription">When binding hotkeys, please make sure to use modifiers (SHIFT | CONTROL | ALT) for Prop Anarchy. For prop size increment and decrement hotkeys, it is specially treated so you don't have to use modifiers, but please make sure to pick a unique hotkey.</string>
     <!-- Main options -->
     <string name="EnableCustomLimit">Enable Custom Prop Limit</string>
     <string name="MaxPropLimitTitle">Configure Custom Prop Limit</string>
-    <string name="MaxPropLimit">Maximum Prop Limit:  {0} trees</string>
+    <string name="MaxPropLimit">Maximum Prop Limit:  {0} props</string>
     <string name="Important">Important! Must be set before starting/loading a game</string>
     <!-- Tree Snapping specific -->
     <string name="PropSnap">Prop Snapping</string>

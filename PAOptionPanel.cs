@@ -1,14 +1,23 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
 using UnityEngine;
+using EManagersLib.API;
 using static PropAnarchy.PAModule;
 
 namespace PropAnarchy {
     public class PAOptionPanel : UIPanel {
         private const string m_optionPanelName = "PropAnarchyOptionPanel";
+        private const float MIN_SCALE_FACTOR = 1.0f;
+        private const float MAX_SCALE_FACTOR = 42f;
         public const float DefaultFontScale = 0.95f;
         public const float SmallFontScale = 0.85f;
         public const float TabFontScale = 0.9f;
+
+
+        public static UICheckBox m_propAnarchyCB;
+        public static UICheckBox m_propSnappingCB;
+        public UILabel MaxPropLabel;
+        public UISlider PropScaleFactorSlider;
 
         protected PAOptionPanel() {
             gameObject.name = m_optionPanelName;
@@ -33,7 +42,7 @@ namespace PropAnarchy {
             mainPanel.autoSize = false;
             ShowStandardOptions(mainPanel);
 
-            UIPanel snapPanel = AddTab(tabBar, locale.GetLocale("PropSnap"), 1, true);
+            UIPanel snapPanel = AddTab(tabBar, locale.GetLocale("ExtraFunctionsTab"), 1, true);
             snapPanel.autoLayout = false;
             snapPanel.autoSize = false;
             ShowPropSnapOption(snapPanel);
@@ -43,13 +52,41 @@ namespace PropAnarchy {
 
         private void ShowStandardOptions(UIPanel panel) {
             PALocale locale = SingletonLite<PALocale>.instance;
-            UICheckBox indicatorCB = AddCheckBox(panel, locale.GetLocale("EnableCustomLimit"), UseCustomPropLimit, (_, isChecked) => {
-                UseCustomPropLimit = isChecked;
+            m_propAnarchyCB = AddCheckBox(panel, locale.GetLocale("PropAnarchy"), UsePropAnarchy, (_, isChecked) => {
+                UsePropAnarchy = isChecked;
                 SaveSettings();
             });
-            indicatorCB.AlignTo(panel, UIAlignAnchor.TopLeft);
-            indicatorCB.relativePosition = new Vector3(2, 5);
+            m_propAnarchyCB.AlignTo(panel, UIAlignAnchor.TopLeft);
+            m_propAnarchyCB.relativePosition = new Vector3(2, 5);
 
+            m_propSnappingCB = AddCheckBox(panel, locale.GetLocale("PropSnapping"), UsePropSnapping, (_, isChecked) => {
+                UsePropSnapping = isChecked;
+                SaveSettings();
+            });
+            m_propSnappingCB.AlignTo(m_propAnarchyCB, UIAlignAnchor.TopLeft);
+            m_propSnappingCB.relativePosition = new Vector3(0, m_propAnarchyCB.height);
+
+            UICheckBox decalPropFixCB = AddCheckBox(panel, locale.GetLocale("DecalPropFix"), UseDecalPropFix, (_, isChecked) => {
+                UseDecalPropFix = isChecked;
+                SaveSettings();
+            });
+            decalPropFixCB.AlignTo(m_propSnappingCB, UIAlignAnchor.TopLeft);
+            decalPropFixCB.relativePosition = new Vector3(0, m_propSnappingCB.height);
+
+
+            UIPanel ScalePanel = (UIPanel)panel.AttachUIComponent(UITemplateManager.GetAsGameObject("OptionsSliderTemplate"));
+            MaxPropLabel = ScalePanel.Find<UILabel>("Label");
+            MaxPropLabel.width = panel.width - 100;
+            MaxPropLabel.textScale = 1.1f;
+            MaxPropLabel.text = string.Format(locale.GetLocale("MaxPropLimit"), EPropManager.MAX_PROP_LIMIT);
+            PropScaleFactorSlider = AddSlider(ScalePanel, MIN_SCALE_FACTOR, MAX_SCALE_FACTOR, 0.5f, EPropManager.PROP_LIMIT_SCALE, (_, val) => {
+                EPropManager.PROP_LIMIT_SCALE = val;
+                MaxPropLabel.text = string.Format(SingletonLite<PALocale>.instance.GetLocale("MaxPropLimit"), EPropManager.MAX_PROP_LIMIT);
+                SaveSettings();
+            });
+            PropScaleFactorSlider.width = panel.width - 150;
+            ScalePanel.AlignTo(decalPropFixCB, UIAlignAnchor.TopLeft);
+            ScalePanel.relativePosition = new Vector3(0, decalPropFixCB.height);
 
         }
 
@@ -133,6 +170,10 @@ namespace PropAnarchy {
             dropDown.selectedIndex = defaultSelection;
             dropDown.eventSelectedIndexChanged += callback;
             return dropDown;
+        }
+
+        internal static void SetPropAnarchyState(bool state) {
+
         }
     }
 }

@@ -30,20 +30,20 @@ namespace PropAnarchy {
         private static readonly InputKey defaultDecrementPropSizeKey = SavedInputKey.Encode(KeyCode.Comma, false, false, false);
 
 #if ENABLEPROPANARCHY
-        private static readonly SavedInputKey m_propAnarchy = new(togglePropAnarchy, KeybindingConfigFile, defaultTogglePropAnarchyKey, true);
+        private static readonly SavedInputKey m_propAnarchy = new SavedInputKey(togglePropAnarchy, KeybindingConfigFile, defaultTogglePropAnarchyKey, true);
 #endif
-        private static readonly SavedInputKey m_groupProps = new(groupProps, KeybindingConfigFile, defaultGroupPropKey, true);
-        private static readonly SavedInputKey m_ungroupProps = new(ungroupProps, KeybindingConfigFile, defaultUngroupPropKey, true);
-        private static readonly SavedInputKey m_incrPropVariation = new(incrementPropSize, KeybindingConfigFile, defaultIncrementPropSizeKey, true);
-        private static readonly SavedInputKey m_decrPropVariation = new(decrementPropSize, KeybindingConfigFile, defaultDecrementPropSizeKey, true);
+        private static readonly SavedInputKey m_groupProps = new SavedInputKey(groupProps, KeybindingConfigFile, defaultGroupPropKey, true);
+        private static readonly SavedInputKey m_ungroupProps = new SavedInputKey(ungroupProps, KeybindingConfigFile, defaultUngroupPropKey, true);
+        private static readonly SavedInputKey m_incrPropVariation = new SavedInputKey(incrementPropSize, KeybindingConfigFile, defaultIncrementPropSizeKey, true);
+        private static readonly SavedInputKey m_decrPropVariation = new SavedInputKey(decrementPropSize, KeybindingConfigFile, defaultDecrementPropSizeKey, true);
 
         protected void Update() {
             if (!UIView.HasModalInput() && !UIView.HasInputFocus()) {
                 Event e = Event.current;
                 if (m_groupProps.IsPressed(e)) {
-                    SingletonLite<PAManager>.instance.GroupProps();
+                    //SingletonLite<PAManager>.instance.GroupProps();
                 } else if (m_ungroupProps.IsPressed(e)) {
-                    SingletonLite<PAManager>.instance.UngroupProps();
+                    //SingletonLite<PAManager>.instance.UngroupProps();
                 }
 #if ENABLEPROPANARCHY
                 else if (m_propAnarchy.IsPressed(e)) {
@@ -105,7 +105,7 @@ namespace PropAnarchy {
         }
 
         private void OnBindingKeyDown(UIComponent comp, UIKeyEventParameter p) {
-            if (m_EditingBinding is not null && !IsModifierKey(p.keycode)) {
+            if (!(m_EditingBinding is null) && !IsModifierKey(p.keycode)) {
                 p.Use();
                 UIView.PopModal();
                 KeyCode keycode = p.keycode;
@@ -141,16 +141,18 @@ namespace PropAnarchy {
             }
         }
 
-        private KeyCode ButtonToKeycode(UIMouseButton button) => button switch {
-            UIMouseButton.Left => KeyCode.Mouse0,
-            UIMouseButton.Right => KeyCode.Mouse1,
-            UIMouseButton.Middle => KeyCode.Mouse2,
-            UIMouseButton.Special0 => KeyCode.Mouse3,
-            UIMouseButton.Special1 => KeyCode.Mouse4,
-            UIMouseButton.Special2 => KeyCode.Mouse5,
-            UIMouseButton.Special3 => KeyCode.Mouse6,
-            _ => KeyCode.None,
-        };
+        private KeyCode ButtonToKeycode(UIMouseButton button) {
+            switch (button) {
+            case UIMouseButton.Left: return KeyCode.Mouse0;
+            case UIMouseButton.Right: return KeyCode.Mouse1;
+            case UIMouseButton.Middle: return KeyCode.Mouse2;
+            case UIMouseButton.Special0: return KeyCode.Mouse3;
+            case UIMouseButton.Special1: return KeyCode.Mouse4;
+            case UIMouseButton.Special2: return KeyCode.Mouse5;
+            case UIMouseButton.Special3: return KeyCode.Mouse6;
+            default: return KeyCode.None;
+            }
+        }
 
         private bool IsUnbindableMouseButton(UIMouseButton code) => (code == UIMouseButton.Left || code == UIMouseButton.Right);
         private bool IsModifierKey(KeyCode code) => code == KeyCode.LeftControl || code == KeyCode.RightControl || code == KeyCode.LeftShift ||

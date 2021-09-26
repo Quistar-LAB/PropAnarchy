@@ -22,8 +22,8 @@ namespace PropAnarchy {
                 } else {
                     locale = "zh-CN";
                 }
-            } else if(locale == "pt") {
-                if(CultureInfo.InstalledUICulture.Name == "pt-BR") {
+            } else if (locale == "pt") {
+                if (CultureInfo.InstalledUICulture.Name == "pt-BR") {
                     locale = "pt-BR";
                 }
             } else {
@@ -47,7 +47,7 @@ namespace PropAnarchy {
 
         private void LoadLocale(string culture) {
             string localeFile = string.Format(m_directory + m_fileNameTemplate, culture);
-            XmlDocument locale = new();
+            XmlDocument locale = new XmlDocument();
             try {
                 locale.Load(localeFile);
             } catch {
@@ -67,7 +67,7 @@ namespace PropAnarchy {
                             break;
                         }
                     }
-                    if(m_directory is null) {
+                    if (m_directory is null) {
                         m_directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"/Colossal Order/Cities_Skylines/Addons/Mods/PropAnarchy/Locale/";
                     }
                     LocaleManager.eventLocaleChanged += OnLocaleChanged;
