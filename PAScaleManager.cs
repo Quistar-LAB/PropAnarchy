@@ -1,9 +1,9 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
+using EManagersLib.API;
 using MoveIt;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using EManagersLib.API;
 
 namespace PropAnarchy {
     public partial class PAManager : SingletonLite<PAManager> {

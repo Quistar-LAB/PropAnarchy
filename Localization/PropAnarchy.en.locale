@@ -1,12 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <!DOCTYPE root [
     <!ELEMENT root ANY>
     <!ELEMENT string ANY>
     <!ATTLIST string name ID #REQUIRED>
 ]>
-<!--
-TreeAnarchy Default Locale Template
--->
+<!-- PropAnarchy Default Locale Template -->
 <resources>
+    <!-- PLT Specific Translation -->
+    <string name="PLTToggleSnapping">PLT: Toggle Snapping</string>
+    <string name="PLTToggleFenceMode">PLT: Toggle Fence Mode</string>
+    <string name="PLTToggleControlPanel">PLT: Show/Hide Option Panel</string>
+    <string name="PLTTitleBar">PLT Settings</string>
+    <string name="PLTParameters">Parameters</string>
+    <string name="PLTOptions">Options</string>
+    <string name="PLTItemWiseTooltip">Itemwise control&#xA;Place one item at a time along the curve</string>
+    <string name="PLTSpacingTooltip">Spacingwise control&#xA;Place items at discrete intervals</string>
+    <string name="PLTDecouplePrevSegment">Decouple From Previous Segment</string>
+    <string name="PLTSpacingTitle">Spacing</string>
+    <string name="PLTAutoDefaultSpacing">Auto-Default Spacing</string>
+    <string name="PLTAutoDefaultSpacingTooltip">If enabled, automatically sets default spacing whenever a different prop/tree type is selected.&#xA;Spacing will still auto-default when toggling fence mode</string>
+    <string name="PLTAngleTitle">Angle</string>
+    <string name="PLTAngleDynamic">Angle Dynamic</string>
+    <string name="PLTAngleSingle">Angle Single</string>
+    <string name="PLTFlip180">Flip 180&#xb0;</string>
+    <string name="PLTFlip180Tooltip">Rotate props by 180&#xb0; without rotating the change-angle handle in Lock Mode (green)</string>
+    <string name="PLTRelativeAngle">Relative Angle</string>
+    <!-- PLT Calculator Specific Translation -->
+    <string name="PLTDefault">Default</string>
+    <string name="PLTLength">Length</string>
+    <string name="PLTWidth">Width</string>
+    <string name="PLTRound">Round</string>
+    <string name="PLTZero">Zero</string>
+    <!-- PLT Option Specific Translation -->
+    <string name="PLTShowUndoPreview">Show Undo Preview</string>
+    <string name="PLTShowUndoPreviewTooltip">Highlights which items will be deleted in the next Undo command when [Ctrl] key is held</string>
+    <string name="PLTErrorChecking">Error Checking</string>
+    <string name="PLTErrorCheckingTooltip">Toggles whether collision-error calculations are run. Disabling may improve performance</string>
+    <string name="PLTShowErrorGuides">Show Error Guides</string>
+    <string name="PLTShowErrorGuidesTooltip">Highlights items that are blocked by road/building (Yellow-Orange) and items that are invalid placement (Red)</string>
+    <string name="PLTAnarchy">PLT Anarchy</string>
+    <string name="PLTAnarchyTooltip">If Enabled, items are placed regardless of collision-errors</string>
+    <string name="PLTPlaceBlockedItem">Place Blocked Items</string>
+    <string name="PLTPlaceBlockedItemTooltip">If Enabled, items blocked by road/building (Yellow-Orange) will be placed, while invalid items (Red) will not</string>
+    <string name="PLTMeshCenterCorrection">Use Mesh for Center Correction</string>
+    <string name="PLTMeshCenterCorrectionTooltip">Attempt to center items within their footprint.&#xA;Good for props that are not centered within their bounds</string>
+    <string name="PLTPerfectCircle">Perfect Circle</string>
+    <string name="PLTPerfectCircleTooltip">If Enabled, circles snap to the nearest size that would perfectly fit all items on the curve.&#xA;The nearest size depends on the Spacing parameter</string>
+    <string name="PLTLinearFence">Linear Fence Fill</string>
+    <string name="PLTLinearFenceTooltip">When drawing straight fences, overlaps the final piece to end at exact mouse position</string>
     <!-- Misc Props -->
     <string name="GroupProps">Group Props</string>
     <string name="UngroupProps">Ungroup Props</string>
@@ -31,7 +72,7 @@ TreeAnarchy Default Locale Template
     <string name="MainOptionTab">Main Options</string>
     <string name="ExtraFunctionsTab">Extra Functions</string>
     <string name="KeyboardShortcutTab">Key Binding</string>
-    <string name="KeyBindDescription">When binding hotkeys, please make sure to use modifiers (SHIFT | CONTROL | ALT) for Prop Anarchy. For prop size increment and decrement hotkeys, it is specially treated so you don't have to use modifiers, but please make sure to pick a unique hotkey.</string>
+    <string name="KeyBindDescription">When binding hotkeys, please make sure to use modifiers (SHIFT | CONTROL | ALT) for Prop Anarchy. For prop size increment and decrement hotkeys, it is specially treated so you don&#x27;t have to use modifiers, but please make sure to pick a unique hotkey.</string>
     <!-- Main options -->
     <string name="EnableCustomLimit">Enable Custom Prop Limit</string>
     <string name="MaxPropLimitTitle">Configure Custom Prop Limit</string>
@@ -40,8 +81,6 @@ TreeAnarchy Default Locale Template
     <!-- Tree Snapping specific -->
     <string name="PropSnap">Prop Snapping</string>
     <string name="PropSnapLabel">This option allows free movement of trees, and allows trees to be snapped to buildings and props</string>
-    <string name="ExperimentalPropSnap">Use Experimental Prop Snapping</string>
-    <string name="ExperimentalPropSnapDesc">Experimental prop snapping is a hack in MoveIt mod, allowing tree snapping to Building, Networks, Props. Tree snapping works fine when moving trees, but when cloning, offsets will occur after placing the clone. To resolve this, deselect the tree and reselect any tree to reset position. Current I'm working within MoveIt internal framework during my free time to bring a better experience</string>
     <string name="PropSnapToBuilding">Enable this option to allow props to snap to buildings</string>
     <string name="PropSnapToNetwork">Enable this option to allow prop to snap to networks</string>
 </resources>

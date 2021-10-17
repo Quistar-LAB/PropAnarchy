@@ -7,9 +7,9 @@ using System.Xml;
 
 namespace PropAnarchy {
     internal class PALocale : SingletonLite<PALocale> {
-        private const ulong m_thisModID = 2527486462;
+        private const ulong m_thisModID = 2611824446;
         private const string m_defaultLocale = "en";
-        private const string m_fileNameTemplate = @"PropAnarchy.{0}.locale";
+        private const string m_fileNameTemplate = @"PropAnarchy.";
         private XmlDocument m_xmlLocale;
         private string m_directory;
         private bool isInitialized = false;
@@ -46,13 +46,13 @@ namespace PropAnarchy {
         }
 
         private void LoadLocale(string culture) {
-            string localeFile = string.Format(m_directory + m_fileNameTemplate, culture);
+            string localeFile = m_directory + m_fileNameTemplate + culture + ".locale";
             XmlDocument locale = new XmlDocument();
             try {
                 locale.Load(localeFile);
             } catch {
                 /* Load default english locale */
-                localeFile = string.Format(m_directory + m_fileNameTemplate, m_defaultLocale);
+                localeFile = m_directory + m_fileNameTemplate + m_defaultLocale + ".locale";
                 locale.Load(localeFile);
             }
             m_xmlLocale = locale;

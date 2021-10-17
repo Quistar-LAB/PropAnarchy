@@ -1,6 +1,9 @@
-﻿using System;
+﻿using ColossalFramework.UI;
+using System;
+using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
+using UnityEngine;
 
 namespace PropAnarchy {
     public static class PAUtils {
@@ -34,5 +37,46 @@ namespace PropAnarchy {
             return (Action<S, T>)setterMethod.CreateDelegate(typeof(Action<S, T>));
         }
 
+        internal static UITextureAtlas CreateTextureAtlas(string atlasName, string path, string[] spriteNames, int maxSpriteSize) {
+            Texture2D texture2D = new Texture2D(maxSpriteSize, maxSpriteSize, TextureFormat.ARGB32, false);
+            Texture2D[] textures = new Texture2D[spriteNames.Length];
+            for (int i = 0; i < spriteNames.Length; i++) {
+                textures[i] = LoadTextureFromAssembly(path + spriteNames[i] + ".png");
+            }
+            Rect[] rects = texture2D.PackTextures(textures, 2, maxSpriteSize);
+            UITextureAtlas uITextureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
+            Material material = UnityEngine.Object.Instantiate(UIView.GetAView().defaultAtlas.material);
+            material.mainTexture = texture2D;
+            uITextureAtlas.material = material;
+            uITextureAtlas.name = atlasName;
+            for (int j = 0; j < spriteNames.Length; j++) {
+                UITextureAtlas.SpriteInfo item = new UITextureAtlas.SpriteInfo() {
+                    name = spriteNames[j],
+                    texture = textures[j],
+                    region = rects[j]
+                };
+                uITextureAtlas.AddSprite(item);
+            }
+            return uITextureAtlas;
+        }
+
+        internal static Texture2D LoadTextureFromAssembly(string filename) {
+            UnmanagedMemoryStream s = (UnmanagedMemoryStream)Assembly.GetExecutingAssembly().GetManifestResourceStream(filename);
+            byte[] array = new byte[s.Length];
+            s.Read(array, 0, array.Length);
+            Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
+            texture.LoadImage(array);
+            texture.Compress(false);
+            return texture;
+        }
+
+        public static UITextureAtlas GetAtlas(string name) {
+            UITextureAtlas[] atlases = Resources.FindObjectsOfTypeAll(typeof(UITextureAtlas)) as UITextureAtlas[];
+            for (int i = 0; i < atlases.Length; i++) {
+                if (atlases[i].name == name)
+                    return atlases[i];
+            }
+            return UIView.GetAView().defaultAtlas;
+        }
     }
 }

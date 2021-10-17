@@ -34,6 +34,12 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="CitiesHarmony.API, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\CitiesHarmony.API.2.0.0\lib\net35\CitiesHarmony.API.dll</HintPath>
+    </Reference>
+    <Reference Include="CitiesHarmony.Harmony, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\CitiesHarmony.Harmony.2.0.4\lib\net35\CitiesHarmony.Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="ColossalManaged">
       <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\ColossalManaged.dll</HintPath>
     </Reference>
@@ -43,6 +49,9 @@
     </Reference>
     <Reference Include="ICities">
       <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\ICities.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Simd">
+      <HintPath>C:\Program Files (x86)\Mono-2.6.4\lib\mono\2.0\Mono.Simd.dll</HintPath>
     </Reference>
     <Reference Include="MoveIt">
       <HintPath>.\MoveIt.dll</HintPath>
@@ -59,6 +68,19 @@
     <Compile Include="PAUtils.cs" />
     <Compile Include="PAScaleManager.cs" />
     <Compile Include="PAModule.cs" />
+    <Compile Include="PLT\UndoManager.cs" />
+    <Compile Include="PLT\PlacementError.cs" />
+    <Compile Include="PLT\PlacementCalculator.cs" />
+    <Compile Include="PLT\ToolState.cs" />
+    <Compile Include="PLT\Segment3Extension.cs" />
+    <Compile Include="PLT\PropLineTool.cs" />
+    <Compile Include="PLT\Vector3Extensions.cs" />
+    <Compile Include="PLT\PrefabExtension.cs" />
+    <Compile Include="PLT\PLTMath.cs" />
+    <Compile Include="PLT\PLTSettings.cs" />
+    <Compile Include="PLT\SegmentState.cs" />
+    <Compile Include="PLT\ToolBar.cs" />
+    <Compile Include="PLT\OptionPanel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PAKeyBinding.cs" />
     <Compile Include="PALocale.cs" />
@@ -66,6 +88,70 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Localization\PropAnarchy.en.locale" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="PLT\Icons\PLT_BasicDividerTile02x02.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOne.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOnePressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeTwo.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeTwoDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeTwoFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeTwoHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeTwoPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZero.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseOne.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseOneDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseOneFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseOneHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseOnePressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseZero.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseZeroDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseZeroFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseZeroHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseZeroPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOne.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOnePressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateTwo.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateTwoDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateTwoFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateTwoHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateTwoPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZero.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseOne.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseOneDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseOneFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseOneHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseOnePressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseZero.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseZeroDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseZeroFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseZeroHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseZeroPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOne.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOnePressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZero.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroDisabled.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroFocused.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroPressed.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -73,6 +159,7 @@
 if exist "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)" del "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)"
 xcopy /y "$(TargetPath)" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
 xcopy /y "$(TargetDir)\CitiesHarmony.API.dll" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
+xcopy /y "$(TargetDir)\EManagersLib.API.dll" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
 xcopy "$(ProjectDir)Localization" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\Locale" /e /y /i /r</PostBuildEvent>
   </PropertyGroup>
 </Project>
