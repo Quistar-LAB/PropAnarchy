@@ -1,7 +1,8 @@
 ﻿using ColossalFramework;
+using UnityEngine;
 
 namespace PropAnarchy.PLT {
-    public static class PLTSettings {
+    public static class Settings {
         private const string FILENAME = "PropLineTool";
         private static bool m_autoDefaultSpacing = true;
         private static bool m_errorChecking = true;
@@ -13,6 +14,20 @@ namespace PropAnarchy.PLT {
         private static bool m_perfectCircles = false;
         private static bool m_linearFenceFill = false;
         private static bool m_angleFlip180 = false;
+
+        public static Color m_PLTColor_default = new Color32(39, 130, 204, 128);
+        public static Color m_PLTColor_defaultSnapZones = new Color32(39, 130, 204, 255);
+        public static Color m_PLTColor_locked = new Color32(28, 127, 64, 128);
+        public static Color m_PLTColor_lockedStrong = new Color32(28, 127, 64, 192);
+        public static Color m_PLTColor_lockedHighlight = new Color32(228, 239, 232, 160);
+        public static Color m_PLTColor_copyPlace = new Color32(114, 45, 186, 128);
+        public static Color m_PLTColor_copyPlaceHighlight = new Color32(214, 223, 234, 160);
+        public static Color m_PLTColor_hoverBase = new Color32(33, 142, 129, 204);
+        public static Color m_PLTColor_hoverCopyPlace = new Color32(196, 198, 242, 204);
+        public static Color m_PLTColor_undoItemOverlay = new Color32(214, 144, 81, 204);
+        public static Color m_PLTColor_curveWarning = new Color32(231, 155, 24, 160);
+        public static Color m_PLTColor_ItemwiseLock = new Color32(29, 72, 168, 128);
+        public static Color m_PLTColor_MaxFillContinue = new Color32(211, 193, 221, 128);
 
         public static bool AutoDefaultSpacing {
             get => m_autoDefaultSpacing;

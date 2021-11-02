@@ -58,7 +58,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.dll</HintPath>
@@ -68,16 +67,20 @@
     <Compile Include="PAUtils.cs" />
     <Compile Include="PAScaleManager.cs" />
     <Compile Include="PAModule.cs" />
+    <Compile Include="PLT\ControlPoint.cs" />
+    <Compile Include="PLT\DrawCircleState.cs" />
+    <Compile Include="PLT\DrawFreeformState.cs" />
+    <Compile Include="PLT\DrawCurveState.cs" />
+    <Compile Include="PLT\DrawStraightState.cs" />
     <Compile Include="PLT\UndoManager.cs" />
     <Compile Include="PLT\PlacementError.cs" />
-    <Compile Include="PLT\PlacementCalculator.cs" />
-    <Compile Include="PLT\ToolState.cs" />
+    <Compile Include="PLT\ActiveDrawState.cs" />
     <Compile Include="PLT\Segment3Extension.cs" />
     <Compile Include="PLT\PropLineTool.cs" />
     <Compile Include="PLT\Vector3Extensions.cs" />
     <Compile Include="PLT\PrefabExtension.cs" />
     <Compile Include="PLT\PLTMath.cs" />
-    <Compile Include="PLT\PLTSettings.cs" />
+    <Compile Include="PLT\Settings.cs" />
     <Compile Include="PLT\SegmentState.cs" />
     <Compile Include="PLT\ToolBar.cs" />
     <Compile Include="PLT\OptionPanel.cs" />
@@ -152,6 +155,11 @@
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroFocused.png" />
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroHovered.png" />
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroPressed.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\ErrorProne.NET.Core.dll" />
+    <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\ErrorProne.Net.StructAnalyzers.dll" />
+    <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\RuntimeContracts.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

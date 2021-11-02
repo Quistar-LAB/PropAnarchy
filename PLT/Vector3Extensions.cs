@@ -88,5 +88,17 @@ namespace PropAnarchy.PLT {
             v.Normalize();
             return v;
         }
+
+        public static float AngleDynamicXZ(ref this Vector3 directionVector) {
+            Vector3 vectorZero; vectorZero.x = 0; vectorZero.y = 0; vectorZero.z = 0;
+            Vector3 xAxis; xAxis.x = 1; xAxis.y = 0; xAxis.z = 0;
+            Vector3 yAxis; yAxis.x = 0; yAxis.y = 1; yAxis.z = 0;
+            if (directionVector != vectorZero) {
+                directionVector.y = 0f;
+                directionVector.Normalize();
+                return PLTMath.AngleSigned(directionVector, xAxis, yAxis) + Mathf.PI;
+            }
+            return 0f;
+        }
     }
 }

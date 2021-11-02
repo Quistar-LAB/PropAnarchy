@@ -6,6 +6,11 @@ using static PropAnarchy.PLT.PropLineTool;
 namespace PropAnarchy.PLT {
     public static class UndoManager {
         private const int MAX_UNDO_COUNT = 64;
+        public enum ObjectMode {
+            Undefined = 0,
+            Props = 1,
+            Trees = 2
+        }
         class CyclicStack<T> {
             private const int m_capacity = MAX_UNDO_COUNT;
             private T[] m_stack;
@@ -33,20 +38,19 @@ namespace PropAnarchy.PLT {
                 private uint m_itemID;
                 private float m_angle;
                 private Vector3 m_position;
-                private Vector3 m_meshPosition;
-                public PLTObjectMode m_itemType;
+                public ObjectMode m_itemType;
                 public uint TreeID {
                     get => m_itemID;
                     set {
                         m_itemID = value;
-                        m_itemType = PLTObjectMode.Trees;
+                        m_itemType = ObjectMode.Trees;
                     }
                 }
                 public uint PropID {
                     get => m_itemID;
                     set {
                         m_itemID = value;
-                        m_itemType = PLTObjectMode.Props;
+                        m_itemType = ObjectMode.Props;
                     }
                 }
                 public Vector3 Position {
@@ -54,10 +58,6 @@ namespace PropAnarchy.PLT {
                     set => m_position = value;
                 }
                 public float AssetLength { get; set; }
-                public Vector3 MeshPosition {
-                    get => m_meshPosition;
-                    set => m_meshPosition = value;
-                }
                 public float Angle {
                     get => m_angle;
                     set => m_angle = value % 360f;
@@ -65,7 +65,7 @@ namespace PropAnarchy.PLT {
                 public bool ReleaseItem(bool dispatchPlacementEffect) {
                     uint itemID = m_itemID;
                     switch (m_itemType) {
-                    case PLTObjectMode.Trees:
+                    case ObjectMode.Trees:
                         if (Singleton<TreeManager>.instance.m_trees.m_buffer[itemID].m_flags != 0) {
                             Singleton<TreeManager>.instance.ReleaseTree(itemID);
                             if (dispatchPlacementEffect) {
@@ -74,7 +74,7 @@ namespace PropAnarchy.PLT {
                             return true;
                         }
                         break;
-                    case PLTObjectMode.Props:
+                    case ObjectMode.Props:
                         if (EPropManager.m_props.m_buffer[itemID].m_flags != 0) {
                             Singleton<PropManager>.instance.ReleaseProp(itemID);
                             if (dispatchPlacementEffect) {
@@ -90,31 +90,28 @@ namespace PropAnarchy.PLT {
             public bool m_fenceMode;
             public int m_itemCount;
             public ItemSubEntry[] m_items;
-            public SegmentState m_segmentState;
         }
         private static readonly CyclicStack<UndoEntry> m_undoStack = new CyclicStack<UndoEntry>();
 
-        public static bool AddEntry(int itemCount, PLTItemPlacementInfo[] placementInfos, PLTObjectMode objectType) {
+        public static bool AddEntry(int itemCount, ItemInfo[] items) {
             UndoEntry entry = default;
-            switch (objectType) {
-            case PLTObjectMode.Props:
+            PrefabInfo prefab = ItemInfo.Prefab;
+            if (prefab is PropInfo) {
                 UndoEntry.ItemSubEntry[] subEntries = new UndoEntry.ItemSubEntry[itemCount];
                 for (int i = 0; i < itemCount; i++) {
-                    subEntries[i].PropID = placementInfos[i].m_itemID;
-                    subEntries[i].Position = placementInfos[i].m_position;
-                    subEntries[i].MeshPosition = placementInfos[i].MeshPosition;
-                    subEntries[i].Angle = placementInfos[i].m_angle;
+                    subEntries[i].PropID = items[i].m_itemID;
+                    subEntries[i].Position = items[i].Position;
+                    subEntries[i].Angle = items[i].m_angle;
                 }
                 entry.m_itemCount = itemCount;
                 entry.m_items = subEntries;
                 m_undoStack.Push(entry);
                 return true;
-            case PLTObjectMode.Trees:
-                subEntries = new UndoEntry.ItemSubEntry[itemCount];
+            } else if (prefab is TreeInfo) {
+                UndoEntry.ItemSubEntry[] subEntries = new UndoEntry.ItemSubEntry[itemCount];
                 for (int i = 0; i < itemCount; i++) {
-                    subEntries[i].TreeID = placementInfos[i].m_itemID;
-                    subEntries[i].Position = placementInfos[i].m_position;
-                    subEntries[i].MeshPosition = placementInfos[i].MeshPosition;
+                    subEntries[i].TreeID = items[i].m_itemID;
+                    subEntries[i].Position = items[i].Position;
                 }
                 entry.m_itemCount = itemCount;
                 entry.m_items = subEntries;
@@ -124,33 +121,30 @@ namespace PropAnarchy.PLT {
             return false;
         }
 
-        public static bool AddEntry(int itemCount, PLTItemPlacementInfo[] placementInfos, PLTObjectMode objectType, bool fenceMode, SegmentState segmentState) {
+        public static bool AddEntry(int itemCount, ItemInfo[] items, bool fenceMode) {
             UndoEntry entry = default;
-            switch (objectType) {
-            case PLTObjectMode.Props:
+            PrefabInfo prefab = ItemInfo.Prefab;
+            if (prefab is PropInfo) {
                 UndoEntry.ItemSubEntry[] subEntries = new UndoEntry.ItemSubEntry[itemCount];
                 for (int i = 0; i < itemCount; i++) {
-                    subEntries[i].PropID = placementInfos[i].m_itemID;
-                    subEntries[i].Position = placementInfos[i].m_position;
-                    subEntries[i].MeshPosition = placementInfos[i].MeshPosition;
-                    subEntries[i].Angle = placementInfos[i].m_angle;
+                    subEntries[i].PropID = items[i].m_itemID;
+                    subEntries[i].Position = items[i].Position;
+                    subEntries[i].Angle = items[i].m_angle;
                 }
                 entry.m_itemCount = itemCount;
                 entry.m_fenceMode = fenceMode;
-                entry.m_segmentState = segmentState;
+                //entry.m_segmentState = segmentState;
                 entry.m_items = subEntries;
                 m_undoStack.Push(entry);
                 return true;
-            case PLTObjectMode.Trees:
-                subEntries = new UndoEntry.ItemSubEntry[itemCount];
+            } else if (prefab is TreeInfo) {
+                UndoEntry.ItemSubEntry[] subEntries = new UndoEntry.ItemSubEntry[itemCount];
                 for (int i = 0; i < itemCount; i++) {
-                    subEntries[i].TreeID = placementInfos[i].m_itemID;
-                    subEntries[i].Position = placementInfos[i].m_position;
-                    subEntries[i].MeshPosition = placementInfos[i].MeshPosition;
+                    subEntries[i].TreeID = items[i].m_itemID;
+                    subEntries[i].Position = items[i].Position;
                 }
                 entry.m_itemCount = itemCount;
                 entry.m_fenceMode = fenceMode;
-                entry.m_segmentState = segmentState;
                 entry.m_items = subEntries;
                 m_undoStack.Push(entry);
                 return true;

@@ -13,7 +13,7 @@ namespace PropAnarchy {
     public class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = "Prop Anarchy";
         private const string m_modDesc = "Extends the Prop Framework";
-        internal const string m_modVersion = "0.3.4";
+        internal const string m_modVersion = "0.3.5";
         internal const string m_AssemblyVersion = m_modVersion + ".*";
         private const string m_debugLogFile = "00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = "PropAnarchyKeyBindSetting";

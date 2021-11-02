@@ -85,7 +85,11 @@ namespace PropAnarchy.PLT {
             float num = 1.0f - t;
             Vector3 p0 = segment.a;
             Vector3 p1 = segment.b;
-            return new Vector3(p1.x + num * (p0.x - p1.x), p1.y + num * (p0.y - p1.y), p1.z + num * (p0.z - p1.z));
+            Vector3 finalVector;
+            finalVector.x = p1.x + num * (p0.x - p1.x);
+            finalVector.z = p1.z + num * (p0.z - p1.z);
+            finalVector.y = p1.y + num * (p0.y - p1.y);
+            return finalVector;
         }
 
         //used to calculate t in non-fence Curved and Freeform modes

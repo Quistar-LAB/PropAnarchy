@@ -1,10 +1,20 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
 using EManagersLib.API;
+using System;
 using UnityEngine;
-using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
+    [Flags]
+    public enum ItemCollisionType {
+        None = 0,
+        Props = 1,
+        Trees = 2,
+        Blocked = 4,
+        Water = 8,
+        GameArea = 16
+    }
+
     public static class ItemCollisionTypeExtensions {
         public static bool HasFlag(this ItemCollisionType value, ItemCollisionType comparison) => (value & comparison) == comparison;
     }
