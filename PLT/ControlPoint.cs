@@ -22,9 +22,11 @@ namespace PropAnarchy.PLT {
             Vector3 dir_p1 = controlPoints[1].m_direction;
             p2_p0.y = 0f;
             dir_p1.y = 0f;
-            p2_p0.Normalize();
-            controlPoints[1].m_position = controlPoints[0].m_position + dir_p1 *
-                (float)Math.Sqrt(0.5f * p2_p0.sqrMagnitude / Mathf.Max(0.001f, 1f - (float)Math.Cos(3.14159274f - 2f * Mathf.Min(1.17809725f, (float)Math.Acos(Vector3.Dot(p2_p0, dir_p1))))));
+            float sqrMag_2_0 = Vector3.SqrMagnitude(p2_p0);
+            p2_p0 = Vector3.Normalize(p2_p0);
+            float angle_0 = Mathf.Min(1.17809725f, Mathf.Acos(Vector3.Dot(p2_p0, dir_p1)));
+            float dist_p1_p0 = Mathf.Sqrt(0.5f * sqrMag_2_0 / Mathf.Max(0.001f, 1f - Mathf.Cos(3.14159274f - 2f * angle_0)));
+            controlPoints[1].m_position = controlPoints[0].m_position + dir_p1 * dist_p1_p0;
             Vector3 dir_p2 = controlPoints[2].m_position - controlPoints[1].m_position;
             dir_p2.y = 0f;
             dir_p2.Normalize();
@@ -121,11 +123,12 @@ UpdateCurve:
         public static void UpdateCached() => UpdateCached(m_controlPoints);
 
         public static void UpdateCached(PointInfo[] controlPoints) {
+            PointInfo[] cachedPoints = m_cachedControlPoints;
             while (!Monitor.TryEnter(m_cacheLock, SimulationManager.SYNCHRONIZE_TIMEOUT)) { }
             try {
-                m_cachedControlPoints[0] = controlPoints[0];
-                m_cachedControlPoints[1] = controlPoints[1];
-                m_cachedControlPoints[2] = controlPoints[2];
+                cachedPoints[0] = controlPoints[0];
+                cachedPoints[1] = controlPoints[1];
+                cachedPoints[2] = controlPoints[2];
             } finally {
                 Monitor.Exit(m_cacheLock);
             }

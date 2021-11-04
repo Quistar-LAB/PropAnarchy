@@ -23,13 +23,14 @@ namespace PropAnarchy.PLT {
         public delegate T PropertyGetterHandler<T>();
         public delegate void PropertySetterHandler<T>(T value);
         public delegate void PropertyChangedEventHandler<T>(T val);
-        private const float TOLERANCE = 0.001f;
+        public const float TOLERANCE = 0.001f;
         public const int ITEMWISE_INDEX = 0;
         public const int ITEMWISE_FENCE_INDEX_START = 0;
         public const int ITEMWISE_FENCE_INDEX_END = 1;
-        internal static readonly Vector3 vectorZero = Vector3.zero;
         internal static readonly Vector3 m_vectorDown = Vector3.down;
         internal static readonly Vector3 m_vectorZero = Vector3.zero;
+        internal static readonly Vector3 m_vectorUp = Vector3.up;
+        internal static readonly Vector3 m_vectorRight = Vector3.right;
 
         public enum LockingMode : int { Off = 0, Lock = 1 }
         public enum ItemType : byte { UNDEFINED, TREE, PROP }
@@ -54,6 +55,11 @@ namespace PropAnarchy.PLT {
             public delegate void SetDrawModeHandler(int value);
             private static int m_currentMode;
             public static ActiveDrawState CurrentMode;
+            public static SetDrawModeHandler SetCurrentSelected;
+            private static readonly DrawStraightState DrawStraightProc = new DrawStraightState();
+            private static readonly DrawCurveState DrawCurveProc = new DrawCurveState();
+            private static readonly DrawFreeformState DrawFreeformProc = new DrawFreeformState();
+            private static readonly DrawCircleState DrawCircleProc = new DrawCircleState();
             public static int Current {
                 get => m_currentMode;
                 set {
@@ -67,11 +73,6 @@ namespace PropAnarchy.PLT {
                     }
                 }
             }
-            public static SetDrawModeHandler SetCurrentSelected;
-            private static readonly DrawStraightState DrawStraightProc = new DrawStraightState();
-            private static readonly DrawCurveState DrawCurveProc = new DrawCurveState();
-            private static readonly DrawFreeformState DrawFreeformProc = new DrawFreeformState();
-            private static readonly DrawCircleState DrawCircleProc = new DrawCircleState();
         }
         public struct ItemInfo {
             public bool m_isValidPlacement;
@@ -241,8 +242,8 @@ namespace PropAnarchy.PLT {
         internal static float m_lockedBackupAngleSingle = 0f;
         internal static float m_lockedBackupAngleOffset = 0f;
         internal static float m_lockedBackupItemSecondAngle = 0f;
-        internal static Vector3 m_lockedBackupCachedPosition = Vector3.zero;
-        internal static Vector3 m_lockedBackupItemDirection = Vector3.right;
+        internal static Vector3 m_lockedBackupCachedPosition = m_vectorZero;
+        internal static Vector3 m_lockedBackupItemDirection = m_vectorRight;
         internal static float m_lockedBackupItemwiseT = 0f;
 
         public static float m_hoverAngle = 0f;
@@ -408,7 +409,7 @@ namespace PropAnarchy.PLT {
             InstanceID id = default;
             EffectInfo effectInfo = isBulldozeEffect ? m_bulldozeEffect : m_placementEffect;
             EffectInfo.SpawnArea spawnArea = new EffectInfo.SpawnArea(position, vectorUp, 1f);
-            DispatchItemEffect(effectInfo, id, spawnArea, Vector3.zero, 0f, 1f, m_defaultAudioGroup);
+            DispatchItemEffect(effectInfo, id, spawnArea, m_vectorZero, 0f, 1f, m_defaultAudioGroup);
         }
 
         public static void GoToActiveState(ActiveState state) {
@@ -528,7 +529,7 @@ namespace PropAnarchy.PLT {
                 case ActiveState.ChangeSpacing:
                 case ActiveState.ChangeAngle:
 UpdateItemPlacementInfo:
-//ItemInfo.UpdatePlacement();
+                    SegmentState.UpdatePlacement();
                     break;
                 }
                 if (ControlPoint.m_validPoints == 0) return;
@@ -672,7 +673,6 @@ UpdateItemPlacementInfo:
 
         public override void RenderOverlay(RenderManager.CameraInfo cameraInfo) {
             base.RenderOverlay(cameraInfo);
-            Event e = Event.current;
             Color mainCurveColor = Settings.m_PLTColor_locked;
             Color lockIdleColor = Settings.m_PLTColor_locked;
             Color curveWarningColor = Settings.m_PLTColor_curveWarning;
@@ -680,7 +680,7 @@ UpdateItemPlacementInfo:
             Color copyPlaceColor = IsActiveStateAnItemRenderState() && SegmentState.IsReadyForMaxContinue ? Settings.m_PLTColor_MaxFillContinue : Settings.m_PLTColor_copyPlace;
             Color createPointColor = m_controlMode == ControlMode.ITEMWISE ? Settings.m_PLTColor_ItemwiseLock : Settings.m_PLTColor_default;
 
-            if ((e.modifiers & EventModifiers.Control) == EventModifiers.Control && Settings.ShowUndoPreviews) {
+            if (m_keyboardCtrlDown && Settings.ShowUndoPreviews) {
                 //undoManager.RenderLatestEntryCircles(cameraInfo, m_PLTColor_undoItemOverlay);
             }
 
@@ -693,12 +693,12 @@ UpdateItemPlacementInfo:
                 }
                 break;
             case ActiveState.CreatePointSecond: //creating second control point
-                if (!DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, e, ActiveState.CreatePointSecond, ref createPointColor, ref curveWarningColor, ref copyPlaceColor)) {
+                if (!DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.CreatePointSecond, ref createPointColor, ref curveWarningColor, ref copyPlaceColor)) {
                     goto case ActiveState.CreatePointFirst;
                 }
                 break;
             case ActiveState.CreatePointThird: //creating third control point
-                if (DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, e, ActiveState.CreatePointThird, ref createPointColor, ref curveWarningColor, ref copyPlaceColor)) {
+                if (DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.CreatePointThird, ref createPointColor, ref curveWarningColor, ref copyPlaceColor)) {
                     goto case ActiveState.CreatePointSecond;
                 }
                 break;
@@ -712,14 +712,14 @@ UpdateItemPlacementInfo:
             case ActiveState.ItemwiseLock:
             case ActiveState.MoveItemwiseItem:
                 lockIdleColor = m_hoverState == HoverState.SpacingLocus ? Settings.m_PLTColor_lockedStrong : lockIdleColor;
-                if ((e.modifiers & EventModifiers.Alt) == EventModifiers.Alt) {
+                if (m_keyboardAltDown) {
                     mainCurveColor = copyPlaceColor;
                 } else {
                     if ((ActiveDrawState.m_currentState == ActiveState.LockIdle || ActiveDrawState.m_currentState == ActiveState.MaxFillContinue) &&
                         (SegmentState.IsReadyForMaxContinue || SegmentState.IsMaxFillContinue)) {
                         RenderMaxFillContinueMarkers(cameraInfo);
                     }
-                    if ((e.modifiers & EventModifiers.Control) == EventModifiers.Control) {
+                    if (m_keyboardCtrlDown) {
                         if (m_controlMode == ControlMode.ITEMWISE) {
                             if (ActiveDrawState.m_currentState == ActiveState.ItemwiseLock) {
                                 mainCurveColor = lockIdleColor;
@@ -742,7 +742,7 @@ UpdateItemPlacementInfo:
                         //show adjustment circles
                         RenderHoverObjectOverlays(cameraInfo);
                         if (m_hoverState == HoverState.Curve && ActiveDrawState.m_currentState == ActiveState.LockIdle) {
-                            mainCurveColor = (e.modifiers & EventModifiers.Alt) == EventModifiers.Alt ? Settings.m_PLTColor_copyPlaceHighlight : Settings.m_PLTColor_lockedHighlight;
+                            mainCurveColor = m_keyboardAltDown ? Settings.m_PLTColor_copyPlaceHighlight : Settings.m_PLTColor_lockedHighlight;
                         }
                     }
                 }
@@ -753,7 +753,7 @@ UpdateItemPlacementInfo:
                 RenderCircle(cameraInfo, cachedControlPoints[2].m_position, 0.10f, lockIdleColor, false, true);
                 break;
             case ActiveState.MaxFillContinue:
-                DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, e, ActiveState.MaxFillContinue, ref createPointColor, ref curveWarningColor, ref copyPlaceColor);
+                DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.MaxFillContinue, ref createPointColor, ref curveWarningColor, ref copyPlaceColor);
                 break;
             }
             if (Settings.ShowErrorGuides) {
@@ -770,7 +770,7 @@ UpdateItemPlacementInfo:
             case ActiveState.MaxFillContinue:
                 return;
             }
-            if (m_itemCount < (1 + (GetFenceMode() ? 0 : 1)) && m_controlMode != ControlMode.ITEMWISE) {
+            if (m_itemCount < (GetFenceMode() ? 1 : 2) && m_controlMode != ControlMode.ITEMWISE) {
                 return;
             }
             //setup highlight colors

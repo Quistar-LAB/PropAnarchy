@@ -14,7 +14,7 @@ namespace PropAnarchy.PLT {
                     return true;
                 }
             }
-            centerCorrectionOrtho = Vector3.zero;
+            centerCorrectionOrtho = PropLineTool.m_vectorZero;
             return false;
         }
 

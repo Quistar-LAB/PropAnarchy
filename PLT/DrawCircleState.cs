@@ -5,14 +5,6 @@ using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
     public class DrawCircleState : ActiveDrawState {
-        public static Circle3XZ m_mainCircle;
-        public static Circle3XZ m_rawCircle;
-        private static bool m_prevLeftMouseDown = false;
-        public DrawCircleState() : base() {
-            m_mainCircle = new Circle3XZ();
-            m_rawCircle = new Circle3XZ();
-        }
-
         private IEnumerator<bool> ContinueDrawingFromLockMode(bool finalizePlacement) {
             //check if in fence mode and line is too short
             if (!GetFenceMode() && m_itemCount > 0 && finalizePlacement && FinalizePlacement(true, false)) {
@@ -46,7 +38,8 @@ namespace PropAnarchy.PLT {
             }
             switch (currentState) {
             case ActiveState.CreatePointFirst:
-                if (!isInsideUI && leftMouseDown) {
+                if (!isInsideUI && leftMouseDown && !m_prevLeftMouseDown) {
+                    m_prevLeftMouseDown = true;
                     SegmentState.FinalizeForPlacement(false);
                     ControlPoint.Add(ref m_cachedPosition);
                     GoToActiveState(ActiveState.CreatePointSecond);
@@ -57,7 +50,8 @@ namespace PropAnarchy.PLT {
                 break;
             case ActiveState.CreatePointSecond:
                 if (!isInsideUI) {
-                    if (leftMouseDown && IsLengthLongEnough()) {
+                    if (leftMouseDown && !m_prevLeftMouseDown && IsLengthLongEnough()) {
+                        m_prevLeftMouseDown = true;
                         ControlPoint.Add(ref m_cachedPosition);
                         if (ctrlDown) {
                             m_previousLockingMode = m_lockingMode;
@@ -66,8 +60,6 @@ namespace PropAnarchy.PLT {
                             m_previousLockingMode = m_lockingMode;
                             GoToActiveState(ActiveState.ItemwiseLock);
                         } else {
-                            if (m_prevLeftMouseDown != leftMouseDown) {
-                                m_prevLeftMouseDown = leftMouseDown;
                                 Singleton<SimulationManager>.instance.AddAction(() => {
                                     FinalizePlacement(true, false);
                                     if (!PostCheckAndContinue()) {
@@ -75,12 +67,6 @@ namespace PropAnarchy.PLT {
                                         GoToActiveState(ActiveState.CreatePointFirst);
                                     }
                                 });
-                            } else {
-                                GoToActiveState(ActiveState.CreatePointThird);
-                                ControlPoint.Modify(ref m_mousePosition, 2);
-                                DrawMode.CurrentMode.UpdateCurve();
-                                SegmentState.UpdatePlacement(true, false);
-                            }
                         }
                     } else if (rightMouseDown) {
                         ControlPoint.Cancel();
@@ -88,11 +74,8 @@ namespace PropAnarchy.PLT {
                         ControlPoint.Modify(ref m_mousePosition, 0);
                         UpdateCurve();
                     } else {
-                        m_prevLeftMouseDown = false;
-                        ControlPoint.Add(ref m_cachedPosition);
-                        GoToActiveState(ActiveState.CreatePointThird);
-                        ControlPoint.Modify(ref m_mousePosition, 2);
-                        DrawMode.CurrentMode.UpdateCurve();
+                        ControlPoint.Modify(ref m_mousePosition, 1);
+                        UpdateCurve();
                         SegmentState.UpdatePlacement(true, false);
                     }
                 }
@@ -243,7 +226,6 @@ FinalizeControlPoint:
         }
 
         public override void OnRenderGeometry(RenderManager.CameraInfo cameraInfo) {
-            base.OnRenderGeometry(cameraInfo);
         }
 
         public override void RenderLines(RenderManager.CameraInfo cameraInfo, ref Color createPointColor, ref Color curveWarningColor) {
@@ -253,16 +235,16 @@ FinalizeControlPoint:
             RenderMainCircle(cameraInfo, m_mainCircle, 1.00f, createPointColor, false, true);
         }
 
-        public override bool OnRenderOverlay(RenderManager.CameraInfo cameraInfo, Event e, ActiveState curState, ref Color createPointColor, ref Color curveWarningColor, ref Color copyPlaceColor) {
+        public override bool OnRenderOverlay(RenderManager.CameraInfo cameraInfo, ActiveState curState, ref Color createPointColor, ref Color curveWarningColor, ref Color copyPlaceColor) {
             Vector3 vectorZero; vectorZero.x = 0f; vectorZero.y = 0f; vectorZero.z = 0f;
             ControlPoint.PointInfo[] cachedControlPoints = ControlPoint.m_cachedControlPoints;
             if (cachedControlPoints[1].m_direction != vectorZero) {
                 switch (curState) {
                 case ActiveState.MaxFillContinue:
                 case ActiveState.CreatePointSecond:
-                    if ((e.modifiers & EventModifiers.Alt) == EventModifiers.Alt) {
+                    if (m_keyboardAltDown) {
                         createPointColor = copyPlaceColor; ;
-                    } else if ((e.modifiers & EventModifiers.Control) == EventModifiers.Control) {
+                    } else if (m_keyboardCtrlDown) {
                         createPointColor = Settings.m_PLTColor_locked;
                     }
                     RenderLines(cameraInfo, ref createPointColor, ref curveWarningColor);
@@ -276,10 +258,6 @@ FinalizeControlPoint:
                 return true;
             }
             return false;
-        }
-
-        public override void OnSimulationStep() {
-            base.OnSimulationStep();
         }
 
         public override void OnToolLateUpdate() {
@@ -350,18 +328,22 @@ FinalizeControlPoint:
         public override void RevertDrawingFromLockMode() {
             GoToActiveState(ActiveState.CreatePointSecond);
             ControlPoint.Modify(ref m_mousePosition, 2); //update position of first point
-            DrawMode.CurrentMode.UpdateCurve();
+            UpdateCurve();
             SegmentState.UpdatePlacement(false, false);
         }
 
         public override void CalculateAllDirections() {
+            int itemCount = m_itemCount;
+            ItemInfo[] items = m_items;
             if (GetFenceMode()) {
-                for (int i = 0; i < m_itemCount; i++) {
-                    m_items[i].SetDirectionsXZ(m_fenceEndPoints[i + 1] - m_fenceEndPoints[i]);
+                Vector3[] fenceEndPoints = m_fenceEndPoints;
+                for (int i = 0; i < itemCount; i++) {
+                    items[i].SetDirectionsXZ(fenceEndPoints[i + 1] - fenceEndPoints[i]);
                 }
             } else {
-                for (int i = 0; i < m_itemCount; i++) {
-                    m_items[i].SetDirectionsXZ(m_mainCircle.Tangent(m_items[i].m_t));
+                Circle3XZ mainCircle = m_mainCircle;
+                for (int i = 0; i < itemCount; i++) {
+                    items[i].SetDirectionsXZ(mainCircle.Tangent(items[i].m_t));
                 }
             }
         }
@@ -421,7 +403,7 @@ FinalizeControlPoint:
                 position = mainCircle.Position(t);
                 center = mainCircle.m_center;
                 radiusVector = position - center;
-                rotation = Quaternion.AngleAxis(-1f * chordAngle * Mathf.Rad2Deg, Vector3.up);
+                rotation = Quaternion.AngleAxis(-1f * chordAngle * Mathf.Rad2Deg, m_vectorUp);
                 //calculate endpoints
                 for (int i = 0; i < numItems + 1; i++) {
                     penultimateT = t;
@@ -463,7 +445,7 @@ FinalizeControlPoint:
             center = mainCircle.m_center;
             radiusVector = position - center;
             float deltaAngle = mainCircle.DeltaAngle(spacing);
-            rotation = Quaternion.AngleAxis(-1f * deltaAngle * Mathf.Rad2Deg, Vector3.up);
+            rotation = Quaternion.AngleAxis(-1f * deltaAngle * Mathf.Rad2Deg, m_vectorUp);
             for (int i = 0; i < numItems; i++) {
                 m_items[i].m_t = t;
                 m_items[i].Position = position;
@@ -533,7 +515,7 @@ FinalizeControlPoint:
                     controlPoints[1].m_position = lockedControlPoints[1].m_position + translation;
                     controlPoints[2].m_position = lockedControlPoints[2].m_position + translation;
                     ControlPoint.UpdateCached(controlPoints);
-                    DrawMode.CurrentMode.UpdateCurve();
+                    UpdateCurve();
                     SegmentState.UpdatePlacement();
                     break;
                 case ActiveState.ChangeSpacing:
@@ -557,7 +539,7 @@ FinalizeControlPoint:
                         }
                     }
                     ControlPoint.UpdateCached();
-                    DrawMode.CurrentMode.UpdateCurve();
+                    UpdateCurve();
                     SegmentState.UpdatePlacement(true, true);
                     break;
                 case ActiveState.ChangeAngle:
@@ -578,7 +560,7 @@ FinalizeControlPoint:
                         ItemInfo.m_itemAngleSingle = angle + Mathf.PI;
                     }
                     ControlPoint.UpdateCached();
-                    DrawMode.CurrentMode.UpdateCurve();
+                    UpdateCurve();
                     SegmentState.UpdatePlacement();
                     break;
                 case ActiveState.ItemwiseLock:
@@ -594,7 +576,7 @@ FinalizeControlPoint:
             if (GetFenceMode() || mainCircle.m_radius <= 0f) return;
             int numItems = Mathf.CeilToInt(fillLength / interval);
             float deltaT = interval / mainCircle.Circumference;
-            Quaternion rotation = Quaternion.AngleAxis(deltaT * -360f, Vector3.up);
+            Quaternion rotation = Quaternion.AngleAxis(deltaT * -360f, m_vectorUp);
             Vector3 position = mainCircle.Position(0f);
             Vector3 center = mainCircle.m_center;
             Vector3 radiusVector = position - center;

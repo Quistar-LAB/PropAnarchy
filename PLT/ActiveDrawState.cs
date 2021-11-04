@@ -24,11 +24,15 @@ namespace PropAnarchy.PLT {
         private const int LEFTMOUSEBUTTON = 0;
         private const int RIGHTMOUSEBUTTON = 1;
         public static ActiveState m_currentState;
-        public static Segment3 m_mainSegment;
+        public static Segment3 m_mainSegment = new Segment3();
+        public static Segment3 m_mainArm1 = new Segment3();
+        public static Segment3 m_mainArm2 = new Segment3();
+        public static Bezier3 m_mainBezier = new Bezier3();
+        public static Circle3XZ m_mainCircle = new Circle3XZ();
+        public static Circle3XZ m_rawCircle = new Circle3XZ();
+        protected static bool m_prevLeftMouseDown = false;
+        protected static bool m_prevRightMouseDown = false;
 
-        public virtual void OnRenderGeometry(RenderManager.CameraInfo cameraInfo) { }
-        public virtual void RenderLines(RenderManager.CameraInfo cameraInfo, ref Color createPointColor, ref Color curveWarningColor) { }
-        public virtual bool OnRenderOverlay(RenderManager.CameraInfo cameraInfo, Event e, ActiveState curState, ref Color createPointColor, ref Color curveWarningColor, ref Color copyPlaceColor) { return false; }
         public bool OnDefaultToolGUI(Event e, out bool leftMouseDown, out bool rightMouseDown, out bool altDown, out bool ctrlDown) {
             bool result = true;
             ctrlDown = false;
@@ -49,8 +53,14 @@ namespace PropAnarchy.PLT {
                 break;
             case EventType.MouseUp:
                 switch (e.button) {
-                case LEFTMOUSEBUTTON: m_mouseLeftDown = false; break;
-                case RIGHTMOUSEBUTTON: m_mouseRightDown = false; break;
+                case LEFTMOUSEBUTTON:
+                    m_prevLeftMouseDown = false;
+                    m_mouseLeftDown = false;
+                    break;
+                case RIGHTMOUSEBUTTON:
+                    m_prevRightMouseDown = false;
+                    m_mouseRightDown = false;
+                    break;
                 }
                 break;
             case EventType.KeyDown:
@@ -71,23 +81,25 @@ namespace PropAnarchy.PLT {
             rightMouseDown = m_mouseRightDown;
             return result;
         }
-        public virtual void OnToolGUI(Event e, bool isInsideUI) { }
+        public abstract void OnToolGUI(Event e, bool isInsideUI);
         public virtual void OnToolUpdate() { }
         public virtual void OnToolLateUpdate() { }
-        public virtual void OnSimulationStep() { }
-        public virtual bool ContinueDrawing(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount) { return false; }
-        public virtual bool IsLengthLongEnough() { return false; }
-        public virtual bool PostCheckAndContinue() => PostCheckAndContinue(ControlPoint.m_controlPoints, ControlPoint.m_cachedControlPoints, ref ControlPoint.m_validPoints);
-        public virtual bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ControlPoint.PointInfo[] cachedControlPoints, ref int controlPointCount) { return false; }
-        public virtual void UpdateCurve() => UpdateCurve(ControlPoint.m_controlPoints, ControlPoint.m_validPoints);
-        public virtual void UpdateCurve(ControlPoint.PointInfo[] cachedControlPoints, int cachedControlPointCount) { }
-        public virtual void RevertDrawingFromLockMode() { }
-        public virtual void CalculateAllDirections() { }
-        public virtual bool CalculateItemwisePosition(float fencePieceLength, float initialOffset, Vector3 lastFenceEndpoint) { return false; }
-        public virtual int CalculateAllPositionsBySpacing(float spacing, float initialOffset, Vector3 lastFenceEndpoint) { return 0; }
-        public virtual void DiscoverHoverState(Vector3 position) { }
-        public virtual void UpdateMiscHoverParameters() { }
-        public virtual void RenderProgressiveSpacingFill(RenderManager.CameraInfo cameraInfo, float fillLength, float interval, float size, Color color, bool renderLimits, bool alphaBlend) { }
+        public abstract void OnRenderGeometry(RenderManager.CameraInfo cameraInfo);
+        public abstract bool OnRenderOverlay(RenderManager.CameraInfo cameraInfo, ActiveState curState, ref Color createPointColor, ref Color curveWarningColor, ref Color copyPlaceColor);
+        public abstract void RenderLines(RenderManager.CameraInfo cameraInfo, ref Color createPointColor, ref Color curveWarningColor);
+        public abstract bool ContinueDrawing(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount);
+        public abstract bool IsLengthLongEnough();
+        public bool PostCheckAndContinue() => PostCheckAndContinue(ControlPoint.m_controlPoints, ControlPoint.m_cachedControlPoints, ref ControlPoint.m_validPoints);
+        public abstract bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ControlPoint.PointInfo[] cachedControlPoints, ref int controlPointCount);
+        public void UpdateCurve() => UpdateCurve(ControlPoint.m_cachedControlPoints, ControlPoint.m_validPoints);
+        public abstract void UpdateCurve(ControlPoint.PointInfo[] cachedControlPoints, int cachedControlPointCount);
+        public abstract void RevertDrawingFromLockMode();
+        public abstract void CalculateAllDirections();
+        public abstract bool CalculateItemwisePosition(float fencePieceLength, float initialOffset, Vector3 lastFenceEndpoint);
+        public abstract int CalculateAllPositionsBySpacing(float spacing, float initialOffset, Vector3 lastFenceEndpoint);
+        public abstract void DiscoverHoverState(Vector3 position);
+        public abstract void UpdateMiscHoverParameters();
+        public abstract void RenderProgressiveSpacingFill(RenderManager.CameraInfo cameraInfo, float fillLength, float interval, float size, Color color, bool renderLimits, bool alphaBlend);
         public void RenderMaxFillContinueMarkers(RenderManager.CameraInfo cameraInfo) {
             const float radius = 6f;
             if (m_controlMode == ControlMode.ITEMWISE) return;
@@ -105,8 +117,6 @@ namespace PropAnarchy.PLT {
             RenderSegment(cameraInfo, new Segment3(m_mousePosition, initialItemPosition), 0.05f, 3.00f, maxFillContinueColor, false, true);
             RenderSegment(cameraInfo, new Segment3(m_mousePosition, finalItemPosition), 0.05f, 3.00f, maxFillContinueColor, false, true);
         }
-
-        public ActiveState CurrentState => m_currentState;
 
         public void ResetDrawState() {
             m_currentState = ActiveState.CreatePointFirst;

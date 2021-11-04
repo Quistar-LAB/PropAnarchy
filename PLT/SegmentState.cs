@@ -20,7 +20,7 @@ namespace PropAnarchy.PLT {
             //error checking
             public bool m_allItemsValid;
             public bool IsReadyForMaxContinue => m_maxItemCountExceeded;
-            public static SegmentInfo Default => new SegmentInfo(0f, 0f, Vector3.down, Vector3.down, false, false, false, false, true);
+            public static SegmentInfo Default => new SegmentInfo(0f, 0f, m_vectorDown, m_vectorDown, false, false, false, false, true);
             public SegmentInfo(float lastFinalOffset, float newFinalOffset, Vector3 lastFenceEndpoint, Vector3 newFenceEndpoint, bool isContinueDrawing, bool keepLastOffsets, bool maxItemCountExceeded, bool isMaxFillContinue, bool allItemsValid) {
                 m_lastFinalOffset = lastFinalOffset;
                 m_newFinalOffset = newFinalOffset;
@@ -173,8 +173,8 @@ namespace PropAnarchy.PLT {
         }
 
         private static void CalculateAllAnglesBase() {
-            Vector3 xAxis = Vector3.right;
-            Vector3 yAxis = Vector3.up;
+            Vector3 xAxis = m_vectorRight;
+            Vector3 yAxis = m_vectorUp;
             int itemCount = m_itemCount;
             if (GetFenceMode()) {
                 float offsetAngle = Mathf.Deg2Rad * (((ItemInfo.m_itemModelZ > ItemInfo.m_itemModelX ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.m_itemAngleOffset) * Mathf.Rad2Deg % 360f);

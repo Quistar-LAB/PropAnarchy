@@ -17,20 +17,9 @@ namespace PropAnarchy.PLT {
         /// <returns></returns>
         public static float NormalizeAngle360(float inputAngle) => (inputAngle < 0f) ? -1f * Math.Abs(inputAngle) % 360f : Math.Abs(inputAngle) % 360f;
 
-        /// <summary>Constrains Bezier to XZ plane</summary>
-        /// <param name="bezier"></param>
-        /// <returns>A bezier curve with y-components set to zero</returns>
-        public static Bezier3 BezierXZ(Bezier3 bezier) {
-            bezier.a.y = 0f;
-            bezier.b.y = 0f;
-            bezier.c.y = 0f;
-            bezier.d.y = 0f;
-            return bezier;
-        }
-
         /// <summary>Constrains input Bezier to XZ plane</summary>
         /// <param name="bezier"></param>
-        public static void BezierXZ(ref Bezier3 bezier) {
+        public static void BezierXZ(ref this Bezier3 bezier) {
             bezier.a.y = 0f;
             bezier.b.y = 0f;
             bezier.c.y = 0f;
@@ -40,22 +29,13 @@ namespace PropAnarchy.PLT {
         /// <summary>Constrains Segment to XZ plane</summary>
         /// <param name="bezier"></param>
         /// <returns>A bezier curve with y-components set to zero</returns>
-        public static Segment3 SegmentXZ(Segment3 lineSegment) {
-            lineSegment.a.y = 0f;
-            lineSegment.b.y = 0f;
-            return lineSegment;
-        }
-
-        /// <summary>Constrains input Segment to XZ plane</summary>
-        /// <param name="bezier"></param>
-        /// <returns>A bezier curve with y-components set to zero</returns>
-        public static void SegmentXZ(ref Segment3 lineSegment) {
+        public static void SegmentXZ(ref this Segment3 lineSegment) {
             lineSegment.a.y = 0f;
             lineSegment.b.y = 0f;
         }
 
         //standard conversion
-        public static Bezier3 QuadraticToCubicBezier(Vector3 startPoint, Vector3 middlePoint, Vector3 endPoint) {
+        public static Bezier3 QuadraticToCubicBezier(ref Vector3 startPoint, ref Vector3 middlePoint, ref Vector3 endPoint) {
             Bezier3 bezier;
             bezier.a = startPoint;
             bezier.b = startPoint + (2.0f / 3.0f) * (middlePoint - startPoint);
@@ -67,29 +47,12 @@ namespace PropAnarchy.PLT {
         //CO's in-house method
         //uses negative of endDirection
         //rounds out tight re-curves (or tight curves)
-        public static Bezier3 QuadraticToCubicBezierCOMethod(Vector3 startPoint, Vector3 startDirection, Vector3 endPoint, Vector3 endDirection /*switch this sign when using!*/) {
-            Bezier3 bezier;
+        public static ref readonly Bezier3 QuadraticToCubicBezierCOMethod(ref Bezier3 bezier, ref Vector3 startPoint, ref Vector3 startDirection, ref Vector3 endPoint, ref Vector3 endDirection) {
             bezier.a = startPoint;
             bezier.d = endPoint;
+            endDirection = -endDirection;
             NetSegment.CalculateMiddlePoints(startPoint, startDirection, endPoint, endDirection, false, false, out bezier.b, out bezier.c);
-            return bezier;
-        }
-
-        /// <summary>
-        /// Interpolates and Extrapolates the position along a parametric line defined by two points.
-        /// </summary>
-        /// <param name="segment">Line segment from p0 to p1</param>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        public static Vector3 LinePosition(Segment3 segment, float t) {
-            float num = 1.0f - t;
-            Vector3 p0 = segment.a;
-            Vector3 p1 = segment.b;
-            Vector3 finalVector;
-            finalVector.x = p1.x + num * (p0.x - p1.x);
-            finalVector.z = p1.z + num * (p0.z - p1.z);
-            finalVector.y = p1.y + num * (p0.y - p1.y);
-            return finalVector;
+            return ref bezier;
         }
 
         //used to calculate t in non-fence Curved and Freeform modes
@@ -100,15 +63,14 @@ namespace PropAnarchy.PLT {
         /// <param name="distance"></param>
         /// <param name="tolerance"></param>
         /// <param name="tEnd"></param>
-        public static void StepDistanceCurve(Bezier3 bezier, float tStart, float distance, float tolerance, out float tEnd) {
-            float tCurrent = bezier.Travel(tStart, distance);
-            float distCurrent = CubicBezierArcLengthXZGauss04(bezier, tStart, tCurrent);
+        public static void StepDistanceCurve(ref this Bezier3 bezier, float tStart, float distance, float tolerance, out float tEnd) {
+            tEnd = bezier.Travel(tStart, distance);
+            float distCurrent = bezier.CubicBezierArcLengthXZGauss04(tStart, tEnd);
             float toleranceSqr = tolerance * tolerance;
             for (int i = 0; i < 12 && Pow(distance - distCurrent, 2) > toleranceSqr; i++) {
-                distCurrent = CubicBezierArcLengthXZGauss04(bezier, tStart, tCurrent);
-                tCurrent += (distance - distCurrent) / CubicSpeedXZ(bezier, tCurrent);
+                distCurrent = bezier.CubicBezierArcLengthXZGauss04(tStart, tEnd);
+                tEnd += (distance - distCurrent) / bezier.CubicSpeedXZ(tEnd);
             }
-            tEnd = tCurrent;
         }
 
 
@@ -125,7 +87,7 @@ namespace PropAnarchy.PLT {
         /// <param name="allowBackwards">Set to false to only step forward along the curve in the direction t=0 -> t=1.</param>
         public static bool CircleCurveFenceIntersectXZ(Bezier3 bezier, float tStart, float lengthOfSegment, float tolerance, out float tEnd, bool allowBackwards) {
             const float adjustmentScalar = 1.0f;  //if using multiplicity, _adjustmentScalar = 2
-            Bezier3 bezierXZ = BezierXZ(bezier);
+            bezier.BezierXZ();
             float toleranceSqr = tolerance * tolerance;
 
             //haven't tested this to see if it will really go backwards
@@ -139,14 +101,14 @@ namespace PropAnarchy.PLT {
                 return false;
             }
             //initial guess setup
-            StepDistanceCurve(bezierXZ, tStart, lengthOfSegment, tolerance, out float t0);
-            float iteratedDistance = Vector3.Distance(bezierXZ.Position(t0), bezierXZ.Position(tStart));
+            bezier.StepDistanceCurve(tStart, lengthOfSegment, tolerance, out float t0);
+            float iteratedDistance = Vector3.Distance(bezier.Position(t0), bezier.Position(tStart));
             for (int i = 0; i < 25 && Pow(iteratedDistance - lengthOfSegment, 2) > toleranceSqr; i++) {
-                float errorFunc = PLTErrorFunctionXZ(bezierXZ, t0, tStart, lengthOfSegment);
-                float errorPrime = PLTErrorFunctionPrimeXZ(bezierXZ, t0, tStart);
+                float errorFunc = PLTErrorFunctionXZ(bezier, t0, tStart, lengthOfSegment);
+                float errorPrime = PLTErrorFunctionPrimeXZ(bezier, t0, tStart);
                 t0 -= adjustmentScalar * (errorFunc / errorPrime);
                 if (!allowBackwards && t0 < tStart) t0 = 1f;
-                iteratedDistance = Vector3.Distance(bezierXZ.Position(t0), bezierXZ.Position(tStart));
+                iteratedDistance = Vector3.Distance(bezier.Position(t0), bezier.Position(tStart));
             }
             tEnd = t0;
             if (Pow(iteratedDistance - lengthOfSegment, 2) > toleranceSqr) return false; // failed to converge
@@ -169,7 +131,7 @@ namespace PropAnarchy.PLT {
         /// <param name="allowBackwards">Set to false to only step forward along the curve in the direction t=0 -> t=1.</param>
         public static bool LinkCircleCurveFenceIntersectXZ(Bezier3 bezier, Vector3 startPos, float lengthOfSegment, float tolerance, out float tEnd, bool allowBackwards) {
             const float adjustmentScalar = 1.0f;  //if using multiplicity, _adjustmentScalar = 2
-            Bezier3 bezierXZ = BezierXZ(bezier);
+            bezier.BezierXZ();
             float toleranceSqr = tolerance * tolerance;
             lengthOfSegment = Math.Abs(lengthOfSegment);
             if (lengthOfSegment == 0f) {
@@ -177,14 +139,14 @@ namespace PropAnarchy.PLT {
                 return false;
             }
             //initial guess setup
-            float leftoverLength = lengthOfSegment - Vector3.Distance(startPos, bezierXZ.a);
-            StepDistanceCurve(bezierXZ, 0f, leftoverLength, tolerance, out float t0);
-            float iteratedDistance = Vector3.Distance(bezierXZ.Position(t0), startPos);
+            float leftoverLength = lengthOfSegment - Vector3.Distance(startPos, bezier.a);
+            bezier.StepDistanceCurve(0f, leftoverLength, tolerance, out float t0);
+            float iteratedDistance = Vector3.Distance(bezier.Position(t0), startPos);
             for (int i = 0; i < 12 && Pow(iteratedDistance - lengthOfSegment, 2) > toleranceSqr; i++) {
-                float errorFunc = PLTLinkErrorFunctionXZ(bezierXZ, t0, startPos, lengthOfSegment);
-                float errorPrime = PLTLinkErrorFunctionPrimeXZ(bezierXZ, t0, startPos);
+                float errorFunc = PLTLinkErrorFunctionXZ(bezier, t0, startPos, lengthOfSegment);
+                float errorPrime = PLTLinkErrorFunctionPrimeXZ(bezier, t0, startPos);
                 t0 -= adjustmentScalar * (errorFunc / errorPrime);
-                iteratedDistance = Vector3.Distance(bezierXZ.Position(t0), startPos);
+                iteratedDistance = Vector3.Distance(bezier.Position(t0), startPos);
             }
             tEnd = t0;
             if (Pow(iteratedDistance - lengthOfSegment, 2) > toleranceSqr) return false;
@@ -196,49 +158,49 @@ namespace PropAnarchy.PLT {
         /// <param name="t1"></param>
         /// <param name="t2"></param>
         /// <returns>Returns the XZ arclength of a cubic bezier curve between t1 and t2</returns>
-        public static float CubicBezierArcLengthXZGauss12(Bezier3 bezier, float t1, float t2) => ((t2 - t1) / 2f) *
-            (CubicSpeedXZGaussPoint(bezier, 0.1252334085114689f, 0.2491470458134028f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, -0.1252334085114689f, 0.2491470458134028f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, 0.3678314989981802f, 0.2334925365383548f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, -0.3678314989981802f, 0.2334925365383548f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, 0.5873179542866175f, 0.2031674267230659f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, -0.5873179542866175f, 0.2031674267230659f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, 0.7699026741943047f, 0.1600783285433462f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, -0.7699026741943047f, 0.1600783285433462f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, 0.9041172563704749f, 0.1069393259953184f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, -0.9041172563704749f, 0.1069393259953184f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, 0.9815606342467192f, 0.0471753363865118f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, -0.9815606342467192f, 0.0471753363865118f, t1, t2));
+        public static float CubicBezierArcLengthXZGauss12(ref this Bezier3 bezier, float t1, float t2) => ((t2 - t1) / 2f) *
+            (bezier.CubicSpeedXZGaussPoint(0.1252334085114689f, 0.2491470458134028f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(-0.1252334085114689f, 0.2491470458134028f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(0.3678314989981802f, 0.2334925365383548f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(-0.3678314989981802f, 0.2334925365383548f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(0.5873179542866175f, 0.2031674267230659f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(-0.5873179542866175f, 0.2031674267230659f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(0.7699026741943047f, 0.1600783285433462f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(-0.7699026741943047f, 0.1600783285433462f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(0.9041172563704749f, 0.1069393259953184f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(-0.9041172563704749f, 0.1069393259953184f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(0.9815606342467192f, 0.0471753363865118f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(-0.9815606342467192f, 0.0471753363865118f, t1, t2));
 
         //Uses Legendre-Gauss Quadrature with n = 4.
         /// <param name="bezier"></param>
         /// <param name="t1"></param>
         /// <param name="t2"></param>
         /// <returns>Returns the XZ arclength of a cubic bezier curve between t1 and t2</returns>
-        public static float CubicBezierArcLengthXZGauss04(Bezier3 bezier, float t1, float t2) => ((t2 - t1) / 2f) *
-            (CubicSpeedXZGaussPoint(bezier, 0.3399810435848563f, 0.6521451548625461f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, -0.3399810435848563f, 0.6521451548625461f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, 0.8611363115940526f, 0.3478548451374538f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, -0.8611363115940526f, 0.3478548451374538f, t1, t2));
+        public static float CubicBezierArcLengthXZGauss04(ref this Bezier3 bezier, float t1, float t2) => ((t2 - t1) / 2f) *
+            (bezier.CubicSpeedXZGaussPoint(0.3399810435848563f, 0.6521451548625461f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(-0.3399810435848563f, 0.6521451548625461f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(0.8611363115940526f, 0.3478548451374538f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(-0.8611363115940526f, 0.3478548451374538f, t1, t2));
 
         //Uses Legendre-Gauss Quadrature with n = 3.
         /// <param name="bezier"></param>
         /// <param name="t1"></param>
         /// <param name="t2"></param>
         /// <returns>Returns the XZ arclength of a cubic bezier curve between t1 and t2</returns>
-        public static float CubicBezierArcLengthXZGauss03(Bezier3 bezier, float t1, float t2) => ((t2 - t1) / 2f) *
-            (CubicSpeedXZGaussPoint(bezier, 0.0f, 0.88888888f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, 0.77459667f, 0.55555555f, t1, t2) +
-             CubicSpeedXZGaussPoint(bezier, -0.77459667f, 0.55555555f, t1, t2));
+        public static float CubicBezierArcLengthXZGauss03(ref this Bezier3 bezier, float t1, float t2) => ((t2 - t1) / 2f) *
+            (bezier.CubicSpeedXZGaussPoint(0.0f, 0.88888888f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(0.77459667f, 0.55555555f, t1, t2) +
+             bezier.CubicSpeedXZGaussPoint(-0.77459667f, 0.55555555f, t1, t2));
 
         //returns a single point for Gaussian Quadrature
         //of cubic bezier arc length
-        private static float CubicSpeedXZGaussPoint(Bezier3 bezier, float x_i, float w_i, float a, float b) => w_i * CubicSpeedXZ(bezier, ((b - a) / 2f) * x_i + ((a + b) / 2f));
+        private static float CubicSpeedXZGaussPoint(ref this Bezier3 bezier, float x_i, float w_i, float a, float b) => w_i * bezier.CubicSpeedXZ((b - a) / 2f * x_i + ((a + b) / 2f));
 
         //returns the integrand of the arc length function for a cubic bezier curve
         //constrained to the XZ-plane
         //at a specific t
-        private static float CubicSpeedXZ(Bezier3 bezier, float t) {
+        private static float CubicSpeedXZ(ref this Bezier3 bezier, float t) {
             Vector3 tangent = bezier.Tangent(t);
             return (float)Math.Sqrt(Pow(tangent.x, 2) + Pow(tangent.z, 2));
         }
@@ -360,7 +322,7 @@ namespace PropAnarchy.PLT {
         /// <returns></returns>
         public static bool IsCloseToCurveXZ(Bezier3 curve, float distanceThreshold, Vector3 pointOfInterest, out float t) {
             //constrain to XZ plane
-            curve = BezierXZ(curve);
+            curve.BezierXZ();
             pointOfInterest.y = 0f;
             if (curve.DistanceSqr(pointOfInterest, out t) <= distanceThreshold * distanceThreshold) return true;
             return false;
@@ -376,7 +338,7 @@ namespace PropAnarchy.PLT {
         /// <returns></returns>
         public static bool IsCloseToSegmentXZ(Segment3 lineSegment, float distanceThreshold, Vector3 pointOfInterest, out float t) {
             //constrain to XZ plane
-            lineSegment = SegmentXZ(lineSegment);
+            lineSegment.SegmentXZ();
             pointOfInterest.y = 0f;
             if (lineSegment.DistanceSqr(pointOfInterest, out t) <= distanceThreshold * distanceThreshold) return true;
             return false;
@@ -506,7 +468,7 @@ namespace PropAnarchy.PLT {
         public Vector3 Tangent(float t) {
             float radius = m_radius;
             float angleStart = m_angleStart;
-            if (radius == 0f) return Vector3.zero;
+            if (radius == 0f) return PropLineTool.m_vectorZero;
             Vector3 tangent;
             tangent.x = (-2f * Mathf.PI) * radius * Mathf.Sin(angleStart + (2f * Mathf.PI) * t);
             tangent.z = (2f * Mathf.PI) * radius * Mathf.Cos(angleStart + (2f * Mathf.PI) * t);
@@ -594,7 +556,7 @@ namespace PropAnarchy.PLT {
             Vector3 zeroVector = Position(0f) - m_center;
             zeroVector.y = 0f;
             zeroVector.Normalize();
-            float angleFromStart = PLTMath.AngleSigned(pointVector, zeroVector, Vector3.up);
+            float angleFromStart = PLTMath.AngleSigned(pointVector, zeroVector, PropLineTool.m_vectorUp);
             if (angleFromStart < 0f) {
                 angleFromStart += 2f * Mathf.PI;
             }
@@ -636,7 +598,7 @@ namespace PropAnarchy.PLT {
             pointOnCircle.y = 0f;
             Vector3 radiusVector = pointOnCircle - center;
             m_radius = radiusVector.magnitude;
-            m_angleStart = PLTMath.AngleSigned(radiusVector, Vector3.right, Vector3.up);
+            m_angleStart = PLTMath.AngleSigned(radiusVector, PropLineTool.m_vectorRight, PropLineTool.m_vectorUp);
         }
     }
 }
