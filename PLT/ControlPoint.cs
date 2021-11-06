@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading;
-using UnityEngine;
+﻿using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
@@ -12,7 +10,7 @@ namespace PropAnarchy.PLT {
             public bool m_outside;
         }
         public static PointInfo[] m_controlPoints = new PointInfo[MAX_CONTROL_POINTS];
-        public static PointInfo[] m_cachedControlPoints = new PointInfo[MAX_CONTROL_POINTS];
+        //public static PointInfo[] m_cachedControlPoints = new PointInfo[MAX_CONTROL_POINTS];
         public static PointInfo[] m_lockedControlPoints = new PointInfo[MAX_CONTROL_POINTS];
         public static int m_validPoints = 0;
         public static object m_cacheLock = new object();
@@ -38,7 +36,7 @@ namespace PropAnarchy.PLT {
             }
         }
 
-        public static void Add(ref Vector3 position) {
+        public static void Add(Vector3 position) {
             Vector3 vectorZero; vectorZero.x = 0f; vectorZero.y = 0f; vectorZero.z = 0f;
             PointInfo[] controlPoints = m_controlPoints;
             int validPoints = m_validPoints;
@@ -76,67 +74,9 @@ namespace PropAnarchy.PLT {
             }
         }
 
-        public static void Update(ActiveState currentState, int drawMode) {
-            //continuously update control points to follow mouse
-            switch (currentState) {
-            case ActiveState.CreatePointFirst:
-                SegmentState.UpdatePlacement(false, false);
-                break;
-            case ActiveState.CreatePointSecond:
-                Modify(ref m_cachedPosition, 1);
-                //ModifyControlPoint(this.m_cachedPosition, 2);
-                if (drawMode == DrawMode.STRAIGHT || drawMode == DrawMode.CIRCLE) {
-                    SegmentState.UpdatePlacement();
-                }
-                goto UpdateCurve;
-            case ActiveState.CreatePointThird:
-                Modify(ref m_cachedPosition, 2);
-                //ModifyControlPoint(this.m_cachedPosition, 3);
-                if (drawMode == DrawMode.CURVED || drawMode == DrawMode.FREEFORM) {
-                    SegmentState.UpdatePlacement();
-                }
-                goto UpdateCurve;
-            case ActiveState.MoveSegment:
-            case ActiveState.ChangeSpacing:
-            case ActiveState.ChangeAngle:
-            case ActiveState.LockIdle:
-            case ActiveState.MaxFillContinue:
-                SegmentState.UpdatePlacement();
-                break;
-            case ActiveState.MovePointFirst:
-                Modify(ref m_cachedPosition, 0);
-                goto UpdatePlacement;
-            case ActiveState.MovePointSecond:
-                Modify(ref m_cachedPosition, 1);
-                goto UpdatePlacement;
-            case ActiveState.MovePointThird:
-                Modify(ref m_cachedPosition, 2);
-                goto UpdatePlacement;
-            }
-            return;
-UpdatePlacement:
-            SegmentState.UpdatePlacement();
-UpdateCurve:
-            DrawMode.CurrentMode.UpdateCurve();
-        }
+        public static void Modify(Vector3 position, int index) => Modify(DrawMode.CurrentMode, position, index, ActiveDrawState.m_currentState, DrawMode.Current);
 
-        public static void UpdateCached() => UpdateCached(m_controlPoints);
-
-        public static void UpdateCached(PointInfo[] controlPoints) {
-            PointInfo[] cachedPoints = m_cachedControlPoints;
-            while (!Monitor.TryEnter(m_cacheLock, SimulationManager.SYNCHRONIZE_TIMEOUT)) { }
-            try {
-                cachedPoints[0] = controlPoints[0];
-                cachedPoints[1] = controlPoints[1];
-                cachedPoints[2] = controlPoints[2];
-            } finally {
-                Monitor.Exit(m_cacheLock);
-            }
-        }
-
-        public static void Modify(ref Vector3 position, int index) => Modify(DrawMode.CurrentMode, ref position, index, ActiveDrawState.m_currentState, DrawMode.Current);
-
-        public static void Modify(ActiveDrawState currentMode, ref Vector3 position, int index, ActiveState currentState, int drawMode) {
+        public static void Modify(ActiveDrawState currentMode, Vector3 position, int index, ActiveState currentState, int drawMode) {
             int validPoints = m_validPoints;
             Vector3 vectorZero; vectorZero.x = 0; vectorZero.y = 0; vectorZero.z = 0;
             PointInfo[] controlPoints = m_controlPoints;
@@ -167,8 +107,7 @@ UpdateCurve:
                         controlPoints[0].m_position = position;
                         controlPoints[0].m_direction = normVector;
                         controlPoints[1].m_direction = normVector;
-                        UpdateCached(controlPoints);
-                        currentMode.UpdateCurve(m_cachedControlPoints, validPoints);
+                        currentMode.UpdateCurve(controlPoints, validPoints);
                         break;
                     }
                 }
@@ -225,7 +164,6 @@ UpdateCurve:
             default:
                 return;
             }
-            UpdateCached(controlPoints);
         }
 
         public static void Reverse(PointInfo[] controlPoints) {
@@ -245,7 +183,7 @@ UpdateCurve:
             int validPoints = m_validPoints;
             switch (validPoints) {
             case 0:
-                Modify(ref m_cachedPosition, 0);
+                Modify(m_cachedPosition, 0);
                 break;
             case 1:
                 m_validPoints = 0;
@@ -253,11 +191,11 @@ UpdateCurve:
             case 2:
                 m_validPoints = 1;
                 m_controlPoints[0].m_direction = m_controlPoints[1].m_direction;
-                Modify(ref m_mousePosition, 1);
+                Modify(m_mousePosition, 1);
                 break;
             case 3:
                 m_validPoints = 2;
-                Modify(ref m_mousePosition, 2);
+                Modify(m_mousePosition, 2);
                 break;
             default:
                 return;

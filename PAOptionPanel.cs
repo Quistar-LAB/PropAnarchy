@@ -91,7 +91,7 @@ namespace PropAnarchy {
         }
 
         private void ShowPropSnapOption(UIPanel panel) {
-            PALocale locale = SingletonLite<PALocale>.instance;
+            //PALocale locale = SingletonLite<PALocale>.instance;
         }
 
         private static UIPanel AddTab(UITabstrip tabStrip, string tabName, int tabIndex, bool autoLayout) {

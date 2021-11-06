@@ -122,16 +122,17 @@ namespace PropAnarchy.PLT {
             autoDefaultCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
                 if (index != 0) {
                     Settings.AutoDefaultSpacing = true;
-                    SegmentState.UpdatePlacement();
+                    PropLineTool.DrawMode.CurrentMode.UpdatePlacement();
                     PropLineTool.ItemInfo.SetDefaultSpacing();
                 } else {
                     Settings.AutoDefaultSpacing = false;
-                    SegmentState.UpdatePlacement();
+                    PropLineTool.DrawMode.CurrentMode.UpdatePlacement();
                 }
             };
             UINumEditbox spacingField = CreateNumboxField(parent, locale.GetLocale(@"PLTSpacingTitle"), @"m", out _);
             spacingField.parent.relativePosition = new Vector2(parent.width - spacingField.parent.width - 20f, SPACING_OFFSETY + spacingLabel.height + 5f);
             spacingField.Value = PropLineTool.ItemInfo.ItemDefaultSpacing;
+            spacingField.eventValueChanged += (c, value) => SegmentState.m_pendingPlacementUpdate = true;
             PropLineTool.SetSpacingValue = (value) => spacingField.Value = value;
             PropLineTool.GetSpacingValue = () => spacingField.Value;
             UIBasicSpacingCalculator spacingCalculator = parent.AddUIComponent<UIBasicSpacingCalculator>();
@@ -178,7 +179,7 @@ namespace PropAnarchy.PLT {
             flip180CB.relativePosition = new Vector2(angleLabel.relativePosition.x + 5f, angleLabel.height + 10f);
             flip180CB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
                 Settings.AngleFlip180 = index != 0;
-                SegmentState.UpdatePlacement();
+                PropLineTool.DrawMode.CurrentMode.UpdatePlacement();
             };
             UINumEditbox angleField = CreateNumboxField(anglePanel, locale.GetLocale(@"PLTRelativeAngle"), angleMode.selectedIndex == 0 ? @"Δ°" : @"°", out UILabel angleUnit);
             angleField.parent.relativePosition = new Vector2(anglePanel.width - angleField.parent.width - 20f, angleLabel.height + 5f);

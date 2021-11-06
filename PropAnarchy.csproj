@@ -67,6 +67,11 @@
     <Compile Include="PAUtils.cs" />
     <Compile Include="PAScaleManager.cs" />
     <Compile Include="PAModule.cs" />
+    <Compile Include="PLT\Circle2.cs" />
+    <Compile Include="PLT\CircleXZ.cs" />
+    <Compile Include="PLT\PLTMath.cs" />
+    <Compile Include="PLT\Extensions\Bezier3Extension.cs" />
+    <Compile Include="PLT\VectorXZ.cs" />
     <Compile Include="PLT\ControlPoint.cs" />
     <Compile Include="PLT\DrawCircleState.cs" />
     <Compile Include="PLT\DrawFreeformState.cs" />
@@ -75,11 +80,10 @@
     <Compile Include="PLT\UndoManager.cs" />
     <Compile Include="PLT\PlacementError.cs" />
     <Compile Include="PLT\ActiveDrawState.cs" />
-    <Compile Include="PLT\Segment3Extension.cs" />
+    <Compile Include="PLT\Extensions\Segment3Extension.cs" />
     <Compile Include="PLT\PropLineTool.cs" />
-    <Compile Include="PLT\Vector3Extensions.cs" />
+    <Compile Include="PLT\Extensions\Vector3Extensions.cs" />
     <Compile Include="PLT\PrefabExtension.cs" />
-    <Compile Include="PLT\PLTMath.cs" />
     <Compile Include="PLT\Settings.cs" />
     <Compile Include="PLT\SegmentState.cs" />
     <Compile Include="PLT\ToolBar.cs" />

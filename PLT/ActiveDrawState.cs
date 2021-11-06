@@ -21,82 +21,103 @@ namespace PropAnarchy.PLT {
     }
 
     public abstract class ActiveDrawState {
-        private const int LEFTMOUSEBUTTON = 0;
-        private const int RIGHTMOUSEBUTTON = 1;
+        protected const int LEFTMOUSEBUTTON = 0;
+        protected const int RIGHTMOUSEBUTTON = 1;
         public static ActiveState m_currentState;
         public static Segment3 m_mainSegment = new Segment3();
         public static Segment3 m_mainArm1 = new Segment3();
         public static Segment3 m_mainArm2 = new Segment3();
         public static Bezier3 m_mainBezier = new Bezier3();
         public static Circle3XZ m_mainCircle = new Circle3XZ();
-        public static Circle3XZ m_rawCircle = new Circle3XZ();
-        protected static bool m_prevLeftMouseDown = false;
-        protected static bool m_prevRightMouseDown = false;
-
-        public bool OnDefaultToolGUI(Event e, out bool leftMouseDown, out bool rightMouseDown, out bool altDown, out bool ctrlDown) {
-            bool result = true;
-            ctrlDown = false;
-            altDown = false;
-            switch (e.modifiers) {
-            case EventModifiers.Alt: altDown = true; break;
-            case EventModifiers.Control: ctrlDown = true; break;
-            }
-            m_keyboardCtrlDown = ctrlDown;
-            m_keyboardAltDown = altDown;
-            m_isCopyPlacing = altDown;
-            switch (e.type) {
-            case EventType.MouseDown:
-                switch (e.button) {
-                case LEFTMOUSEBUTTON: m_mouseLeftDown = true; break;
-                case RIGHTMOUSEBUTTON: m_mouseRightDown = true; break;
-                }
-                break;
-            case EventType.MouseUp:
-                switch (e.button) {
-                case LEFTMOUSEBUTTON:
-                    m_prevLeftMouseDown = false;
-                    m_mouseLeftDown = false;
-                    break;
-                case RIGHTMOUSEBUTTON:
-                    m_prevRightMouseDown = false;
-                    m_mouseRightDown = false;
-                    break;
-                }
-                break;
-            case EventType.KeyDown:
-                switch (e.keyCode) {
-                case KeyCode.Z:
-                    if (ctrlDown) {
-                        // perform undo
-                    }
-                    break;
-                case KeyCode.Escape:
-                    ResetPLT();
-                    result = false;
-                    break;
-                }
-                break;
-            }
-            leftMouseDown = m_mouseLeftDown;
-            rightMouseDown = m_mouseRightDown;
-            return result;
+        public virtual void OnToolGUI(Event e, bool isInsideUI) {
+            m_keyboardAltDown = (e.modifiers & EventModifiers.Alt) == EventModifiers.Alt;
+            m_keyboardCtrlDown = (e.modifiers & EventModifiers.Control) == EventModifiers.Control;
         }
-        public abstract void OnToolGUI(Event e, bool isInsideUI);
         public virtual void OnToolUpdate() { }
         public virtual void OnToolLateUpdate() { }
         public abstract void OnRenderGeometry(RenderManager.CameraInfo cameraInfo);
-        public abstract bool OnRenderOverlay(RenderManager.CameraInfo cameraInfo, ActiveState curState, ref Color createPointColor, ref Color curveWarningColor, ref Color copyPlaceColor);
-        public abstract void RenderLines(RenderManager.CameraInfo cameraInfo, ref Color createPointColor, ref Color curveWarningColor);
+        public abstract bool OnRenderOverlay(RenderManager.CameraInfo cameraInfo, ActiveState curState, Color createPointColor, Color curveWarningColor, Color copyPlaceColor);
+        public abstract void OnSimulationStep();
+        public abstract void RenderLines(RenderManager.CameraInfo cameraInfo, Color createPointColor, Color curveWarningColor);
         public abstract bool ContinueDrawing(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount);
         public abstract bool IsLengthLongEnough();
-        public bool PostCheckAndContinue() => PostCheckAndContinue(ControlPoint.m_controlPoints, ControlPoint.m_cachedControlPoints, ref ControlPoint.m_validPoints);
+        public abstract bool IsActiveStateAnItemRenderState();
+        public bool PostCheckAndContinue() => PostCheckAndContinue(ControlPoint.m_controlPoints, ControlPoint.m_controlPoints, ref ControlPoint.m_validPoints);
         public abstract bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ControlPoint.PointInfo[] cachedControlPoints, ref int controlPointCount);
-        public void UpdateCurve() => UpdateCurve(ControlPoint.m_cachedControlPoints, ControlPoint.m_validPoints);
+        public void UpdateCurve() => UpdateCurve(ControlPoint.m_controlPoints, ControlPoint.m_validPoints);
         public abstract void UpdateCurve(ControlPoint.PointInfo[] cachedControlPoints, int cachedControlPointCount);
         public abstract void RevertDrawingFromLockMode();
+        public abstract void Update();
+        public bool UpdatePlacement() => UpdatePlacement(SegmentState.m_segmentInfo.m_isContinueDrawing, SegmentState.m_segmentInfo.m_keepLastOffsets);
+        public bool UpdatePlacement(bool forceContinueDrawing) => UpdatePlacement(forceContinueDrawing, SegmentState.m_segmentInfo.m_keepLastOffsets);
+        public bool UpdatePlacement(bool forceContinueDrawing, bool forceKeepLastOffsets) {
+            bool result;
+            if (m_isCopyPlacing) {
+                SegmentState.m_segmentInfo.m_keepLastOffsets = true;
+                result = CalculateAll(true);
+            } else {
+                SegmentState.m_segmentInfo.m_keepLastOffsets = forceKeepLastOffsets;
+                result = CalculateAll(forceContinueDrawing | SegmentState.m_segmentInfo.m_isContinueDrawing);
+            }
+            SegmentState.m_segmentInfo.m_isContinueDrawing = forceContinueDrawing;
+            return result;
+        }
+        private bool CalculateAll(bool continueDrawing) {
+            m_itemCount = MAX_ITEM_ARRAY_LENGTH;   //not sure about setting m_itemCount here, before CalculateAllPositions
+            if (CalculateAllPositions(continueDrawing)) {
+                CalculateAllDirections();
+                CalculateAllAnglesBase();
+                //UpdatePlacementErrors();
+                return true;
+            }
+            SegmentState.m_segmentInfo.m_maxItemCountExceeded = false;
+            return false;
+        }
+        private void CalculateAllAnglesBase() {
+            Vector3 xAxis = m_vectorRight;
+            Vector3 yAxis = m_vectorUp;
+            int itemCount = m_itemCount;
+            if (GetFenceMode()) {
+                float offsetAngle = Mathf.Deg2Rad * (((ItemInfo.m_itemModelZ > ItemInfo.m_itemModelX ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.m_itemAngleOffset) * Mathf.Rad2Deg % 360f);
+                for (int i = 0; i < itemCount; i++) {
+                    m_items[i].m_angle = PLTMath.AngleSigned(m_items[i].m_itemDirection, xAxis, yAxis) + Mathf.PI + offsetAngle;
+                }
+            } else {
+                switch (m_angleMode) {
+                case AngleMode.DYNAMIC:
+                    float offsetAngle = Mathf.Deg2Rad * (((ItemInfo.m_itemModelZ > ItemInfo.m_itemModelX ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.m_itemAngleOffset) * Mathf.Rad2Deg % 360f);
+                    for (int i = 0; i < itemCount; i++) {
+                        m_items[i].m_angle = PLTMath.AngleSigned(m_items[i].m_itemDirection, xAxis, yAxis) + Mathf.PI + offsetAngle;
+                    }
+                    break;
+                case AngleMode.SINGLE:
+                    float singleAngle = Mathf.Deg2Rad * (((ItemInfo.m_itemModelZ > ItemInfo.m_itemModelX ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.m_itemAngleSingle) * Mathf.Rad2Deg % 360f);
+                    for (int i = 0; i < itemCount; i++) {
+                        m_items[i].m_angle = singleAngle;
+                    }
+                    break;
+                }
+            }
+        }
+        private bool CalculateAllPositions(bool continueDrawing) {
+            switch (m_controlMode) {
+            case ControlMode.ITEMWISE:
+                return CalculateItemwisePosition(ItemInfo.ItemSpacing, continueDrawing ? SegmentState.m_segmentInfo.m_lastFinalOffset : 0f, continueDrawing ? SegmentState.m_segmentInfo.m_lastFenceEndpoint : m_mainSegment.b);
+            case ControlMode.SPACING:
+                return CalculateAllPositionsBySpacing(ItemInfo.ItemSpacing, continueDrawing ? SegmentState.m_segmentInfo.m_lastFinalOffset : 0f, continueDrawing ? SegmentState.m_segmentInfo.m_lastFenceEndpoint : m_mainSegment.b);
+            }
+            return false;
+        }
+        public void CheckPendingPlacement() {
+            if (SegmentState.m_pendingPlacementUpdate) {
+                UpdateCurve();
+                UpdatePlacement();
+                SegmentState.m_pendingPlacementUpdate = false;
+            }
+        }
         public abstract void CalculateAllDirections();
         public abstract bool CalculateItemwisePosition(float fencePieceLength, float initialOffset, Vector3 lastFenceEndpoint);
-        public abstract int CalculateAllPositionsBySpacing(float spacing, float initialOffset, Vector3 lastFenceEndpoint);
+        public abstract bool CalculateAllPositionsBySpacing(float spacing, float initialOffset, Vector3 lastFenceEndpoint);
         public abstract void DiscoverHoverState(Vector3 position);
         public abstract void UpdateMiscHoverParameters();
         public abstract void RenderProgressiveSpacingFill(RenderManager.CameraInfo cameraInfo, float fillLength, float interval, float size, Color color, bool renderLimits, bool alphaBlend);

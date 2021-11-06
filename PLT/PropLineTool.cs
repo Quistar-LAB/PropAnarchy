@@ -19,7 +19,8 @@ namespace PropAnarchy.PLT {
         public delegate bool CreateTree(out uint tree, ref Randomizer randomizer, TreeInfo info, Vector3 position, bool single);
         public delegate void DispatchEffect(EffectInfo effect, InstanceID instance, EffectInfo.SpawnArea spawnArea, Vector3 velocity, float acceleration, float magnitude, AudioGroup audioGroup);
         public delegate float SampleHeight(Vector3 worldPos);
-        public delegate AsyncTask SimulationManagerAddAction(IEnumerator<bool> action);
+        //public delegate AsyncTask SimulationManagerAddAction(IEnumerator<bool> action);
+        public delegate AsyncAction SimulationManagerAddAction(Action action);
         public delegate T PropertyGetterHandler<T>();
         public delegate void PropertySetterHandler<T>(T value);
         public delegate void PropertyChangedEventHandler<T>(T val);
@@ -65,7 +66,16 @@ namespace PropAnarchy.PLT {
                 set {
                     m_currentMode = value;
                     switch (value) {
-                    //case SINGLE: CurrentModeProc = null; break;
+                    case SINGLE:
+                        switch (m_itemType) {
+                        case ItemType.PROP:
+                            ToolsModifierControl.SetTool<PropTool>();
+                            break;
+                        case ItemType.TREE:
+                            ToolsModifierControl.SetTool<TreeTool>();
+                            break;
+                        }
+                        break;
                     case STRAIGHT: CurrentMode = DrawStraightProc; break;
                     case CURVED: CurrentMode = DrawCurveProc; break;
                     case FREEFORM: CurrentMode = DrawFreeformProc; break;
@@ -164,7 +174,7 @@ namespace PropAnarchy.PLT {
             public static float ItemWidth => m_itemWidth;
             public static float ItemSpacing {
                 get => GetSpacingValue();
-                set => SetSpacingValue(value);
+                set => SetSpacingValue(value < 0 ? 0 : value);
             }
             public static float AngleSingleOffset => (m_itemModelZ > m_itemModelX ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f);
             public static void SetDefaultSpacing() => ItemSpacing = ItemDefaultSpacing;
@@ -188,7 +198,7 @@ namespace PropAnarchy.PLT {
                 m_offsetDirection = new Vector3(itemDirection.z, 0f, itemDirection.x);
             }
         }
-        public const int MAX_ITEM_ARRAY_LENGTH = 256;
+        public const int MAX_ITEM_ARRAY_LENGTH = 1024;
         public const float SPACING_TILE_MAX = 1920f;
         public const float SPACING_MAX = 2000f;
         public const float SPACING_MIN = 0.10f;
@@ -242,7 +252,7 @@ namespace PropAnarchy.PLT {
         internal static float m_lockedBackupAngleSingle = 0f;
         internal static float m_lockedBackupAngleOffset = 0f;
         internal static float m_lockedBackupItemSecondAngle = 0f;
-        internal static Vector3 m_lockedBackupCachedPosition = m_vectorZero;
+        internal static Vector3 m_lockedBackupCachedPosition = default;
         internal static Vector3 m_lockedBackupItemDirection = m_vectorRight;
         internal static float m_lockedBackupItemwiseT = 0f;
 
@@ -328,7 +338,7 @@ namespace PropAnarchy.PLT {
         public static bool FinalizePlacement(bool continueDrawing, bool isCopyPlacing) {
             int itemCount = m_itemCount;
             if (itemCount > 0) {
-                SegmentState.UpdatePlacement();
+                DrawMode.CurrentMode.UpdatePlacement();
                 ItemInfo[] items = m_items;
                 if (ItemInfo.Prefab is PropInfo propInfo) {
                     for (int i = 0; i < itemCount; i++) {
@@ -364,52 +374,12 @@ namespace PropAnarchy.PLT {
             return false;
         }
 
-        public static IEnumerator<bool> CreateItems(bool continueDrawing, bool isCopyPlacing) {
-            bool result = false;
-            int itemCount = m_itemCount;
-            if (itemCount > 0) {
-                SegmentState.UpdatePlacement();
-                ItemInfo[] items = m_items;
-                if (ItemInfo.Prefab is PropInfo propInfo) {
-                    for (int i = 0; i < itemCount; i++) {
-                        Randomizer randomizer = new Randomizer(EPropManager.m_props.NextFreeItem());
-                        PropInfo newPropInfo = m_controlMode == ControlMode.ITEMWISE && i == ITEMWISE_INDEX ? propInfo.GetVariation(ref randomizer) : propInfo;
-                        Vector3 position = items[i].Position;
-                        position = Settings.RenderAndPlacePosResVanilla ? position.QuantizeToGameShortGridXYZ() : position;
-                        if (Singleton<PropManager>.instance.CreateProp(out uint propID, ref randomizer, newPropInfo, position, items[i].m_angle, true)) {
-                            items[i].m_itemID = propID;
-                            DispatchPlacementEffect(ref position, false);
-                        }
-                    }
-                    //undoManager.AddEntry(_itemCount, m_placementInfo, ObjectMode.Props, fenceMode, placementCalculator.segmentState);
-                } else if (ItemInfo.Prefab is TreeInfo treeInfo) {
-                    for (int i = 0; i < itemCount; i++) {
-                        Randomizer randomizer = new Randomizer(Singleton<TreeManager>.instance.m_trees.NextFreeItem());
-                        TreeInfo newTreeInfo = m_controlMode == ControlMode.ITEMWISE && i == ITEMWISE_INDEX ? treeInfo.GetVariation(ref randomizer) : treeInfo;
-                        Vector3 position = items[i].Position;
-                        position = Settings.RenderAndPlacePosResVanilla ? position.QuantizeToGameShortGridXYZ() : position;
-                        if (Singleton<TreeManager>.instance.CreateTree(out uint treeID, ref randomizer, newTreeInfo, position, true)) {
-                            items[i].m_itemID = treeID;
-                            DispatchPlacementEffect(ref position, false);
-                        }
-                    }
-                    //undoManager.AddEntry(_itemCount, m_placementInfo, ObjectMode.Trees, fenceMode, placementCalculator.segmentState);
-                }
-                if (!isCopyPlacing) {
-                    m_itemCount = 0;
-                    SegmentState.FinalizeForPlacement(continueDrawing);
-                }
-                result = true;
-            }
-            yield return result;
-        }
-
         public static void DispatchPlacementEffect(ref Vector3 position, bool isBulldozeEffect) {
             Vector3 vectorUp; vectorUp.x = 0; vectorUp.y = 1; vectorUp.z = 0;
             InstanceID id = default;
             EffectInfo effectInfo = isBulldozeEffect ? m_bulldozeEffect : m_placementEffect;
             EffectInfo.SpawnArea spawnArea = new EffectInfo.SpawnArea(position, vectorUp, 1f);
-            DispatchItemEffect(effectInfo, id, spawnArea, m_vectorZero, 0f, 1f, m_defaultAudioGroup);
+            DispatchItemEffect(effectInfo, id, spawnArea, default, 0f, 1f, m_defaultAudioGroup);
         }
 
         public static void GoToActiveState(ActiveState state) {
@@ -426,21 +396,21 @@ namespace PropAnarchy.PLT {
                     switch (oldState) {
                     case ActiveState.ChangeSpacing:
                     case ActiveState.MaxFillContinue:
-                        SegmentState.UpdatePlacement(true, false);
+                        DrawMode.CurrentMode.UpdatePlacement(true, false);
                         break;
                     default:
-                        SegmentState.UpdatePlacement();
+                        DrawMode.CurrentMode.UpdatePlacement();
                         break;
                     }
                     break;
                 case ActiveState.MovePointFirst:
-                    ControlPoint.m_lockedControlPoints[0] = ControlPoint.m_cachedControlPoints[0];
+                    ControlPoint.m_lockedControlPoints[0] = ControlPoint.m_controlPoints[0];
                     break;
                 case ActiveState.MovePointSecond:
-                    ControlPoint.m_lockedControlPoints[1] = ControlPoint.m_cachedControlPoints[1];
+                    ControlPoint.m_lockedControlPoints[1] = ControlPoint.m_controlPoints[1];
                     break;
                 case ActiveState.MovePointThird:
-                    ControlPoint.m_lockedControlPoints[2] = ControlPoint.m_cachedControlPoints[2];
+                    ControlPoint.m_lockedControlPoints[2] = ControlPoint.m_controlPoints[2];
                     break;
                 case ActiveState.MoveSegment:
                     ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
@@ -463,7 +433,7 @@ namespace PropAnarchy.PLT {
                     m_lockedBackupItemwiseT = m_hoverItemwiseT;
                     break;
                 case ActiveState.MaxFillContinue:
-                    SegmentState.UpdatePlacement();
+                    DrawMode.CurrentMode.UpdatePlacement();
                     break;
                 }
             }
@@ -471,8 +441,7 @@ namespace PropAnarchy.PLT {
 
         protected override void OnToolUpdate() {
             int drawMode = DrawMode.Current;
-            ControlPoint.UpdateCached(ControlPoint.m_controlPoints);
-            ControlPoint.PointInfo[] controlPoints = ControlPoint.m_cachedControlPoints;
+            ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
             RaycastInput input = new RaycastInput(m_mouseRay, m_mouseRayLength);
             if (!m_toolController.IsInsideUI && EToolBase.RayCast(input, out EToolBase.RaycastOutput raycastOutput)) {
                 m_mousePosition = raycastOutput.m_hitPos;
@@ -481,13 +450,13 @@ namespace PropAnarchy.PLT {
                 case ActiveState.CreatePointFirst:
                     if (controlPoints[0].m_position != raycastOutput.m_hitPos) {
                         m_cachedPosition = raycastOutput.m_hitPos;
-                        SegmentState.UpdatePlacement(false, false);
+                        DrawMode.CurrentMode.UpdatePlacement(false, false);
                     }
                     break;
                 case ActiveState.CreatePointSecond:
                     if (controlPoints[1].m_position != raycastOutput.m_hitPos) {
                         m_cachedPosition = raycastOutput.m_hitPos;
-                        ControlPoint.Modify(DrawMode.CurrentMode, ref raycastOutput.m_hitPos, 2, ActiveState.CreatePointSecond, DrawMode.Current);
+                        ControlPoint.Modify(DrawMode.CurrentMode, raycastOutput.m_hitPos, 2, ActiveState.CreatePointSecond, DrawMode.Current);
                         if (drawMode == DrawMode.STRAIGHT || drawMode == DrawMode.CIRCLE) {
                             goto UpdateItemPlacementInfo;
                         }
@@ -496,7 +465,7 @@ namespace PropAnarchy.PLT {
                 case ActiveState.CreatePointThird:
                     if (controlPoints[2].m_position != raycastOutput.m_hitPos) {
                         m_cachedPosition = raycastOutput.m_hitPos;
-                        ControlPoint.Modify(DrawMode.CurrentMode, ref raycastOutput.m_hitPos, 3, ActiveState.CreatePointThird, DrawMode.Current);
+                        ControlPoint.Modify(DrawMode.CurrentMode, raycastOutput.m_hitPos, 3, ActiveState.CreatePointThird, DrawMode.Current);
                         if (drawMode == DrawMode.CURVED || drawMode == DrawMode.FREEFORM) {
                             goto UpdateItemPlacementInfo;
                         }
@@ -505,21 +474,21 @@ namespace PropAnarchy.PLT {
                 case ActiveState.MovePointFirst:
                     if (controlPoints[0].m_position != raycastOutput.m_hitPos) {
                         m_cachedPosition = raycastOutput.m_hitPos;
-                        ControlPoint.Modify(DrawMode.CurrentMode, ref raycastOutput.m_hitPos, 1, ActiveState.MovePointFirst, DrawMode.Current);
+                        ControlPoint.Modify(DrawMode.CurrentMode, raycastOutput.m_hitPos, 1, ActiveState.MovePointFirst, DrawMode.Current);
                         goto UpdateItemPlacementInfo;
                     }
                     break;
                 case ActiveState.MovePointSecond:
                     if (controlPoints[1].m_position != raycastOutput.m_hitPos) {
                         m_cachedPosition = raycastOutput.m_hitPos;
-                        ControlPoint.Modify(DrawMode.CurrentMode, ref raycastOutput.m_hitPos, 2, ActiveState.MovePointSecond, DrawMode.Current);
+                        ControlPoint.Modify(DrawMode.CurrentMode, raycastOutput.m_hitPos, 2, ActiveState.MovePointSecond, DrawMode.Current);
                         goto UpdateItemPlacementInfo;
                     }
                     break;
                 case ActiveState.MovePointThird:
                     if (controlPoints[2].m_position != raycastOutput.m_hitPos) {
                         m_cachedPosition = raycastOutput.m_hitPos;
-                        ControlPoint.Modify(DrawMode.CurrentMode, ref raycastOutput.m_hitPos, 3, ActiveState.MovePointThird, DrawMode.Current);
+                        ControlPoint.Modify(DrawMode.CurrentMode, raycastOutput.m_hitPos, 3, ActiveState.MovePointThird, DrawMode.Current);
                         goto UpdateItemPlacementInfo;
                     }
                     break;
@@ -529,7 +498,7 @@ namespace PropAnarchy.PLT {
                 case ActiveState.ChangeSpacing:
                 case ActiveState.ChangeAngle:
 UpdateItemPlacementInfo:
-                    SegmentState.UpdatePlacement();
+                    DrawMode.CurrentMode.UpdatePlacement();
                     break;
                 }
                 if (ControlPoint.m_validPoints == 0) return;
@@ -549,17 +518,17 @@ UpdateItemPlacementInfo:
             if ((drawMode == DrawMode.STRAIGHT || drawMode == DrawMode.CIRCLE) && currentState == ActiveState.CreatePointThird) {
                 ControlPoint.Cancel();
                 GoToActiveState(ActiveState.CreatePointSecond);
-                ControlPoint.Modify(ref m_mousePosition, 1);
+                ControlPoint.Modify(m_mousePosition, 1);
                 DrawMode.CurrentMode.UpdateCurve();
                 return;
             }
             //consider moving to event subscription in Awake() or OnDrawModeChanged()
             //check if user switched from Straight/Circle(in CreatePointSecond and continueDrawing fenceMode) -> Curved/Freeform
             if ((drawMode == DrawMode.CURVED || drawMode == DrawMode.FREEFORM) &&
-                currentState == ActiveState.CreatePointSecond && SegmentState.IsPositionEqualToLastFenceEndpoint(ControlPoint.m_cachedControlPoints[0].m_position)) {
+                currentState == ActiveState.CreatePointSecond && SegmentState.IsPositionEqualToLastFenceEndpoint(ControlPoint.m_controlPoints[0].m_position)) {
                 SegmentState.ResetLastContinueParameters();
             }
-            if (currentState == ActiveState.CreatePointFirst && SegmentState.IsPositionEqualToLastFenceEndpoint(ControlPoint.m_cachedControlPoints[0].m_position)) {
+            if (currentState == ActiveState.CreatePointFirst && SegmentState.IsPositionEqualToLastFenceEndpoint(ControlPoint.m_controlPoints[0].m_position)) {
                 SegmentState.ResetLastContinueParameters();
             }
             //check if control point count is > 0 in CreatePointFirst
@@ -569,87 +538,20 @@ UpdateItemPlacementInfo:
             //SUPER IMPORTANT
             //continuously update control points to follow mouse when applicable
             if (m_positionChanging) {
-                ControlPoint.Update(currentState, drawMode);
+                DrawMode.CurrentMode.Update();
                 DrawMode.CurrentMode.DiscoverHoverState(m_cachedPosition);
                 DrawMode.CurrentMode.UpdateMiscHoverParameters();
             }
             //Prop/Tree stuff
             UpdateCachedPosition(false);
             //New as of 170628
-            SegmentState.CheckPendingPlacement();
+            DrawMode.CurrentMode.CheckPendingPlacement();
             //Singleton<TerrainManager>.instance.RenderZones = false;
         }
 
         public override void RenderGeometry(RenderManager.CameraInfo cameraInfo) {
-            int itemCount = m_itemCount;
-            ItemInfo[] items = m_items;
-            switch (ActiveDrawState.m_currentState) {
-            case ActiveState.CreatePointSecond: //creating second control point
-                switch (DrawMode.Current) {
-                case DrawMode.STRAIGHT:
-                case DrawMode.CIRCLE:
-                    for (int i = 0; i < itemCount; i++) {
-                        items[i].RenderItem(cameraInfo);
-                    }
-                    break;
-                }
-                break;
-            case ActiveState.CreatePointThird: //creating third control point
-            case ActiveState.LockIdle: //in lock mode, awaiting user input
-            case ActiveState.MovePointFirst: //in lock mode, moving first control point
-            case ActiveState.MovePointSecond: //in lock mode, moving second control point
-            case ActiveState.MovePointThird: //in lock mode, moving third control point
-            case ActiveState.MoveSegment: //in lock mode, moving full line or curve
-            case ActiveState.ChangeSpacing: //in lock mode, changing item-to-item spacing along the line or curve
-            case ActiveState.ChangeAngle: //in lock mode, changing initial item (first item's) angle
-            case ActiveState.ItemwiseLock:
-            case ActiveState.MoveItemwiseItem:
-            case ActiveState.MaxFillContinue: //out of bounds
-                for (int i = 0; i < itemCount; i++) {
-                    items[i].RenderItem(cameraInfo);
-                }
-                break;
-            }
+            DrawMode.CurrentMode.OnRenderGeometry(cameraInfo);
             base.RenderGeometry(cameraInfo);
-        }
-
-        public bool IsActiveStateAnItemRenderState() {
-            switch (DrawMode.Current) {
-            case DrawMode.STRAIGHT:
-            case DrawMode.CIRCLE:
-                switch (ActiveDrawState.m_currentState) {
-                case ActiveState.CreatePointSecond:
-                case ActiveState.CreatePointThird:
-                case ActiveState.LockIdle:
-                case ActiveState.MovePointFirst:
-                case ActiveState.MovePointSecond:
-                case ActiveState.MovePointThird:
-                case ActiveState.MoveSegment:
-                case ActiveState.ChangeSpacing:
-                case ActiveState.ChangeAngle:
-                case ActiveState.ItemwiseLock:
-                case ActiveState.MoveItemwiseItem:
-                case ActiveState.MaxFillContinue:
-                    return true;
-                }
-                break;
-            case DrawMode.CURVED:
-            case DrawMode.FREEFORM:
-                switch (ActiveDrawState.m_currentState) {
-                case ActiveState.CreatePointThird:
-                case ActiveState.LockIdle:
-                case ActiveState.MovePointFirst:
-                case ActiveState.MovePointSecond:
-                case ActiveState.MovePointThird:
-                case ActiveState.MoveSegment:
-                case ActiveState.ChangeSpacing:
-                case ActiveState.ChangeAngle:
-                case ActiveState.MaxFillContinue:
-                    return true;
-                }
-                break;
-            }
-            return false;
         }
 
         public void RenderMaxFillContinueMarkers(RenderManager.CameraInfo cameraInfo) {
@@ -670,6 +572,13 @@ UpdateItemPlacementInfo:
             RenderSegment(cameraInfo, new Segment3(m_mousePosition, finalItemPosition), 0.05f, 3.00f, maxFillContinueColor, false, true);
         }
 
+        public override void SimulationStep() {
+            RaycastInput input = new RaycastInput(m_mouseRay, m_mouseRayLength);
+            if (m_mouseRayValid && EToolBase.RayCast(input, out EToolBase.RaycastOutput raycastOutput) && !raycastOutput.m_currentEditObject) {
+                m_mousePosition = raycastOutput.m_hitPos;
+                DrawMode.CurrentMode.OnSimulationStep();
+            }
+        }
 
         public override void RenderOverlay(RenderManager.CameraInfo cameraInfo) {
             base.RenderOverlay(cameraInfo);
@@ -677,13 +586,17 @@ UpdateItemPlacementInfo:
             Color lockIdleColor = Settings.m_PLTColor_locked;
             Color curveWarningColor = Settings.m_PLTColor_curveWarning;
             Color itemwiseLockColor = Settings.m_PLTColor_ItemwiseLock;
-            Color copyPlaceColor = IsActiveStateAnItemRenderState() && SegmentState.IsReadyForMaxContinue ? Settings.m_PLTColor_MaxFillContinue : Settings.m_PLTColor_copyPlace;
+            Color copyPlaceColor = DrawMode.CurrentMode.IsActiveStateAnItemRenderState() && SegmentState.IsReadyForMaxContinue ? Settings.m_PLTColor_MaxFillContinue : Settings.m_PLTColor_copyPlace;
             Color createPointColor = m_controlMode == ControlMode.ITEMWISE ? Settings.m_PLTColor_ItemwiseLock : Settings.m_PLTColor_default;
 
-            if (m_keyboardCtrlDown && Settings.ShowUndoPreviews) {
-                //undoManager.RenderLatestEntryCircles(cameraInfo, m_PLTColor_undoItemOverlay);
+            if (m_keyboardAltDown) {
+                createPointColor = copyPlaceColor; ;
+            } else if (m_keyboardCtrlDown) {
+                createPointColor = Settings.m_PLTColor_locked;
+                if (Settings.ShowUndoPreviews) {
+                    //undoManager.RenderLatestEntryCircles(cameraInfo, m_PLTColor_undoItemOverlay);
+                }
             }
-
             switch (ActiveDrawState.m_currentState) {
             case ActiveState.CreatePointFirst: //creating first control point
                 if (!m_toolController.IsInsideUI) {
@@ -693,12 +606,12 @@ UpdateItemPlacementInfo:
                 }
                 break;
             case ActiveState.CreatePointSecond: //creating second control point
-                if (!DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.CreatePointSecond, ref createPointColor, ref curveWarningColor, ref copyPlaceColor)) {
+                if (!DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.CreatePointSecond, createPointColor, curveWarningColor, copyPlaceColor)) {
                     goto case ActiveState.CreatePointFirst;
                 }
                 break;
             case ActiveState.CreatePointThird: //creating third control point
-                if (DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.CreatePointThird, ref createPointColor, ref curveWarningColor, ref copyPlaceColor)) {
+                if (DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.CreatePointThird, createPointColor, curveWarningColor, copyPlaceColor)) {
                     goto case ActiveState.CreatePointSecond;
                 }
                 break;
@@ -746,14 +659,14 @@ UpdateItemPlacementInfo:
                         }
                     }
                 }
-                DrawMode.CurrentMode.RenderLines(cameraInfo, ref mainCurveColor, ref curveWarningColor);
-                ControlPoint.PointInfo[] cachedControlPoints = ControlPoint.m_cachedControlPoints;
+                DrawMode.CurrentMode.RenderLines(cameraInfo, mainCurveColor, curveWarningColor);
+                ControlPoint.PointInfo[] cachedControlPoints = ControlPoint.m_controlPoints;
                 RenderCircle(cameraInfo, cachedControlPoints[0].m_position, 0.10f, lockIdleColor, false, true);
                 RenderCircle(cameraInfo, cachedControlPoints[1].m_position, 0.10f, lockIdleColor, false, true);
                 RenderCircle(cameraInfo, cachedControlPoints[2].m_position, 0.10f, lockIdleColor, false, true);
                 break;
             case ActiveState.MaxFillContinue:
-                DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.MaxFillContinue, ref createPointColor, ref curveWarningColor, ref copyPlaceColor);
+                DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.MaxFillContinue, createPointColor, curveWarningColor, copyPlaceColor);
                 break;
             }
             if (Settings.ShowErrorGuides) {
@@ -781,13 +694,13 @@ UpdateItemPlacementInfo:
                 baseColor = Settings.m_PLTColor_hoverCopyPlace;
                 highlightColor = Settings.m_PLTColor_copyPlaceHighlight;
             }
-            ControlPoint.PointInfo[] cachedControlPoints = ControlPoint.m_cachedControlPoints;
+            ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
             switch (ActiveDrawState.m_currentState) {
             case ActiveState.LockIdle:
-                RenderCircle(cameraInfo, cachedControlPoints[0].m_position, HOVER_POINT_DIAMETER, m_hoverState == HoverState.ControlPointFirst ? highlightColor : baseColor, false, false);
-                RenderCircle(cameraInfo, cachedControlPoints[1].m_position, HOVER_POINT_DIAMETER, m_hoverState == HoverState.ControlPointSecond ? highlightColor : baseColor, false, false);
+                RenderCircle(cameraInfo, controlPoints[0].m_position, HOVER_POINT_DIAMETER, m_hoverState == HoverState.ControlPointFirst ? highlightColor : baseColor, false, false);
+                RenderCircle(cameraInfo, controlPoints[1].m_position, HOVER_POINT_DIAMETER, m_hoverState == HoverState.ControlPointSecond ? highlightColor : baseColor, false, false);
                 if (DrawMode.Current == DrawMode.CURVED || DrawMode.Current == DrawMode.FREEFORM) {
-                    RenderCircle(cameraInfo, cachedControlPoints[2].m_position, HOVER_POINT_DIAMETER, m_hoverState == HoverState.ControlPointThird ? highlightColor : baseColor, false, false);
+                    RenderCircle(cameraInfo, controlPoints[2].m_position, HOVER_POINT_DIAMETER, m_hoverState == HoverState.ControlPointThird ? highlightColor : baseColor, false, false);
                 }
                 RenderCircle(cameraInfo, GetFenceMode() ? m_fenceEndPoints[HoverItemPositionIndex] : m_items[HoverItemPositionIndex].Position, HOVER_POINT_DIAMETER,
                     m_hoverState == HoverState.SpacingLocus || m_hoverState == HoverState.ItemwiseItem ? highlightColor : baseColor, false, false);
@@ -811,14 +724,14 @@ UpdateItemPlacementInfo:
                 }
                 break;
             case ActiveState.MovePointFirst:
-                RenderCircle(cameraInfo, cachedControlPoints[0].m_position, HOVER_POINT_DIAMETER, highlightColor, false, false);
+                RenderCircle(cameraInfo, controlPoints[0].m_position, HOVER_POINT_DIAMETER, highlightColor, false, false);
                 break;
             case ActiveState.MovePointSecond:
-                RenderCircle(cameraInfo, cachedControlPoints[1].m_position, HOVER_POINT_DIAMETER, highlightColor, false, false);
+                RenderCircle(cameraInfo, controlPoints[1].m_position, HOVER_POINT_DIAMETER, highlightColor, false, false);
                 break;
             case ActiveState.MovePointThird:
                 if (DrawMode.Current == DrawMode.CURVED || DrawMode.Current == DrawMode.FREEFORM) {
-                    RenderCircle(cameraInfo, cachedControlPoints[2].m_position, HOVER_POINT_DIAMETER, highlightColor, false, false);
+                    RenderCircle(cameraInfo, controlPoints[2].m_position, HOVER_POINT_DIAMETER, highlightColor, false, false);
                 }
                 break;
             case ActiveState.ChangeSpacing:
@@ -847,7 +760,7 @@ UpdateItemPlacementInfo:
         public void RenderPlacementErrorOverlays(RenderManager.CameraInfo cameraInfo) {
             bool anarchy = Settings.AnarchyPLT;
             bool @override = anarchy || (!anarchy && Settings.PlaceBlockedItems);
-            if ((SegmentState.AllItemsValid && !@override) || m_itemCount <= 0 || !IsActiveStateAnItemRenderState()) return;
+            if ((SegmentState.AllItemsValid && !@override) || m_itemCount <= 0 || !DrawMode.CurrentMode.IsActiveStateAnItemRenderState()) return;
             Color32 blockedColor = @override ? new Color32(219, 192, 82, 80) : new Color32(219, 192, 82, 200);
             Color32 invalidPlacementColor = anarchy ? new Color32(193, 78, 72, 50) : new Color32(193, 78, 72, 200);
             float radius;
@@ -879,44 +792,37 @@ UpdateItemPlacementInfo:
             }
         }
 
-        public static void RenderCircle(RenderManager.CameraInfo cameraInfo, Vector3 position, float size, Color color, bool renderLimits, bool alphaBlend) {
+        public static void RenderCircle(RenderManager.CameraInfo cameraInfo, in Vector3 position, float size, in Color color, bool renderLimits, bool alphaBlend) {
             Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls++;
             m_drawCircleFunc(cameraInfo, color, position, size, -1f, 1280f, renderLimits, alphaBlend);
         }
 
-        public static void RenderLine(RenderManager.CameraInfo cameraInfo, Segment3 segment, float size, float dashLength, Color color, bool renderLimits, bool alphaBlend) {
+        public static void RenderLine(RenderManager.CameraInfo cameraInfo, in Segment3 segment, float size, float dashLength, in Color color, bool renderLimits, bool alphaBlend) {
             Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls++;
             m_drawSegmentFunc(cameraInfo, color, segment, size, dashLength, -1f, 1280f, renderLimits, alphaBlend);
         }
 
-        public static void RenderSegment(RenderManager.CameraInfo cameraInfo, Segment3 segment, float size, float dashLength, Color color, bool renderLimits, bool alphaBlend) {
+        public static void RenderSegment(RenderManager.CameraInfo cameraInfo, in Segment3 segment, float size, float dashLength, in Color color, bool renderLimits, bool alphaBlend) {
             Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls++;
             m_drawSegmentFunc(cameraInfo, color, segment, size, dashLength, -1f, 1280f, renderLimits, alphaBlend);
         }
 
-        public static void RenderElbow(RenderManager.CameraInfo cameraInfo, Segment3 segment1, Segment3 segment2, float size, float dashLength, Color color, bool renderLimits, bool alphaBlend) {
+        public static void RenderElbow(RenderManager.CameraInfo cameraInfo, in Segment3 segment1, in Segment3 segment2, float size, float dashLength, in Color color, bool renderLimits, bool alphaBlend) {
             Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls++;
             m_drawElbowFunc(cameraInfo, color, segment1, segment2, size, dashLength, -1f, 1280f, renderLimits, alphaBlend);
         }
 
-        public static void RenderBezier(RenderManager.CameraInfo cameraInfo, Bezier3 bezier, float size, Color color, bool renderLimits, bool alphaBlend) {
+        public static void RenderBezier(RenderManager.CameraInfo cameraInfo, in Bezier3 bezier, float size, in Color color, bool renderLimits, bool alphaBlend) {
             Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls++;
             m_drawBezierFunc(cameraInfo, color, bezier, size, -100000f, 100000f, -1f, 1280f, renderLimits, alphaBlend);
         }
 
-        public static void RenderMainCircle(RenderManager.CameraInfo cameraInfo, Circle3XZ circle, float size, Color color, bool renderLimits, bool alphaBlend) {
+        public static void RenderMainCircle(RenderManager.CameraInfo cameraInfo, in Circle3XZ circle, float size, in Color color, bool renderLimits, bool alphaBlend) {
             Singleton<ToolManager>.instance.m_drawCallData.m_overlayCalls += 2;
-            m_drawCircleFunc(cameraInfo, color, circle.m_center, circle.Diameter + size, -1f, 1280f, renderLimits, alphaBlend);
-            m_drawCircleFunc(cameraInfo, color, circle.m_center, circle.Diameter - size, -1f, 1280f, renderLimits, alphaBlend);
+            m_drawCircleFunc(cameraInfo, color, circle.m_center, circle.m_radius * 2f + size, -1f, 1280f, renderLimits, alphaBlend);
+            m_drawCircleFunc(cameraInfo, color, circle.m_center, circle.m_radius * 2f - size, -1f, 1280f, renderLimits, alphaBlend);
             if (circle.m_radius > 0f) {
                 RenderLine(cameraInfo, new Segment3(circle.m_center, circle.Position(0f)), 0.05f, 1.00f, color, false, true);
-            }
-        }
-
-        public override void SimulationStep() {
-            RaycastInput input = new RaycastInput(m_mouseRay, m_mouseRayLength);
-            if (!m_toolController.IsInsideUI && Cursor.visible && EToolBase.RayCast(input, out EToolBase.RaycastOutput raycastOutput) && !raycastOutput.m_currentEditObject) {
-                m_mousePosition = raycastOutput.m_hitPos;
             }
         }
 
