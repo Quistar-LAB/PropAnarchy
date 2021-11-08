@@ -93,10 +93,12 @@ namespace PropAnarchy.PLT {
             case ActiveState.LockIdle:
                 if (!isInsideUI && e.type == EventType.MouseDown) {
                     if (e.button == LEFTMOUSEBUTTON) {
-                        if (m_keyboardCtrlDown && m_controlMode == ControlMode.ITEMWISE) {
-                            GoToActiveState(ActiveState.ItemwiseLock);
-                        } else if ((e.modifiers & EventModifiers.Control) == EventModifiers.Control) {
-                            AddAction(() => ContinueDrawingFromLockMode(true));
+                        if (m_keyboardCtrlDown) {
+                            if (m_controlMode == ControlMode.ITEMWISE) {
+                                GoToActiveState(ActiveState.ItemwiseLock);
+                            } else {
+                                AddAction(() => ContinueDrawingFromLockMode(true));
+                            }
                         }
                         switch (m_hoverState) {
                         case HoverState.SpacingLocus:
@@ -108,15 +110,18 @@ namespace PropAnarchy.PLT {
                         case HoverState.ControlPointFirst:
                             GoToActiveState(ActiveState.MovePointFirst);
                             ControlPoint.Modify(m_mousePosition, 0);
-                            goto FinalizeControlPoint;
+                            UpdateCurve();
+                            UpdatePlacement();
+                            break;
                         case HoverState.ControlPointSecond:
                             GoToActiveState(ActiveState.MovePointSecond);
                             ControlPoint.Modify(m_mousePosition, 1);
-                            goto FinalizeControlPoint;
+                            UpdateCurve();
+                            UpdatePlacement();
+                            break;
                         case HoverState.ControlPointThird:
                             GoToActiveState(ActiveState.MovePointThird);
                             ControlPoint.Modify(m_mousePosition, 2);
-FinalizeControlPoint:
                             UpdateCurve();
                             UpdatePlacement();
                             break;
@@ -139,7 +144,6 @@ FinalizeControlPoint:
             case ActiveState.MovePointFirst:
                 if (!isInsideUI && e.type == EventType.MouseDown) {
                     if (e.button == RIGHTMOUSEBUTTON) {
-                        //reset first CP to original position
                         ControlPoint.Modify(ControlPoint.m_lockedControlPoints[0].m_position, 0);
                     }
                     GoToActiveState(ActiveState.LockIdle);
@@ -148,8 +152,15 @@ FinalizeControlPoint:
             case ActiveState.MovePointSecond:
                 if (!isInsideUI && e.type == EventType.MouseDown) {
                     if (e.button == RIGHTMOUSEBUTTON) {
-                        //reset second CP to original position
                         ControlPoint.Modify(ControlPoint.m_lockedControlPoints[1].m_position, 1);
+                    }
+                    GoToActiveState(ActiveState.LockIdle);
+                }
+                break;
+            case ActiveState.MovePointThird:
+                if (!isInsideUI && e.type == EventType.MouseDown) {
+                    if (e.button == RIGHTMOUSEBUTTON) {
+                        ControlPoint.Modify(ControlPoint.m_lockedControlPoints[2].m_position, 2);
                     }
                     GoToActiveState(ActiveState.LockIdle);
                 }
@@ -256,11 +267,11 @@ FinalizeControlPoint:
 
         public override void RenderLines(RenderManager.CameraInfo cameraInfo, Color createPointColor, Color curveWarningColor) {
             Color lockIdleColor = Settings.m_PLTColor_locked;
-            RenderElbow(cameraInfo, m_mainArm1, m_mainArm2, 1.00f, 2f, lockIdleColor, false, true);
+            RenderElbow(cameraInfo, m_mainArm1, m_mainArm2, LINESIZE, 2f, lockIdleColor, false, true);
             if (m_hoverState == HoverState.SpacingLocus) {
-                RenderBezier(cameraInfo, m_mainBezier, 1.00f, lockIdleColor, false, true);
+                RenderBezier(cameraInfo, m_mainBezier, LINESIZE, lockIdleColor, false, true);
             } else {
-                RenderBezier(cameraInfo, m_mainBezier, 1.00f, lockIdleColor, false, false);
+                RenderBezier(cameraInfo, m_mainBezier, LINESIZE, createPointColor, false, false);
             }
             if (!SegmentState.AllItemsValid) {
                 RenderBezier(cameraInfo, m_mainBezier, 1.50f, curveWarningColor, false, true);
@@ -271,9 +282,9 @@ FinalizeControlPoint:
             ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
             switch (curState) {
             case ActiveState.CreatePointSecond:
-                RenderLine(cameraInfo, m_mainArm1, 1.00f, 2f, createPointColor, false, false);
-                RenderCircle(cameraInfo, controlPoints[0].m_position, 0.10f, createPointColor, false, true);
-                RenderCircle(cameraInfo, controlPoints[1].m_position, 0.10f, createPointColor, false, true);
+                RenderLine(cameraInfo, m_mainArm1, LINESIZE, 2f, createPointColor, false, false);
+                RenderCircle(cameraInfo, controlPoints[0].m_position, DOTSIZE, createPointColor, false, true);
+                RenderCircle(cameraInfo, controlPoints[1].m_position, DOTSIZE, createPointColor, false, true);
                 break;
             case ActiveState.CreatePointThird:
             case ActiveState.MaxFillContinue:
@@ -286,40 +297,74 @@ FinalizeControlPoint:
                     RenderBezier(cameraInfo, m_mainBezier, 1.50f, curveWarningColor, false, true);
                 }
                 //for the size for these it should be 1/4 the size for renderline
-                RenderElbow(cameraInfo, m_mainArm1, m_mainArm2, 1.00f, 2f, createPointColor, false, true);
-                RenderBezier(cameraInfo, m_mainBezier, 1.00f, createPointColor, false, true);
+                RenderElbow(cameraInfo, m_mainArm1, m_mainArm2, LINESIZE, 2f, createPointColor, false, true);
+                RenderBezier(cameraInfo, m_mainBezier, LINESIZE, createPointColor, false, true);
                 //MaxFillContinue
                 if (SegmentState.IsReadyForMaxContinue || SegmentState.IsMaxFillContinue) {
                     RenderMaxFillContinueMarkers(cameraInfo);
                 }
-                RenderCircle(cameraInfo, controlPoints[0].m_position, 0.10f, createPointColor, false, true);
-                RenderCircle(cameraInfo, controlPoints[1].m_position, 0.10f, createPointColor, false, true);
-                RenderCircle(cameraInfo, controlPoints[2].m_position, 0.10f, createPointColor, false, true);
+                RenderCircle(cameraInfo, controlPoints[0].m_position, DOTSIZE, createPointColor, false, true);
+                RenderCircle(cameraInfo, controlPoints[1].m_position, DOTSIZE, createPointColor, false, true);
+                RenderCircle(cameraInfo, controlPoints[2].m_position, DOTSIZE, createPointColor, false, true);
                 break;
             }
             return true;
         }
 
-        public override void OnSimulationStep() {
+        public override void OnSimulationStep(Vector3 mousePosition) {
+            ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
+            m_cachedPosition = mousePosition;
             switch (m_currentState) {
             case ActiveState.CreatePointFirst:
-                ControlPoint.Modify(m_mousePosition, 0);
+                UpdatePlacement(false, false);
                 break;
             case ActiveState.CreatePointSecond:
-                ControlPoint.Modify(m_mousePosition, 1);
-                UpdateCurve();
-                UpdatePlacement(false, false);
+            case ActiveState.MovePointSecond:
+                ControlPoint.Modify(DrawMode.CurrentMode, mousePosition, 1, m_currentState, DrawMode.Current);
+                UpdatePlacement();
                 break;
             case ActiveState.CreatePointThird:
-                ControlPoint.Modify(m_mousePosition, 2);
-                UpdateCurve();
-                UpdatePlacement(false, false);
+            case ActiveState.MovePointThird:
+                ControlPoint.Modify(DrawMode.CurrentMode, mousePosition, 2, m_currentState, DrawMode.Current);
+                UpdatePlacement();
                 break;
+            case ActiveState.MovePointFirst:
+                ControlPoint.Modify(DrawMode.CurrentMode, mousePosition, 0, m_currentState, DrawMode.Current);
+                UpdatePlacement();
+                break;
+            case ActiveState.MaxFillContinue:
+            case ActiveState.LockIdle:
+            case ActiveState.MoveSegment:
+            case ActiveState.ChangeSpacing:
+            case ActiveState.ChangeAngle:
+                UpdatePlacement();
+                break;
+            }
+            if (ControlPoint.m_validPoints != 0) {
+                SegmentState.m_pendingPlacementUpdate = true;
+                UpdateCurve(controlPoints, ControlPoint.m_validPoints);
+                DiscoverHoverState(mousePosition);
+                UpdateMiscHoverParameters();
             }
         }
 
         public override void OnToolLateUpdate() {
-            base.OnToolLateUpdate();
+            switch (m_currentState) {
+            case ActiveState.CreatePointFirst:
+                if (SegmentState.IsPositionEqualToLastFenceEndpoint(ControlPoint.m_controlPoints[0].m_position)) {
+                    SegmentState.ResetLastContinueParameters();
+                } else if (ControlPoint.m_validPoints > 0) {
+                    ControlPoint.m_validPoints = 0;
+                }
+                break;
+            case ActiveState.CreatePointSecond:
+                if (SegmentState.IsPositionEqualToLastFenceEndpoint(ControlPoint.m_controlPoints[0].m_position)) {
+                    SegmentState.ResetLastContinueParameters();
+                }
+                break;
+            }
+            UpdateCachedPosition(false);
+            CheckPendingPlacement();
         }
 
         public override void OnToolUpdate() {
@@ -358,16 +403,16 @@ FinalizeControlPoint:
             return true;
         }
 
-        public override void UpdateCurve(ControlPoint.PointInfo[] cachedControlPoints, int pointCount) {
+        public override void UpdateCurve(ControlPoint.PointInfo[] controlPoints, int pointCount) {
             SegmentState.m_pendingPlacementUpdate = true;
             if (pointCount >= 1) {
-                m_mainArm1.a = cachedControlPoints[0].m_position;
-                m_mainArm1.b = cachedControlPoints[1].m_position;
+                m_mainArm1.a = controlPoints[0].m_position;
+                m_mainArm1.b = controlPoints[1].m_position;
             }
             if (pointCount >= 2) {
-                m_mainBezier.QuadraticToCubicBezierCOMethod(cachedControlPoints[0].m_position, cachedControlPoints[1].m_direction, cachedControlPoints[2].m_position, cachedControlPoints[2].m_direction);
-                m_mainArm2.a = cachedControlPoints[1].m_position;
-                m_mainArm2.b = cachedControlPoints[2].m_position;
+                m_mainBezier.QuadraticToCubicBezierCOMethod(controlPoints[0].m_position, controlPoints[1].m_direction, controlPoints[2].m_position, controlPoints[2].m_direction);
+                m_mainArm2.a = controlPoints[1].m_position;
+                m_mainArm2.b = controlPoints[2].m_position;
                 //***SUPER-IMPORTANT (for convergence of fenceMode)***
                 m_mainBezier.BezierXZ();
                 //calculate direction here in case controlPoint direction was not set correctly
@@ -406,11 +451,9 @@ FinalizeControlPoint:
             UpdatePlacement(false, false);
         }
 
-        public override void CalculateAllDirections() {
+        public override void CalculateAllDirections(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode) {
             int itemCount = m_itemCount;
-            ItemInfo[] items = m_items;
-            if (GetFenceMode()) {
-                Vector3[] fenceEndPoints = m_fenceEndPoints;
+            if (fenceMode) {
                 for (int i = 0; i < itemCount; i++) {
                     items[i].SetDirectionsXZ(fenceEndPoints[i + 1] - fenceEndPoints[i]);
                 }
@@ -422,10 +465,10 @@ FinalizeControlPoint:
             }
         }
 
-        public override bool CalculateItemwisePosition(float fencePieceLength, float initialOffset, Vector3 lastFenceEndpoint) {
+        public override bool CalculateItemwisePosition(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode, float fencePieceLength, float initialOffset, VectorXZ lastFenceEndpoint) {
             float hoverItemwiseT = m_hoverItemwiseT;
-            if (GetFenceMode()) {
-                Vector3 positionStart, positionEnd;
+            if (fenceMode) {
+                VectorXZ positionStart, positionEnd;
                 if (fencePieceLength > m_mainBezier.CubicBezierArcLengthXZGauss12(0f, 1f)) {
                     m_itemCount = 0;
                     return false;
@@ -446,25 +489,23 @@ FinalizeControlPoint:
                         itemTEnd = 1f - itemTEnd;
                     }
                 }
-                m_fenceEndPoints[0] = positionStart = m_mainBezier.Position(hoverItemwiseT);
-                m_fenceEndPoints[1] = positionEnd = m_mainBezier.Position(itemTEnd);
-                m_items[0].Position = Vector3.Lerp(positionStart, positionEnd, 0.50f);
+                fenceEndPoints[0] = positionStart = m_mainBezier.Position(hoverItemwiseT);
+                fenceEndPoints[1] = positionEnd = m_mainBezier.Position(itemTEnd);
+                items[0].Position = Vector3.Lerp(positionStart, positionEnd, 0.50f);
                 return true;
             }
-            m_items[0].m_t = hoverItemwiseT;
-            m_items[0].Position = m_mainBezier.Position(hoverItemwiseT);
+            items[0].m_t = hoverItemwiseT;
+            items[0].Position = m_mainBezier.Position(hoverItemwiseT);
             return true;
         }
 
-        public override bool CalculateAllPositionsBySpacing(float spacing, float initialOffset, Vector3 lastFenceEndpoint) {
+        public override bool CalculateAllPositionsBySpacing(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode, float spacing, float initialOffset, VectorXZ lastFenceEndpoint) {
             int numItems, numItemsRaw;
             float t = 0f, finalT;
             Bezier3 mainBezier = m_mainBezier;
-            ItemInfo[] items = m_items;
-            Vector3[] fenceEndPoints = m_fenceEndPoints;
             if (initialOffset < 0f) initialOffset = Math.Abs(initialOffset);
             float lengthFull = mainBezier.CubicBezierArcLengthXZGauss12(0f, 1f);
-            if (GetFenceMode()) {
+            if (fenceMode) {
                 numItemsRaw = Mathf.CeilToInt((SegmentState.IsMaxFillContinue ? lengthFull - initialOffset : lengthFull) / spacing);
                 numItems = Mathf.Min(m_itemCount, Mathf.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
                 if (spacing > lengthFull) {
@@ -479,7 +520,7 @@ FinalizeControlPoint:
                     forLoopStart = 0;
                     mainBezier.StepDistanceCurve(0f, initialOffset, TOLERANCE, out t);
                     goto label_endpointsForLoop;
-                } else if (initialOffset > 0f && lastFenceEndpoint != Vector3.down) {
+                } else if (initialOffset > 0f) {
                     fenceEndPoints[0] = lastFenceEndpoint;
                     if (!mainBezier.LinkCircleCurveFenceIntersectXZ(lastFenceEndpoint, spacing, TOLERANCE, out t, false)) {
                         forLoopStart = 0;
@@ -554,23 +595,23 @@ label_endpointsFinish:
             return false;
         }
 
-        public override void DiscoverHoverState(Vector3 position) {
-            ActiveState currentState = m_currentState;
+        public override void DiscoverHoverState(VectorXZ position) {
+            const float pointRadius = HOVER_POINTDISTANCE_THRESHOLD;
+            const float anglePointRadius = pointRadius;
+            const float angleLocusRadius = HOVER_ANGLELOCUS_DIAMETER;
+            const float angleLocusDistanceThreshold = 0.40f;
+            Bezier3 mainBezier = m_mainBezier;
             //check for itemwise first before classic lock mode
-            if (m_controlMode == ControlMode.ITEMWISE && (currentState == ActiveState.ItemwiseLock || currentState == ActiveState.MoveItemwiseItem)) {
-                if (m_mainBezier.IsCloseToCurveXZ(HOVER_ITEMWISE_CURVEDISTANCE_THRESHOLD, position, out float hoverItemT)) {
+            switch (m_currentState) {
+            case ActiveState.ItemwiseLock:
+            case ActiveState.MoveItemwiseItem:
+                if (m_controlMode == ControlMode.ITEMWISE && mainBezier.IsCloseToCurveXZ(HOVER_ITEMWISE_CURVEDISTANCE_THRESHOLD, position, out float hoverItemT)) {
                     m_hoverItemwiseT = hoverItemT;
                     m_hoverState = HoverState.ItemwiseItem;
-                } else {
-                    m_hoverState = HoverState.Unbound;
                 }
-            }
-            if (currentState == ActiveState.LockIdle) {
+                break;
+            case ActiveState.LockIdle:
                 if (m_itemCount >= (GetFenceMode() ? 1 : 2) || m_controlMode == ControlMode.ITEMWISE) {
-                    const float pointRadius = HOVER_POINTDISTANCE_THRESHOLD;
-                    const float anglePointRadius = pointRadius;
-                    const float angleLocusRadius = HOVER_ANGLELOCUS_DIAMETER;
-                    const float angleLocusDistanceThreshold = 0.40f;
                     bool angleObjectMode = m_itemType == ItemType.PROP;
                     Vector3 angleCenter = m_items[HoverItemAngleCenterIndex].Position;
                     Vector3 anglePos = Circle2.Position3FromAngleXZ(angleCenter, angleLocusRadius, m_hoverAngle);
@@ -587,14 +628,20 @@ label_endpointsFinish:
                         m_hoverState = HoverState.ControlPointSecond;
                     } else if (ControlPoint.m_controlPoints[2].m_position.IsInsideCircleXZ(pointRadius, position)) {
                         m_hoverState = HoverState.ControlPointThird;
-                    } else if (m_mainBezier.IsCloseToCurveXZ(HOVER_CURVEDISTANCE_THRESHOLD, position, out float _)) {
+                    } else if (mainBezier.IsCloseToCurveXZ(HOVER_CURVEDISTANCE_THRESHOLD, position, out float _)) {
+                        PAModule.PALog($"Inside Curve detected");
                         m_hoverState = HoverState.Curve;
                     } else {
                         m_hoverState = HoverState.Unbound;
+
                     }
                 } else {
                     m_hoverState = HoverState.Unbound;
                 }
+                break;
+            default:
+                m_hoverState = HoverState.Unbound;
+                break;
             }
         }
 

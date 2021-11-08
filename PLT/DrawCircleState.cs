@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
@@ -74,10 +75,12 @@ namespace PropAnarchy.PLT {
             case ActiveState.LockIdle:
                 if (!isInsideUI && e.type == EventType.MouseDown) {
                     if (e.button == LEFTMOUSEBUTTON) {
-                        if (m_keyboardCtrlDown && m_controlMode == ControlMode.ITEMWISE) {
-                            GoToActiveState(ActiveState.ItemwiseLock);
-                        } else if (m_keyboardCtrlDown) {
-                            AddAction(() => ContinueDrawingFromLockMode(true));
+                        if (m_keyboardCtrlDown) {
+                            if (m_controlMode == ControlMode.ITEMWISE) {
+                                GoToActiveState(ActiveState.ItemwiseLock);
+                            } else {
+                                AddAction(() => ContinueDrawingFromLockMode(true));
+                            }
                         }
                         switch (m_hoverState) {
                         case HoverState.SpacingLocus:
@@ -89,15 +92,18 @@ namespace PropAnarchy.PLT {
                         case HoverState.ControlPointFirst:
                             GoToActiveState(ActiveState.MovePointFirst);
                             ControlPoint.Modify(m_mousePosition, 0);
-                            goto FinalizeControlPoint;
+                            UpdateCurve();
+                            UpdatePlacement();
+                            break;
                         case HoverState.ControlPointSecond:
                             GoToActiveState(ActiveState.MovePointSecond);
                             ControlPoint.Modify(m_mousePosition, 1);
-                            goto FinalizeControlPoint;
+                            UpdateCurve();
+                            UpdatePlacement();
+                            break;
                         case HoverState.ControlPointThird:
                             GoToActiveState(ActiveState.MovePointThird);
                             ControlPoint.Modify(m_mousePosition, 2);
-FinalizeControlPoint:
                             UpdateCurve();
                             UpdatePlacement();
                             break;
@@ -239,13 +245,12 @@ FinalizeControlPoint:
             if (!SegmentState.AllItemsValid) {
                 RenderMainCircle(cameraInfo, m_mainCircle, 1.50f, curveWarningColor, false, true);
             }
-            RenderMainCircle(cameraInfo, m_mainCircle, 1.00f, createPointColor, false, true);
+            RenderMainCircle(cameraInfo, m_mainCircle, LINESIZE, createPointColor, false, true);
         }
 
         public override bool OnRenderOverlay(RenderManager.CameraInfo cameraInfo, ActiveState curState, Color createPointColor, Color curveWarningColor, Color copyPlaceColor) {
-            Vector3 vectorZero; vectorZero.x = 0f; vectorZero.y = 0f; vectorZero.z = 0f;
             ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
-            if (controlPoints[1].m_direction != vectorZero) {
+            if (controlPoints[1].m_direction != VectorXZ.zero) {
                 switch (curState) {
                 case ActiveState.MaxFillContinue:
                 case ActiveState.CreatePointSecond:
@@ -258,8 +263,8 @@ FinalizeControlPoint:
                     if (SegmentState.IsReadyForMaxContinue || SegmentState.IsMaxFillContinue) {
                         RenderMaxFillContinueMarkers(cameraInfo);
                     }
-                    RenderCircle(cameraInfo, controlPoints[0].m_position, 0.10f, createPointColor, false, true);
-                    RenderCircle(cameraInfo, controlPoints[1].m_position, 0.10f, createPointColor, false, true);
+                    RenderCircle(cameraInfo, controlPoints[0].m_position, DOTSIZE, createPointColor, false, true);
+                    RenderCircle(cameraInfo, controlPoints[1].m_position, DOTSIZE, createPointColor, false, true);
                     break;
                 }
                 return true;
@@ -267,21 +272,60 @@ FinalizeControlPoint:
             return false;
         }
 
-        public override void OnSimulationStep() {
+        public override void OnSimulationStep(Vector3 mousePosition) {
+            ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
+            //m_cachedPosition = mousePosition;
             switch (m_currentState) {
             case ActiveState.CreatePointFirst:
-                ControlPoint.Modify(m_mousePosition, 0);
-                break;
-            case ActiveState.CreatePointSecond:
-                ControlPoint.Modify(m_mousePosition, 1);
-                UpdateCurve();
                 UpdatePlacement(false, false);
                 break;
+            case ActiveState.CreatePointSecond:
+            case ActiveState.MovePointSecond:
+                ControlPoint.Modify(DrawMode.CurrentMode, mousePosition, 1, m_currentState, DrawMode.Current);
+                UpdatePlacement();
+                break;
+            case ActiveState.CreatePointThird:
+            case ActiveState.MovePointThird:
+                ControlPoint.Modify(DrawMode.CurrentMode, mousePosition, 2, m_currentState, DrawMode.Current);
+                UpdatePlacement();
+                break;
+            case ActiveState.MovePointFirst:
+                ControlPoint.Modify(DrawMode.CurrentMode, mousePosition, 0, m_currentState, DrawMode.Current);
+                UpdatePlacement();
+                break;
+            case ActiveState.MaxFillContinue:
+            case ActiveState.LockIdle:
+            case ActiveState.MoveSegment:
+            case ActiveState.ChangeSpacing:
+            case ActiveState.ChangeAngle:
+                UpdatePlacement();
+                break;
             }
+            if (ControlPoint.m_validPoints == 0) return;
+            SegmentState.m_pendingPlacementUpdate = true;
+            UpdateCurve(controlPoints, ControlPoint.m_validPoints);
+            DiscoverHoverState(mousePosition);
+            UpdateMiscHoverParameters();
         }
 
         public override void OnToolLateUpdate() {
-            base.OnToolLateUpdate();
+            switch (m_currentState) {
+            case ActiveState.CreatePointFirst:
+                if (SegmentState.IsPositionEqualToLastFenceEndpoint(ControlPoint.m_controlPoints[0].m_position)) {
+                    SegmentState.ResetLastContinueParameters();
+                } else if (ControlPoint.m_validPoints > 0) {
+                    ControlPoint.m_validPoints = 0;
+                }
+                break;
+            case ActiveState.CreatePointThird:
+                ControlPoint.Cancel();
+                GoToActiveState(ActiveState.CreatePointSecond);
+                ControlPoint.Modify(m_mousePosition, 1);
+                UpdateCurve();
+                return;
+            }
+            UpdateCachedPosition(false);
+            CheckPendingPlacement();
         }
 
         public override void OnToolUpdate() {
@@ -334,7 +378,7 @@ FinalizeControlPoint:
                         break;
                     }
                 }
-                m_mainCircle = new Circle3XZ(center, pointOnCircle, itemSpacing);
+                m_mainCircle = new CircleXZ(center, pointOnCircle, itemSpacing);
             }
         }
 
@@ -367,25 +411,23 @@ FinalizeControlPoint:
             UpdatePlacement(false, false);
         }
 
-        public override void CalculateAllDirections() {
+        public override void CalculateAllDirections(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode) {
             int itemCount = m_itemCount;
-            ItemInfo[] items = m_items;
-            if (GetFenceMode()) {
-                Vector3[] fenceEndPoints = m_fenceEndPoints;
+            if (fenceMode) {
                 for (int i = 0; i < itemCount; i++) {
                     items[i].SetDirectionsXZ(fenceEndPoints[i + 1] - fenceEndPoints[i]);
                 }
             } else {
-                Circle3XZ mainCircle = m_mainCircle;
+                CircleXZ mainCircle = m_mainCircle;
                 for (int i = 0; i < itemCount; i++) {
                     items[i].SetDirectionsXZ(mainCircle.Tangent(items[i].m_t));
                 }
             }
         }
 
-        public override bool CalculateItemwisePosition(float fencePieceLength, float initialOffset, Vector3 lastFenceEndpoint) {
+        public override bool CalculateItemwisePosition(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode, float fencePieceLength, float initialOffset, VectorXZ lastFenceEndpoint) {
             float hoverItemwiseT = m_hoverItemwiseT;
-            if (GetFenceMode()) {
+            if (fenceMode) {
                 Vector3 positionStart, positionEnd;
                 if (m_mainCircle.m_radius == 0f || fencePieceLength > m_mainCircle.Diameter) {
                     m_itemCount = 0;
@@ -397,23 +439,23 @@ FinalizeControlPoint:
                     m_itemCount = 0;
                     return false;
                 }
-                m_fenceEndPoints[0] = positionStart = m_mainCircle.Position(itemTStart);
-                m_fenceEndPoints[1] = positionEnd = m_mainCircle.Position(itemTStart + deltaT);
-                m_items[0].Position = Vector3.Lerp(positionStart, positionEnd, 0.50f);
+                fenceEndPoints[0] = positionStart = m_mainCircle.Position(itemTStart);
+                fenceEndPoints[1] = positionEnd = m_mainCircle.Position(itemTStart + deltaT);
+                items[0].Position = Vector3.Lerp(positionStart, positionEnd, 0.50f);
                 return true;
             }
-            m_items[0].m_t = hoverItemwiseT;
-            m_items[0].Position = m_mainCircle.Position(hoverItemwiseT);
+            items[0].m_t = hoverItemwiseT;
+            items[0].Position = m_mainCircle.Position(hoverItemwiseT);
             return true;
         }
 
-        public override bool CalculateAllPositionsBySpacing(float spacing, float initialOffset, Vector3 lastFenceEndpoint) {
+        public override bool CalculateAllPositionsBySpacing(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode, float spacing, float initialOffset, VectorXZ lastFenceEndpoint) {
             Vector3 position, center, radiusVector;
             Quaternion rotation;
             int numItems, numItemsRaw;
             float deltaT, t, penultimateT, finalT;
-            Circle3XZ mainCircle = m_mainCircle;
-            if (GetFenceMode()) {
+            CircleXZ mainCircle = m_mainCircle;
+            if (fenceMode) {
                 float chordAngle = mainCircle.ChordAngle(spacing);
                 if (chordAngle <= 0f || chordAngle > Mathf.PI || mainCircle.m_radius <= 0f) {
                     m_itemCount = 0;
@@ -423,10 +465,10 @@ FinalizeControlPoint:
                 float angleAfterFirst = SegmentState.IsMaxFillContinue ? 2f * Mathf.PI - initialAngle : 2f * Mathf.PI;
                 if (Settings.PerfectCircles) {
                     numItemsRaw = Mathf.Clamp(Mathf.RoundToInt(angleAfterFirst / chordAngle), 0, MAX_ITEM_ARRAY_LENGTH);
-                    numItems = Mathf.Min(m_itemCount, numItemsRaw);
+                    numItems = Math.Min(m_itemCount, numItemsRaw);
                 } else {
                     numItemsRaw = Mathf.Clamp(Mathf.FloorToInt(angleAfterFirst / chordAngle), 0, MAX_ITEM_ARRAY_LENGTH);
-                    numItems = Mathf.Min(m_itemCount, numItemsRaw);
+                    numItems = Math.Min(m_itemCount, numItemsRaw);
                 }
                 deltaT = mainCircle.ChordDeltaT(spacing);
                 t = 0f;
@@ -443,14 +485,14 @@ FinalizeControlPoint:
                 //calculate endpoints
                 for (int i = 0; i < numItems + 1; i++) {
                     penultimateT = t;
-                    m_fenceEndPoints[i] = position;
+                    fenceEndPoints[i] = position;
                     radiusVector = rotation * radiusVector;
                     position = center + radiusVector;
                     t += deltaT;
                 }
                 //then calculate midpoints
                 for (int i = 0; i < numItems; i++) {
-                    m_items[i].Position = Vector3.Lerp(m_fenceEndPoints[i], m_fenceEndPoints[i + 1], 0.50f);
+                    items[i].Position = Vector3.Lerp(fenceEndPoints[i], fenceEndPoints[i + 1], 0.50f);
                 }
                 //prep for MaxFillContinue
                 if (SegmentState.IsReadyForMaxContinue) {
@@ -479,20 +521,20 @@ FinalizeControlPoint:
             }
             //use ceiling for non-fence, because the point at the beginning is an extra point
             numItemsRaw = Mathf.CeilToInt(remainingSpace / spacing);
-            numItems = Mathf.Min(m_itemCount, Mathf.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
+            numItems = Math.Min(m_itemCount, Mathf.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
             position = mainCircle.Position(t);
             center = mainCircle.m_center;
             radiusVector = position - center;
             float deltaAngle = mainCircle.DeltaAngle(spacing);
             rotation = Quaternion.AngleAxis(-1f * deltaAngle * Mathf.Rad2Deg, m_vectorUp);
             for (int i = 0; i < numItems; i++) {
-                m_items[i].m_t = t;
-                m_items[i].Position = position;
+                items[i].m_t = t;
+                items[i].Position = position;
                 radiusVector = rotation * radiusVector;
                 position = center + radiusVector;
                 t += deltaT;
             }
-            finalT = m_items[numItems - 1].m_t;
+            finalT = items[numItems - 1].m_t;
             if (SegmentState.IsReadyForMaxContinue) {
                 SegmentState.NewFinalOffset = spacing + mainCircle.ArclengthBetween(0f, finalT);
             } else {
@@ -502,27 +544,26 @@ FinalizeControlPoint:
             return true;
         }
 
-        public override void DiscoverHoverState(Vector3 position) {
-            ActiveState currentState = m_currentState;
-            //check for itemwise first before classic lock mode
-            if (m_controlMode == ControlMode.ITEMWISE && (currentState == ActiveState.ItemwiseLock || currentState == ActiveState.MoveItemwiseItem)) {
-                if (m_mainCircle.IsCloseToCircle3XZ(HOVER_ITEMWISE_CURVEDISTANCE_THRESHOLD, position, out float hoverItemT)) {
+        public override void DiscoverHoverState(VectorXZ position) {
+            const float pointRadius = HOVER_POINTDISTANCE_THRESHOLD;
+            const float anglePointRadius = pointRadius;
+            const float angleLocusRadius = HOVER_ANGLELOCUS_DIAMETER;
+            const float angleLocusDistanceThreshold = 0.40f;
+            switch(m_currentState) {
+            case ActiveState.ItemwiseLock:
+            case ActiveState.MoveItemwiseItem:
+                if (m_controlMode == ControlMode.ITEMWISE && m_mainCircle.IsCloseToCircle3XZ(HOVER_ITEMWISE_CURVEDISTANCE_THRESHOLD, position, out float hoverItemT)) {
                     m_hoverItemwiseT = hoverItemT;
                     m_hoverState = HoverState.ItemwiseItem;
-                } else {
-                    m_hoverState = HoverState.Unbound;
+                    return;
                 }
-            }
-            if (currentState == ActiveState.LockIdle) {
+                break;
+            case ActiveState.LockIdle:
                 if (m_itemCount >= (GetFenceMode() ? 1 : 2) || m_controlMode == ControlMode.ITEMWISE) {
-                    const float pointRadius = HOVER_POINTDISTANCE_THRESHOLD;
-                    const float anglePointRadius = pointRadius;
-                    const float angleLocusRadius = HOVER_ANGLELOCUS_DIAMETER;
-                    const float angleLocusDistanceThreshold = 0.40f;
                     bool angleObjectMode = m_itemType == ItemType.PROP;
-                    Vector3 angleCenter = m_items[HoverItemAngleCenterIndex].Position;
-                    Vector3 anglePos = Circle2.Position3FromAngleXZ(angleCenter, angleLocusRadius, m_hoverAngle);
-                    Vector3 spacingPos = GetFenceMode() ? m_fenceEndPoints[HoverItemPositionIndex] : m_items[HoverItemPositionIndex].Position;
+                    VectorXZ angleCenter = m_items[HoverItemAngleCenterIndex].Position;
+                    VectorXZ anglePos = Circle2.Position3FromAngleXZ(angleCenter, angleLocusRadius, m_hoverAngle);
+                    VectorXZ spacingPos = GetFenceMode() ? m_fenceEndPoints[HoverItemPositionIndex] : m_items[HoverItemPositionIndex].Position;
                     if (spacingPos.IsInsideCircleXZ(pointRadius, position)) {
                         m_hoverState = m_controlMode == ControlMode.ITEMWISE ? HoverState.ItemwiseItem : HoverState.SpacingLocus;
                     } else if (angleObjectMode && anglePos.IsInsideCircleXZ(anglePointRadius, position)) {
@@ -535,13 +576,14 @@ FinalizeControlPoint:
                         m_hoverState = HoverState.ControlPointSecond;
                     } else if (m_mainCircle.IsCloseToCircle3XZ(HOVER_CURVEDISTANCE_THRESHOLD, position, out _)) {
                         m_hoverState = HoverState.Curve;
-                    } else {
-                        m_hoverState = HoverState.Unbound;
-                    }
-                } else {
-                    m_hoverState = HoverState.Unbound;
+                    } else goto default;
+                    return;
                 }
+                break;
+            default:
+                break;
             }
+            m_hoverState = HoverState.Unbound;
         }
 
         public override void UpdateMiscHoverParameters() {
@@ -558,7 +600,7 @@ FinalizeControlPoint:
                     UpdatePlacement();
                     break;
                 case ActiveState.ChangeSpacing:
-                    Circle3XZ circle = m_mainCircle;
+                    CircleXZ circle = m_mainCircle;
                     if (circle.IsCloseToCircle3XZ(HOVER_CURVEDISTANCE_THRESHOLD * 12f, m_cachedPosition, out float hoverCurveT)) {
                         if (GetFenceMode()) {
                             float curveT = Mathf.Clamp(hoverCurveT, m_items[0].m_t, 0.500f);
@@ -581,17 +623,15 @@ FinalizeControlPoint:
                     UpdatePlacement(true, true);
                     break;
                 case ActiveState.ChangeAngle:
-                    Vector3 xAxis; xAxis.x = 1; xAxis.y = 0; xAxis.z = 0;
-                    Vector3 yAxis; yAxis.x = 0; yAxis.y = 1; yAxis.z = 0;
+                    Vector3 xAxis = m_vectorRight;
+                    Vector3 yAxis = m_vectorDown;
                     if (m_angleMode == AngleMode.DYNAMIC) {
-                        Vector3 angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
-                        angleVector.y = 0f;
+                        VectorXZ angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
                         angleVector.Normalize();
                         m_hoverAngle = PLTMath.AngleSigned(angleVector, xAxis, yAxis);
                         ItemInfo.m_itemAngleOffset = PLTMath.AngleSigned(angleVector, m_lockedBackupItemDirection, yAxis);
                     } else if (m_angleMode == AngleMode.SINGLE) {
-                        Vector3 angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
-                        angleVector.y = 0f;
+                        VectorXZ angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
                         angleVector.Normalize();
                         float angle = PLTMath.AngleSigned(angleVector, xAxis, yAxis);
                         m_hoverAngle = angle;
@@ -609,7 +649,7 @@ FinalizeControlPoint:
         }
 
         public override void RenderProgressiveSpacingFill(RenderManager.CameraInfo cameraInfo, float fillLength, float interval, float size, Color color, bool renderLimits, bool alphaBlend) {
-            Circle3XZ mainCircle = m_mainCircle;
+            CircleXZ mainCircle = m_mainCircle;
             if (GetFenceMode() || mainCircle.m_radius <= 0f) return;
             int numItems = Mathf.CeilToInt(fillLength / interval);
             float deltaT = interval / mainCircle.Circumference;

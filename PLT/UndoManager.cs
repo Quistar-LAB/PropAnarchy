@@ -175,7 +175,7 @@ namespace PropAnarchy.PLT {
                 int itemCount = entry.m_itemCount;
                 for (int i = 0; i < itemCount; i++) {
                     Vector3 position = items[i].Position;
-                    RenderCircle(cameraInfo, position, 0.10f, pinpointColor, false, false);
+                    RenderCircle(cameraInfo, position, DOTSIZE, pinpointColor, false, false);
                     RenderCircle(cameraInfo, position, 2f, pointColor, false, false);
                     RenderCircle(cameraInfo, position, 8f, boundsColor, false, true);
                 }

@@ -50,6 +50,5 @@ namespace PropAnarchy.PLT {
             pointOfInterest.y = 0f;
             return lineSegment.DistanceSqr(pointOfInterest, out t) <= distanceThreshold * distanceThreshold;
         }
-
     }
 }

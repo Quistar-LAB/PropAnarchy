@@ -25,19 +25,19 @@ namespace PropAnarchy.PLT {
         protected const int RIGHTMOUSEBUTTON = 1;
         public static ActiveState m_currentState;
         public static Segment3 m_mainSegment = new Segment3();
-        public static Segment3 m_mainArm1 = new Segment3();
-        public static Segment3 m_mainArm2 = new Segment3();
+        public static SegmentXZ m_mainArm1 = new SegmentXZ();
+        public static SegmentXZ m_mainArm2 = new SegmentXZ();
         public static Bezier3 m_mainBezier = new Bezier3();
-        public static Circle3XZ m_mainCircle = new Circle3XZ();
+        public static CircleXZ m_mainCircle = new CircleXZ();
         public virtual void OnToolGUI(Event e, bool isInsideUI) {
             m_keyboardAltDown = (e.modifiers & EventModifiers.Alt) == EventModifiers.Alt;
             m_keyboardCtrlDown = (e.modifiers & EventModifiers.Control) == EventModifiers.Control;
         }
         public virtual void OnToolUpdate() { }
-        public virtual void OnToolLateUpdate() { }
+        public abstract void OnToolLateUpdate();
         public abstract void OnRenderGeometry(RenderManager.CameraInfo cameraInfo);
         public abstract bool OnRenderOverlay(RenderManager.CameraInfo cameraInfo, ActiveState curState, Color createPointColor, Color curveWarningColor, Color copyPlaceColor);
-        public abstract void OnSimulationStep();
+        public abstract void OnSimulationStep(Vector3 mousePosition);
         public abstract void RenderLines(RenderManager.CameraInfo cameraInfo, Color createPointColor, Color curveWarningColor);
         public abstract bool ContinueDrawing(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount);
         public abstract bool IsLengthLongEnough();
@@ -63,48 +63,51 @@ namespace PropAnarchy.PLT {
             return result;
         }
         private bool CalculateAll(bool continueDrawing) {
+            bool fenceMode = GetFenceMode();
+            ItemInfo[] items = m_items;
+            Vector3[] fenceEndPoints = m_fenceEndPoints;
             m_itemCount = MAX_ITEM_ARRAY_LENGTH;   //not sure about setting m_itemCount here, before CalculateAllPositions
-            if (CalculateAllPositions(continueDrawing)) {
-                CalculateAllDirections();
-                CalculateAllAnglesBase();
+            if (CalculateAllPositions(continueDrawing, fenceMode, items, fenceEndPoints)) {
+                CalculateAllDirections(items, fenceEndPoints, fenceMode);
+                CalculateAllAnglesBase(items, fenceMode);
                 //UpdatePlacementErrors();
                 return true;
             }
             SegmentState.m_segmentInfo.m_maxItemCountExceeded = false;
             return false;
         }
-        private void CalculateAllAnglesBase() {
+        private void CalculateAllAnglesBase(ItemInfo[] items, bool fenceMode) {
             Vector3 xAxis = m_vectorRight;
             Vector3 yAxis = m_vectorUp;
             int itemCount = m_itemCount;
-            if (GetFenceMode()) {
+            if (fenceMode) {
                 float offsetAngle = Mathf.Deg2Rad * (((ItemInfo.m_itemModelZ > ItemInfo.m_itemModelX ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.m_itemAngleOffset) * Mathf.Rad2Deg % 360f);
                 for (int i = 0; i < itemCount; i++) {
-                    m_items[i].m_angle = PLTMath.AngleSigned(m_items[i].m_itemDirection, xAxis, yAxis) + Mathf.PI + offsetAngle;
+                    items[i].m_angle = PLTMath.AngleSigned(items[i].m_itemDirection, xAxis, yAxis) + Mathf.PI + offsetAngle;
                 }
             } else {
                 switch (m_angleMode) {
                 case AngleMode.DYNAMIC:
                     float offsetAngle = Mathf.Deg2Rad * (((ItemInfo.m_itemModelZ > ItemInfo.m_itemModelX ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.m_itemAngleOffset) * Mathf.Rad2Deg % 360f);
                     for (int i = 0; i < itemCount; i++) {
-                        m_items[i].m_angle = PLTMath.AngleSigned(m_items[i].m_itemDirection, xAxis, yAxis) + Mathf.PI + offsetAngle;
+                        items[i].m_angle = PLTMath.AngleSigned(items[i].m_itemDirection, xAxis, yAxis) + Mathf.PI + offsetAngle;
                     }
                     break;
                 case AngleMode.SINGLE:
                     float singleAngle = Mathf.Deg2Rad * (((ItemInfo.m_itemModelZ > ItemInfo.m_itemModelX ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.m_itemAngleSingle) * Mathf.Rad2Deg % 360f);
                     for (int i = 0; i < itemCount; i++) {
-                        m_items[i].m_angle = singleAngle;
+                        items[i].m_angle = singleAngle;
                     }
                     break;
                 }
             }
         }
-        private bool CalculateAllPositions(bool continueDrawing) {
+        private bool CalculateAllPositions(bool continueDrawing, bool fenceMode, ItemInfo[] items, Vector3[] fenceEndPoints) {
             switch (m_controlMode) {
             case ControlMode.ITEMWISE:
-                return CalculateItemwisePosition(ItemInfo.ItemSpacing, continueDrawing ? SegmentState.m_segmentInfo.m_lastFinalOffset : 0f, continueDrawing ? SegmentState.m_segmentInfo.m_lastFenceEndpoint : m_mainSegment.b);
+                return CalculateItemwisePosition(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, continueDrawing ? SegmentState.LastFinalOffset : 0f, continueDrawing ? SegmentState.LastFenceEndpoint : m_mainSegment.b);
             case ControlMode.SPACING:
-                return CalculateAllPositionsBySpacing(ItemInfo.ItemSpacing, continueDrawing ? SegmentState.m_segmentInfo.m_lastFinalOffset : 0f, continueDrawing ? SegmentState.m_segmentInfo.m_lastFenceEndpoint : m_mainSegment.b);
+                return CalculateAllPositionsBySpacing(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, continueDrawing ? SegmentState.LastFinalOffset : 0f, continueDrawing ? SegmentState.LastFenceEndpoint : m_mainSegment.b);
             }
             return false;
         }
@@ -115,10 +118,10 @@ namespace PropAnarchy.PLT {
                 SegmentState.m_pendingPlacementUpdate = false;
             }
         }
-        public abstract void CalculateAllDirections();
-        public abstract bool CalculateItemwisePosition(float fencePieceLength, float initialOffset, Vector3 lastFenceEndpoint);
-        public abstract bool CalculateAllPositionsBySpacing(float spacing, float initialOffset, Vector3 lastFenceEndpoint);
-        public abstract void DiscoverHoverState(Vector3 position);
+        public abstract void CalculateAllDirections(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode);
+        public abstract bool CalculateItemwisePosition(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode, float fencePieceLength, float initialOffset, VectorXZ lastFenceEndpoint);
+        public abstract bool CalculateAllPositionsBySpacing(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode, float spacing, float initialOffset, VectorXZ lastFenceEndpoint);
+        public abstract void DiscoverHoverState(VectorXZ position);
         public abstract void UpdateMiscHoverParameters();
         public abstract void RenderProgressiveSpacingFill(RenderManager.CameraInfo cameraInfo, float fillLength, float interval, float size, Color color, bool renderLimits, bool alphaBlend);
         public void RenderMaxFillContinueMarkers(RenderManager.CameraInfo cameraInfo) {

@@ -131,10 +131,10 @@ namespace PropAnarchy.PLT {
             LastFenceEndpoint = lastFenceEndpointVector;
         }
 
-        public static bool AreLastContinueParametersZero() => (m_segmentInfo.m_lastFenceEndpoint == m_vectorDown || m_segmentInfo.m_lastFenceEndpoint == m_vectorZero) && m_segmentInfo.m_lastFinalOffset == 0f;
+        public static bool AreLastContinueParametersZero() => (m_segmentInfo.m_lastFenceEndpoint == m_vectorZero) && m_segmentInfo.m_lastFinalOffset == 0f;
 
-        public static bool AreNewContinueParametersEmpty() => (m_segmentInfo.m_newFenceEndpoint == m_vectorDown || m_segmentInfo.m_newFenceEndpoint == m_vectorZero) && m_segmentInfo.m_newFinalOffset == 0f;
+        public static bool AreNewContinueParametersEmpty() => (m_segmentInfo.m_newFenceEndpoint == m_vectorZero) && m_segmentInfo.m_newFinalOffset == 0f;
 
-        public static bool IsPositionEqualToLastFenceEndpoint(Vector3 position) => Vector3.Distance(position, m_segmentInfo.m_lastFenceEndpoint) <= 0.002f;
+        public static bool IsPositionEqualToLastFenceEndpoint(VectorXZ position) => (position - m_segmentInfo.m_lastFenceEndpoint).magnitude <= 0.002f;
     }
 }

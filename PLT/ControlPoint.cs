@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
@@ -6,53 +7,45 @@ namespace PropAnarchy.PLT {
         public const int MAX_CONTROL_POINTS = 3;
         public struct PointInfo {
             public Vector3 m_position;
-            public Vector3 m_direction;
+            public VectorXZ m_direction;
             public bool m_outside;
         }
         public static PointInfo[] m_controlPoints = new PointInfo[MAX_CONTROL_POINTS];
-        //public static PointInfo[] m_cachedControlPoints = new PointInfo[MAX_CONTROL_POINTS];
         public static PointInfo[] m_lockedControlPoints = new PointInfo[MAX_CONTROL_POINTS];
         public static int m_validPoints = 0;
-        public static object m_cacheLock = new object();
 
         private static void GetFreeformMidPoint(PointInfo[] controlPoints) {
-            Vector3 p2_p0 = controlPoints[2].m_position - controlPoints[0].m_position;
-            Vector3 dir_p1 = controlPoints[1].m_direction;
-            p2_p0.y = 0f;
-            dir_p1.y = 0f;
-            float sqrMag_2_0 = Vector3.SqrMagnitude(p2_p0);
-            p2_p0 = Vector3.Normalize(p2_p0);
-            float angle_0 = Mathf.Min(1.17809725f, Mathf.Acos(Vector3.Dot(p2_p0, dir_p1)));
-            float dist_p1_p0 = Mathf.Sqrt(0.5f * sqrMag_2_0 / Mathf.Max(0.001f, 1f - Mathf.Cos(3.14159274f - 2f * angle_0)));
-            controlPoints[1].m_position = controlPoints[0].m_position + dir_p1 * dist_p1_p0;
-            Vector3 dir_p2 = controlPoints[2].m_position - controlPoints[1].m_position;
-            dir_p2.y = 0f;
+            VectorXZ p2_p0 = controlPoints[2].m_position - controlPoints[0].m_position;
+            VectorXZ dir_p1 = controlPoints[1].m_direction;
+            float sqrMag_2_0 = p2_p0.sqrMagnitude;
+            p2_p0.Normalize();
+            float angle_0 = Math.Min(1.17809725f, (float)Math.Acos(VectorXZ.Dot(p2_p0, dir_p1)));
+            float dist_p1_p0 = (float)Math.Sqrt(0.5f * sqrMag_2_0 / Math.Max(0.001f, 1f - (float)Math.Cos(3.14159274f - 2f * angle_0)));
+            controlPoints[1].m_position = (controlPoints[0].m_position + dir_p1 * dist_p1_p0);
+            VectorXZ dir_p2 = controlPoints[2].m_position - controlPoints[1].m_position;
             dir_p2.Normalize();
             controlPoints[2].m_direction = dir_p2;
             //sometimes things don't work corrently
             if (float.IsNaN(controlPoints[1].m_position.x) || float.IsNaN(controlPoints[1].m_position.y) || float.IsNaN(controlPoints[1].m_position.z)) {
-                controlPoints[1].m_position = controlPoints[0].m_position + 0.01f * controlPoints[0].m_direction;
+                controlPoints[1].m_position = controlPoints[0].m_position + controlPoints[0].m_direction * 0.01f;
                 controlPoints[1].m_direction = controlPoints[0].m_direction;
             }
         }
 
         public static void Add(Vector3 position) {
-            Vector3 vectorZero; vectorZero.x = 0f; vectorZero.y = 0f; vectorZero.z = 0f;
             PointInfo[] controlPoints = m_controlPoints;
-            int validPoints = m_validPoints;
-            switch (validPoints) {
+            switch (m_validPoints) {
             case 0:
                 controlPoints[0].m_position = position;
-                controlPoints[0].m_direction = vectorZero;
+                controlPoints[0].m_direction = default;
                 m_validPoints = 1;
                 m_positionChanging = true;
                 break;
             case 1:
-                Vector3 normVector = position - controlPoints[0].m_position;
-                normVector.y = 0f;
+                VectorXZ normVector = position - controlPoints[0].m_position;
                 normVector.Normalize();
-                controlPoints[1].m_position = position;
                 controlPoints[0].m_direction = normVector;
+                controlPoints[1].m_position = position;
                 controlPoints[1].m_direction = normVector;
                 m_validPoints = 2;
                 m_positionChanging = true;
@@ -63,7 +56,6 @@ namespace PropAnarchy.PLT {
                     GetFreeformMidPoint(controlPoints);
                 } else {//must be curved
                     normVector = position - controlPoints[1].m_position;
-                    normVector.y = 0f;
                     normVector.Normalize();
                     controlPoints[2].m_position = position;
                     controlPoints[2].m_direction = normVector;
@@ -78,16 +70,14 @@ namespace PropAnarchy.PLT {
 
         public static void Modify(ActiveDrawState currentMode, Vector3 position, int index, ActiveState currentState, int drawMode) {
             int validPoints = m_validPoints;
-            Vector3 vectorZero; vectorZero.x = 0; vectorZero.y = 0; vectorZero.z = 0;
             PointInfo[] controlPoints = m_controlPoints;
             switch (index) {
             case 0:
                 if (validPoints <= 1 && currentState == ActiveState.CreatePointFirst) {
                     controlPoints[0].m_position = position;
-                    controlPoints[0].m_direction = vectorZero;
+                    controlPoints[0].m_direction = default;
                 } else if ((validPoints == 2 || validPoints == 3) && currentState == ActiveState.MovePointFirst) {
-                    Vector3 normVector = (controlPoints[1].m_position - position);
-                    normVector.y = 0f;
+                    VectorXZ normVector = (controlPoints[1].m_position - position);
                     normVector.Normalize();
                     controlPoints[0].m_position = position;
                     controlPoints[0].m_direction = normVector;
@@ -101,8 +91,7 @@ namespace PropAnarchy.PLT {
                     switch (drawMode) {
                     case DrawMode.STRAIGHT:
                     case DrawMode.CIRCLE:
-                        Vector3 normVector = (controlPoints[1].m_position - position);
-                        normVector.y = 0f;
+                        VectorXZ normVector = (controlPoints[1].m_position - position);
                         normVector.Normalize();
                         controlPoints[0].m_position = position;
                         controlPoints[0].m_direction = normVector;
@@ -114,21 +103,18 @@ namespace PropAnarchy.PLT {
                 break;
             case 1:
                 if (validPoints == 1 && currentState == ActiveState.CreatePointSecond) {
-                    Vector3 normVector = (position - controlPoints[0].m_position);
-                    normVector.y = 0f;
+                    VectorXZ normVector = (position - controlPoints[0].m_position);
                     normVector.Normalize();
-                    controlPoints[1].m_position = position;
                     controlPoints[0].m_direction = normVector;
+                    controlPoints[1].m_position = position;
                     controlPoints[1].m_direction = normVector;
-                } else if ((validPoints == 1 || validPoints == 2) && currentState == ActiveState.MovePointSecond) {
-                    Vector3 normVector = (position - controlPoints[0].m_position);
-                    normVector.y = 0f;
+                } else if ((validPoints == 2 || validPoints == 3) && currentState == ActiveState.MovePointSecond) {
+                    VectorXZ normVector = (position - controlPoints[0].m_position);
                     normVector.Normalize();
-                    controlPoints[1].m_position = position;
                     controlPoints[0].m_direction = normVector;
+                    controlPoints[1].m_position = position;
                     controlPoints[1].m_direction = normVector;
                     normVector = (controlPoints[2].m_position - position);
-                    normVector.y = 0f;
                     normVector.Normalize();
                     controlPoints[2].m_direction = normVector;
                     if (drawMode == DrawMode.FREEFORM) {
@@ -142,8 +128,7 @@ namespace PropAnarchy.PLT {
                         controlPoints[2].m_position = position;
                         GetFreeformMidPoint(controlPoints);
                     } else {
-                        Vector3 normVector = (position - controlPoints[1].m_position);
-                        normVector.y = 0f;
+                        VectorXZ normVector = (position - controlPoints[1].m_position);
                         normVector.Normalize();
                         controlPoints[2].m_position = position;
                         controlPoints[2].m_direction = normVector;
@@ -153,8 +138,7 @@ namespace PropAnarchy.PLT {
                         m_controlPoints[2].m_position = position;
                         GetFreeformMidPoint(controlPoints);
                     } else {
-                        Vector3 normVector = (position - controlPoints[1].m_position);
-                        normVector.y = 0f;
+                        VectorXZ normVector = (position - controlPoints[1].m_position);
                         normVector.Normalize();
                         controlPoints[2].m_position = position;
                         controlPoints[2].m_direction = normVector;
@@ -180,8 +164,7 @@ namespace PropAnarchy.PLT {
         }
 
         public static void Cancel() {
-            int validPoints = m_validPoints;
-            switch (validPoints) {
+            switch (m_validPoints) {
             case 0:
                 Modify(m_cachedPosition, 0);
                 break;

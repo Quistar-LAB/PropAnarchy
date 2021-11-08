@@ -19,13 +19,13 @@ namespace PropAnarchy.PLT {
         }
 
         //standard conversion
-        public static Bezier3 QuadraticToCubicBezier(in Vector3 startPoint, in Vector3 middlePoint, in Vector3 endPoint) =>
+        public static Bezier3 QuadraticToCubicBezier(Vector3 startPoint, Vector3 middlePoint, Vector3 endPoint) =>
             new Bezier3(startPoint, startPoint + (2.0f / 3.0f) * (middlePoint - startPoint), endPoint + (2.0f / 3.0f) * (middlePoint - endPoint), endPoint);
 
         //CO's in-house method
         //uses negative of endDirection
         //rounds out tight re-curves (or tight curves)
-        public static void QuadraticToCubicBezierCOMethod(ref this Bezier3 bezier, in Vector3 startPoint, in Vector3 startDirection, in Vector3 endPoint, in Vector3 endDirection) {
+        public static void QuadraticToCubicBezierCOMethod(ref this Bezier3 bezier, Vector3 startPoint, Vector3 startDirection, Vector3 endPoint, Vector3 endDirection) {
             bezier.a = startPoint;
             bezier.d = endPoint;
             NetSegment.CalculateMiddlePoints(startPoint, startDirection, endPoint, -endDirection, false, false, out bezier.b, out bezier.c);
@@ -100,7 +100,7 @@ namespace PropAnarchy.PLT {
         /// <param name="tolerance"></param>
         /// <param name="tEnd"></param>
         /// <param name="allowBackwards">Set to false to only step forward along the curve in the direction t=0 -> t=1.</param>
-        public static bool LinkCircleCurveFenceIntersectXZ(ref this Bezier3 bezier, in Vector3 startPos, float lengthOfSegment, float tolerance, out float tEnd, bool allowBackwards) {
+        public static bool LinkCircleCurveFenceIntersectXZ(ref this Bezier3 bezier, Vector3 startPos, float lengthOfSegment, float tolerance, out float tEnd, bool allowBackwards) {
             float Pow2(float x) => x * x;
             const float adjustmentScalar = 1.0f;  //if using multiplicity, _adjustmentScalar = 2
             float iteratedDistance;
@@ -193,7 +193,7 @@ namespace PropAnarchy.PLT {
         /// <param name="centerPos">Center of the circle to intersect the curve.</param>
         /// <param name="radius">Radius of the circle to intersect the curve.</param>
         /// <returns>Returns E(t) = E(tGuess) : +/- Error [meters^2] in (straight-line distance between startPoint and point on bezier curve) vs (radius)</returns>
-        private static float PLTLinkErrorFunctionXZ(ref this Bezier3 bezier, float t, in Vector3 centerPos, float radius) {
+        private static float PLTLinkErrorFunctionXZ(ref this Bezier3 bezier, float t, Vector3 centerPos, float radius) {
             float Pow2(float x) => x * x;
             float ErrorFuncXZ(in Vector3 guessPos, in Vector3 center) => guessPos == center ? 0f : Pow2(guessPos.x - center.x) + Pow2(guessPos.z - center.z) - Pow2(radius);
             return ErrorFuncXZ(bezier.Position(t), centerPos);
@@ -204,7 +204,7 @@ namespace PropAnarchy.PLT {
         /// <param name="tCenter">Center of the circle to intersect the curve.</param>
         /// <returns>Returns E'(t) = E'(tGuess) : Derivative of +/- Error [meters^2] in (straight-line distance between two points on a bezier curve) vs (radius)</returns>
         private static float PLTErrorFunctionPrimeXZ(ref this Bezier3 bezier, float t, float tCenter) {
-            float ErrorFuncPrimeXZ(in Vector3 guessPos, in Vector3 center, in Vector3 derivPos) => 2 * (guessPos.x - center.x) * derivPos.x + 2 * (guessPos.z - center.z) * derivPos.z;
+            float ErrorFuncPrimeXZ(Vector3 guessPos, Vector3 center, Vector3 derivPos) => 2 * (guessPos.x - center.x) * derivPos.x + 2 * (guessPos.z - center.z) * derivPos.z;
             return t == tCenter ? 0f : ErrorFuncPrimeXZ(bezier.Position(t), bezier.Position(tCenter), bezier.Tangent(t));
         }
 
@@ -214,7 +214,7 @@ namespace PropAnarchy.PLT {
         /// <param name="centerPos">Center of the circle to intersect the curve.</param>
         /// <returns>Returns E'(t) = E'(tGuess) : Derivative of +/- Error [meters^2] in (straight-line distance between startPoint and point on bezier curve) vs (radius)</returns>
         private static float PLTLinkErrorFunctionPrimeXZ(ref this Bezier3 bezier, float t, in Vector3 centerPos) {
-            float ErrorFuncPrimeXZ(in Vector3 guessPos, in Vector3 center, in Vector3 derivPos) => guessPos == center ? 0f : 2 * (guessPos.x - center.x) * derivPos.x + 2 * (guessPos.z - center.z) * derivPos.z;
+            float ErrorFuncPrimeXZ(Vector3 guessPos, Vector3 center, Vector3 derivPos) => guessPos == center ? 0f : 2 * (guessPos.x - center.x) * derivPos.x + 2 * (guessPos.z - center.z) * derivPos.z;
             return ErrorFuncPrimeXZ(bezier.Position(t), centerPos, bezier.Tangent(t));
         }
 
@@ -226,11 +226,45 @@ namespace PropAnarchy.PLT {
         /// <param name="pointOfInterest"></param>
         /// <param name="t"></param>
         /// <returns></returns>
-        public static bool IsCloseToCurveXZ(ref this Bezier3 curve, float distanceThreshold, Vector3 pointOfInterest, out float t) {
+        public static bool IsCloseToCurveXZ(ref this Bezier3 curve, float distanceThreshold, VectorXZ pointOfInterest, out float t) {
+            float distanceSqr = 0f, num = 1E+11f;
+            Bezier3 bezier = curve;
+            bezier.BezierXZ();
+#if TRUE
+            t = 0f;
+            Vector3 vector = bezier.a;
+            vector.y = 0f;
+            for (int i = 1; i <= 16; i++) {
+                Vector3 vector2 = bezier.Position(i / 16f);
+                float segDistanceSqr = new Segment3(vector, vector2).DistanceSqr(pointOfInterest, out float u);
+                if (segDistanceSqr < num) {
+                    num = segDistanceSqr;
+                    t = (i - 1f + u) / 16f;
+                }
+                vector = vector2;
+            }
+            float num4 = 0.03125f;
+            for (int i = 0; i < 4; i++) {
+                Vector3 vector3 = bezier.Position(Math.Max(0f, t - num4));
+                Vector3 vector4 = bezier.Position(t);
+                Vector3 vector5 = bezier.Position(Math.Min(1f, t + num4));
+                float num5 = new Segment3(vector3, vector4).DistanceSqr(pointOfInterest, out float num6);
+                float num7 = new Segment3(vector4, vector5).DistanceSqr(pointOfInterest, out float num8);
+                if (num5 < num7) {
+                    t = Math.Max(0f, t - num4 * (1f - num6));
+                    distanceSqr = num5;
+                } else {
+                    t = Math.Min(1f, t + num4 * num8);
+                    distanceSqr = num7;
+                }
+                num4 *= 0.5f;
+            }
+#endif
+            //float distanceSqr = bezier.DistanceSqr(pointOfInterest, out t);
+            PAModule.PALog($"Result={distanceSqr} DistanceThreshold={distanceThreshold * distanceThreshold}");
             //constrain to XZ plane
-            curve.BezierXZ();
-            pointOfInterest.y = 0f;
-            return curve.DistanceSqr(pointOfInterest, out t) <= distanceThreshold * distanceThreshold;
+            //curve.BezierXZ();
+            return distanceSqr <= distanceThreshold * distanceThreshold;
         }
     }
 }

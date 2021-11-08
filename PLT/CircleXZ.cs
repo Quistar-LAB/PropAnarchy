@@ -5,7 +5,7 @@ namespace PropAnarchy.PLT {
     /// <summary>
     /// A circle that lies parallel to the XZ plane, with orientation towards start angle, and at a height of center.y.
     /// </summary>
-    public readonly struct Circle3XZ {
+    public readonly struct CircleXZ {
         public readonly Vector3 m_center;
         public readonly float m_radius;
         public readonly float m_rawRadius;
@@ -36,14 +36,13 @@ namespace PropAnarchy.PLT {
         /// </summary>
         /// <param name="t">Generally from 0 to 1: [0, 1].</param>
         /// <returns></returns>
-        public Vector3 Tangent(float t) {
+        public VectorXZ Tangent(float t) {
             float radius = Settings.PerfectCircles ? m_rawRadius : m_radius;
             float angleStart = m_angleStart;
-            if (radius == 0f) return default;
-            Vector3 tangent;
+            if (radius == 0f) return VectorXZ.zero;
+            VectorXZ tangent;
             tangent.x = (-2f * Mathf.PI) * radius * (float)Math.Sin(angleStart + (2f * Mathf.PI) * t);
             tangent.z = (2f * Mathf.PI) * radius * (float)Math.Cos(angleStart + (2f * Mathf.PI) * t);
-            tangent.y = 0f;
             return tangent;
         }
 
@@ -51,13 +50,13 @@ namespace PropAnarchy.PLT {
         public float DeltaT(float distance) {
             if (distance == 0f) return 0f;
             if (m_radius == 0f) return 1f;
-            return distance / ((2f * Mathf.PI) * (Settings.PerfectCircles ? m_rawRadius : m_radius));
+            return distance / (2f * Mathf.PI * (Settings.PerfectCircles ? m_rawRadius : m_radius));
         }
 
         //use for non-fence mode
         /// <param name="distance"></param>
         /// <returns>Returns the angle, in radians, of the angle subtended by an arc of given length</returns>
-        public float DeltaAngle(float distance) => DeltaT(distance) * (2f * Mathf.PI);
+        public float DeltaAngle(float distance) => DeltaT(distance) * 2f * Mathf.PI;
 
         //use for fence mode
         /// <param name="chordLength"></param>
@@ -106,8 +105,7 @@ namespace PropAnarchy.PLT {
                 u = 0f;
                 return 0f;
             }
-            Vector3 pointVector = position - m_center;
-            pointVector.y = 0f;
+            VectorXZ pointVector = position - m_center;
             u = AngleFromStartXZ(position, m_center, Position(0f)) / (2f * Mathf.PI);
             return pointVector.sqrMagnitude;
         }
@@ -119,15 +117,13 @@ namespace PropAnarchy.PLT {
         /// <param name="pointOfInterest"></param>
         /// <param name="t"></param>
         /// <returns></returns>
-        public bool IsCloseToCircle3XZ(float distanceThreshold, Vector3 pointOfInterest, out float t) {
+        public bool IsCloseToCircle3XZ(float distanceThreshold, VectorXZ pointOfInterest, out float t) {
             bool isClose(float distanceSqr, float min, float max) => distanceSqr >= min * min && distanceSqr <= max * max;
-            Vector3 circleCenter = m_center;
-            circleCenter.y = 0f;
-            pointOfInterest.y = 0f;
+            VectorXZ circleCenter = m_center;
             if (distanceThreshold == 0f) {
                 t = 0.5f;
                 return pointOfInterest == circleCenter;
-            } else if (distanceThreshold < 0f) distanceThreshold = Mathf.Abs(distanceThreshold);
+            } else if (distanceThreshold < 0f) distanceThreshold = Math.Abs(distanceThreshold);
             float circleRadius = m_radius;
             return isClose(DistanceSqr(pointOfInterest, out t), circleRadius - distanceThreshold, circleRadius + distanceThreshold);
         }
@@ -136,20 +132,18 @@ namespace PropAnarchy.PLT {
         /// <param name="pointOfInterest"></param>
         /// <param name="distance"></param>
         /// <returns></returns>
-        public bool IsNearCircleOutlineXZ(Vector3 pointOfInterest, float distance) {
+        public bool IsNearCircleOutlineXZ(VectorXZ pointOfInterest, float distance) {
             bool isNearCircle(float distanceSqr, float min, float max) => distanceSqr >= min * min && distanceSqr <= max * max;
-            Vector3 circleCenter = m_center;
+            VectorXZ circleCenter = m_center;
             if (distance == 0f) return pointOfInterest == circleCenter;
             else if (distance < 0f) distance = Math.Abs(distance);
-            circleCenter.y = 0f;
-            pointOfInterest.y = 0f;
             float circleRadius = m_radius;
             return isNearCircle((pointOfInterest - circleCenter).sqrMagnitude, circleRadius - distance, circleRadius + distance);
         }
 
         /// <param name="position"></param>
         /// <returns>Returns the angle, in radians, between a line pointing from the center to a given point, and the line pointing from the center to the start point (t = 0f)</returns>
-        public float AngleFromStartXZ(Vector3 position, Vector3 center, Vector3 outlinePos) {
+        public float AngleFromStartXZ(VectorXZ position, VectorXZ center, VectorXZ outlinePos) {
             VectorXZ pointVector = position - center;
             pointVector.Normalize();
             VectorXZ zeroVector = outlinePos - center;
@@ -171,7 +165,7 @@ namespace PropAnarchy.PLT {
         /// <returns>Returns the distance traveled, in units of distance, between two points on the circle</returns>
         public float ArclengthBetween(float t1, float t2) => AngleBetween(t1, t2) * m_radius;
 
-        public Circle3XZ(Vector3 center, float radius) {
+        public CircleXZ(Vector3 center, float radius) {
             m_center = center;
             m_rawRadius = radius;
             m_radius = radius;
@@ -179,14 +173,14 @@ namespace PropAnarchy.PLT {
         }
 
         /// <param name="angleStart">Angle in radians.</param>
-        public Circle3XZ(Vector3 center, float radius, float angleStart) {
+        public CircleXZ(Vector3 center, float radius, float angleStart) {
             m_center = center;
             m_rawRadius = radius;
             m_radius = radius;
             m_angleStart = angleStart;
         }
 
-        public Circle3XZ(Vector3 center, Vector3 pointOnCircle, float perfectRadius = 0f) {
+        public CircleXZ(Vector3 center, Vector3 pointOnCircle, float perfectRadius = 0f) {
             if (pointOnCircle == center) {
                 m_center = center;
                 m_rawRadius = 0f;
@@ -195,9 +189,7 @@ namespace PropAnarchy.PLT {
                 return;
             }
             m_center = center;
-            center.y = 0f;
-            pointOnCircle.y = 0f;
-            Vector3 radiusVector = pointOnCircle - center;
+            VectorXZ radiusVector = pointOnCircle - center;
             m_rawRadius = radiusVector.magnitude;
             m_radius = m_rawRadius;
             m_angleStart = PLTMath.AngleSigned(radiusVector, PropLineTool.m_vectorRight, PropLineTool.m_vectorUp);
@@ -206,15 +198,15 @@ namespace PropAnarchy.PLT {
             }
         }
 
-        public Circle3XZ(VectorXZ center, VectorXZ pointOnCircle, float perfectRadius = 0f) {
+        public CircleXZ(VectorXZ center, VectorXZ pointOnCircle, float perfectRadius = 0f) {
             if (pointOnCircle == center) {
-                m_center = VectorXZ.GetVector3(center);
+                m_center = center;
                 m_radius = 0f;
                 m_rawRadius = 0f;
                 m_angleStart = 0f;
                 return;
             }
-            m_center = VectorXZ.GetVector3(center);
+            m_center = center;
             VectorXZ radiusVector = pointOnCircle - center;
             m_rawRadius = radiusVector.magnitude;
             m_radius = m_rawRadius;

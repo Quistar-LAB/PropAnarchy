@@ -28,8 +28,8 @@ namespace PropAnarchy.PLT {
         /// <param name="theta">Angle in radians. [0, 2pi]</param>
         public static Vector3 Position3FromAngleXZ(Vector3 center, float radius, float theta) {
             Vector3 result;
-            result.x = center.x + radius * Mathf.Cos(theta);
-            result.z = center.z + radius * Mathf.Sin(theta);
+            result.x = center.x + radius * (float)Math.Cos(theta);
+            result.z = center.z + radius * (float)Math.Sin(theta);
             result.y = 0f;
             return result;
         }
@@ -38,8 +38,8 @@ namespace PropAnarchy.PLT {
         public Vector2 PositionFromAngleDegrees(float theta) {
             Vector2 result;
             theta *= Mathf.Deg2Rad;
-            result.x = m_center.x + m_radius * Mathf.Cos(theta);
-            result.y = m_center.y + m_radius * Mathf.Sin(theta);
+            result.x = m_center.x + m_radius * (float)Math.Cos(theta);
+            result.y = m_center.y + m_radius * (float)Math.Sin(theta);
             return result;
         }
 

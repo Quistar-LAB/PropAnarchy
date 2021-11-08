@@ -69,6 +69,8 @@
     <Compile Include="PAModule.cs" />
     <Compile Include="PLT\Circle2.cs" />
     <Compile Include="PLT\CircleXZ.cs" />
+    <Compile Include="PLT\BezierXZ.cs" />
+    <Compile Include="PLT\SegmentXZ.cs" />
     <Compile Include="PLT\PLTMath.cs" />
     <Compile Include="PLT\Extensions\Bezier3Extension.cs" />
     <Compile Include="PLT\VectorXZ.cs" />
