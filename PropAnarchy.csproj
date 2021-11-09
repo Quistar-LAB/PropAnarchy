@@ -29,6 +29,7 @@
     <DefineConstants>TRACE;ENABLEPROPANARCHY</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
@@ -64,6 +65,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdditiveShader\AdditiveShader.cs" />
     <Compile Include="PAUtils.cs" />
     <Compile Include="PAScaleManager.cs" />
     <Compile Include="PAModule.cs" />
