@@ -13,7 +13,7 @@ namespace PropAnarchy {
     public class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = "Prop Anarchy";
         private const string m_modDesc = "Extends the Prop Framework";
-        internal const string m_modVersion = "0.3.7";
+        internal const string m_modVersion = "0.3.8";
         internal const string m_AssemblyVersion = m_modVersion + ".*";
         private const string m_debugLogFile = "00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = "PropAnarchyKeyBindSetting";
@@ -110,10 +110,12 @@ namespace PropAnarchy {
                 }
             }
             PLT.PropLineTool.InitializedPLT();
+            AdditiveShader.Initialize();
         }
 
         public void OnLevelUnloading() {
             PLT.PropLineTool.UnloadPLT();
+            AdditiveShader.Destroy();
         }
         #endregion LoadingExtension
 
