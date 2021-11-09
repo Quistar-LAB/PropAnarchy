@@ -1,6 +1,6 @@
-﻿using UnityEngine;
-using ColossalFramework.Math;
+﻿using ColossalFramework.Math;
 using System;
+using UnityEngine;
 
 namespace PropAnarchy.PLT {
     public struct SegmentXZ {

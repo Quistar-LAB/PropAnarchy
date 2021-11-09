@@ -549,7 +549,7 @@ namespace PropAnarchy.PLT {
             const float anglePointRadius = pointRadius;
             const float angleLocusRadius = HOVER_ANGLELOCUS_DIAMETER;
             const float angleLocusDistanceThreshold = 0.40f;
-            switch(m_currentState) {
+            switch (m_currentState) {
             case ActiveState.ItemwiseLock:
             case ActiveState.MoveItemwiseItem:
                 if (m_controlMode == ControlMode.ITEMWISE && m_mainCircle.IsCloseToCircle3XZ(HOVER_ITEMWISE_CURVEDISTANCE_THRESHOLD, position, out float hoverItemT)) {

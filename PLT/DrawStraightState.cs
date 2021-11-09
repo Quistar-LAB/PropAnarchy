@@ -330,10 +330,10 @@ namespace PropAnarchy.PLT {
 
         public override void DiscoverHoverState(VectorXZ position) {
             const float angleLocusDistanceThreshold = 0.40f;
-            switch(m_currentState) {
+            switch (m_currentState) {
             case ActiveState.ItemwiseLock:
             case ActiveState.MoveItemwiseItem:
-                if(m_controlMode == ControlMode.ITEMWISE && m_mainSegment.IsCloseToSegmentXZ(HOVER_ITEMWISE_CURVEDISTANCE_THRESHOLD, position, out float hoverItemT)) {
+                if (m_controlMode == ControlMode.ITEMWISE && m_mainSegment.IsCloseToSegmentXZ(HOVER_ITEMWISE_CURVEDISTANCE_THRESHOLD, position, out float hoverItemT)) {
                     m_hoverItemwiseT = hoverItemT;
                     m_hoverState = HoverState.ItemwiseItem;
                 }
