@@ -6,6 +6,7 @@ using ICities;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Xml;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace PropAnarchy {
     public class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = "Prop Anarchy";
         private const string m_modDesc = "Extends the Prop Framework";
-        internal const string m_modVersion = "0.3.8";
+        internal const string m_modVersion = "0.3.9";
         internal const string m_AssemblyVersion = m_modVersion + ".*";
         private const string m_debugLogFile = "00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = "PropAnarchyKeyBindSetting";
@@ -35,6 +36,7 @@ namespace PropAnarchy {
         public static bool UsePropSnapToNetwork = true;
         public static bool UsePropSnapToProp = true;
         public static bool UseDecalPropFix = true;
+        public static bool UseAdditiveShader = true;
 
         public PAModule() {
             CreateDebugFile();
@@ -75,47 +77,23 @@ namespace PropAnarchy {
         }
 
         public void OnLevelLoaded(LoadMode mode) {
-            bool nearlyEqual(float a, float b) {
-                const float epsilon = 0.0001f;
-                if (a == b) {
-                    return true;
-                } else if (Math.Abs(a - b) < epsilon) {
-                    return true;
-                }
-                return false;
-            }
+            PrefabCollection<PropInfo>.PrefabData[] propPrefabs =
+                (typeof(PrefabCollection<PropInfo>).GetField("m_scenePrefabs", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null) as FastList<PrefabCollection<PropInfo>.PrefabData>).m_buffer;
+            int prefabCount = PrefabCollection<PropInfo>.LoadedCount();
             if (UseDecalPropFix) {
-                const float rMarker = 12f / 255f;
-                const float gMarker = 34f / 255f;
-                const float bMarker = 56f / 255f;
-                const float aMarker = 1f;
-                uint prefabCount = (uint)PrefabCollection<PropInfo>.LoadedCount();
-                for (uint i = 0; i < prefabCount; i++) {
-                    PropInfo prefab = PrefabCollection<PropInfo>.GetLoaded(i);
-                    if (prefab is null) continue;
-                    if (!prefab.m_isDecal || prefab.m_material is null) continue;
-                    Color color = prefab.m_material.GetColor("_ColorV0");
-                    if (nearlyEqual(color.r, rMarker) && nearlyEqual(color.g, gMarker) && nearlyEqual(color.b, bMarker) && color.a == aMarker) {
-                        Color colorV1 = prefab.m_material.GetColor("_ColorV1");
-                        Color colorV2 = prefab.m_material.GetColor("_ColorV2");
-                        Vector4 size = new Vector4(colorV1.r * 255, colorV1.g * 255, colorV1.b * 255, 0);
-                        var tiling = new Vector4(colorV2.r * 255, 0, colorV2.b * 255, 0);
-                        prefab.m_material.SetVector("_DecalSize", size);
-                        prefab.m_material.SetVector("_DecalTiling", tiling);
-                        prefab.m_lodMaterial.SetVector("_DecalSize", size);
-                        prefab.m_lodMaterial.SetVector("_DecalTiling", tiling);
-                        prefab.m_lodMaterialCombined.SetVector("_DecalSize", size);
-                        prefab.m_lodMaterialCombined.SetVector("_DecalTiling", tiling);
-                    }
-                }
+                for (int i = 0; i < prefabCount; i++) DecalPropFix.AssignFix(propPrefabs[i].m_prefab);
             }
+            if (UseAdditiveShader) {
+
+            }
+
             PLT.PropLineTool.InitializedPLT();
-            AdditiveShader.Initialize();
+            AdditiveShader.Manager.Initialize();
         }
 
         public void OnLevelUnloading() {
             PLT.PropLineTool.UnloadPLT();
-            AdditiveShader.Destroy();
+            AdditiveShader.Manager.Destroy();
         }
         #endregion LoadingExtension
 
