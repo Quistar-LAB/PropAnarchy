@@ -1,12 +1,13 @@
-﻿using ColossalFramework;
-using ColossalFramework.UI;
-using EManagersLib.API;
+﻿using ColossalFramework.UI;
+using EManagersLib;
+using System.Threading;
+using UI;
 using UnityEngine;
 using static PropAnarchy.PAModule;
 
 namespace PropAnarchy {
     public class PAOptionPanel : UIPanel {
-        private const string m_optionPanelName = "PropAnarchyOptionPanel";
+        private const string m_optionPanelName = @"PropAnarchyOptionPanel";
         private const float MIN_SCALE_FACTOR = 1.0f;
         private const float MAX_SCALE_FACTOR = 42f;
         public const float DefaultFontScale = 0.95f;
@@ -16,12 +17,20 @@ namespace PropAnarchy {
 
         public static UICheckBox m_propAnarchyCB;
         public static UICheckBox m_propSnappingCB;
-        public UILabel MaxPropLabel;
-        public UISlider PropScaleFactorSlider;
+        public static UILabel MaxPropLabel;
+        public static UISlider PropScaleFactorSlider;
 
         protected PAOptionPanel() {
             gameObject.name = m_optionPanelName;
             name = m_optionPanelName;
+        }
+
+        public static void UpdateState(bool state) {
+            if (state) {
+                PropScaleFactorSlider.Enable();
+                return;
+            }
+            PropScaleFactorSlider.Disable();
         }
 
         public override void Awake() {
@@ -35,54 +44,53 @@ namespace PropAnarchy {
             tabBar.tabPages = tabContainer;
             tabContainer.FitTo(m_Parent);
 
-            PALocale locale = SingletonLite<PALocale>.instance;
-
-            UIPanel mainPanel = AddTab(tabBar, locale.GetLocale("MainOptionTab"), 0, true);
+            UIPanel mainPanel = AddTab(tabBar, PALocale.GetLocale(@"MainOptionTab"), 0, true);
             mainPanel.autoLayout = false;
             mainPanel.autoSize = false;
             ShowStandardOptions(mainPanel);
 
-            UIPanel snapPanel = AddTab(tabBar, locale.GetLocale("ExtraFunctionsTab"), 1, true);
+            UIPanel snapPanel = AddTab(tabBar, PALocale.GetLocale(@"ExtraFunctionsTab"), 1, true);
             snapPanel.autoLayout = false;
             snapPanel.autoSize = false;
             ShowPropSnapOption(snapPanel);
 
-            AddTab(tabBar, locale.GetLocale("KeyboardShortcutTab"), 2, true).gameObject.AddComponent<PAKeyBinding>();
+            AddTab(tabBar, PALocale.GetLocale(@"KeyboardShortcutTab"), 2, true).gameObject.AddComponent<PAKeyBinding>();
         }
 
         private void ShowStandardOptions(UIPanel panel) {
-            PALocale locale = SingletonLite<PALocale>.instance;
-            m_propAnarchyCB = AddCheckBox(panel, locale.GetLocale("PropAnarchy"), UsePropAnarchy, (_, isChecked) => {
+            m_propAnarchyCB = AddCheckBox(panel, PALocale.GetLocale(@"PropAnarchy"), UsePropAnarchy, (_, isChecked) => {
                 UsePropAnarchy = isChecked;
-                SaveSettings();
+                UIIndicator.AnarchyIndicator?.SetState(isChecked);
+                ThreadPool.QueueUserWorkItem(SaveSettings);
             });
             m_propAnarchyCB.AlignTo(panel, UIAlignAnchor.TopLeft);
             m_propAnarchyCB.relativePosition = new Vector3(2, 5);
 
-            m_propSnappingCB = AddCheckBox(panel, locale.GetLocale("PropSnapping"), UsePropSnapping, (_, isChecked) => {
+            m_propSnappingCB = AddCheckBox(panel, PALocale.GetLocale(@"PropSnapping"), UsePropSnapping, (_, isChecked) => {
                 UsePropSnapping = isChecked;
-                SaveSettings();
+                UIIndicator.SnapIndicator?.SetState(isChecked);
+                ThreadPool.QueueUserWorkItem(SaveSettings);
             });
             m_propSnappingCB.AlignTo(m_propAnarchyCB, UIAlignAnchor.TopLeft);
             m_propSnappingCB.relativePosition = new Vector3(0, m_propAnarchyCB.height);
 
-            UICheckBox decalPropFixCB = AddCheckBox(panel, locale.GetLocale("DecalPropFix"), UseDecalPropFix, (_, isChecked) => {
+            UICheckBox decalPropFixCB = AddCheckBox(panel, PALocale.GetLocale(@"DecalPropFix"), UseDecalPropFix, (_, isChecked) => {
                 UseDecalPropFix = isChecked;
-                SaveSettings();
+                ThreadPool.QueueUserWorkItem(SaveSettings);
             });
             decalPropFixCB.AlignTo(m_propSnappingCB, UIAlignAnchor.TopLeft);
             decalPropFixCB.relativePosition = new Vector3(0, m_propSnappingCB.height);
 
 
-            UIPanel ScalePanel = (UIPanel)panel.AttachUIComponent(UITemplateManager.GetAsGameObject("OptionsSliderTemplate"));
-            MaxPropLabel = ScalePanel.Find<UILabel>("Label");
+            UIPanel ScalePanel = (UIPanel)panel.AttachUIComponent(UITemplateManager.GetAsGameObject(@"OptionsSliderTemplate"));
+            MaxPropLabel = ScalePanel.Find<UILabel>(@"Label");
             MaxPropLabel.width = panel.width - 100;
             MaxPropLabel.textScale = 1.1f;
-            MaxPropLabel.text = string.Format(locale.GetLocale("MaxPropLimit"), EPropManager.MAX_PROP_LIMIT);
+            MaxPropLabel.text = string.Format(PALocale.GetLocale(@"MaxPropLimit"), EPropManager.MAX_PROP_LIMIT);
             PropScaleFactorSlider = AddSlider(ScalePanel, MIN_SCALE_FACTOR, MAX_SCALE_FACTOR, 0.5f, EPropManager.PROP_LIMIT_SCALE, (_, val) => {
                 EPropManager.PROP_LIMIT_SCALE = val;
-                MaxPropLabel.text = string.Format(SingletonLite<PALocale>.instance.GetLocale("MaxPropLimit"), EPropManager.MAX_PROP_LIMIT);
-                SaveSettings();
+                MaxPropLabel.text = string.Format(PALocale.GetLocale(@"MaxPropLimit"), EPropManager.MAX_PROP_LIMIT);
+                ThreadPool.QueueUserWorkItem(SaveSettings);
             });
             PropScaleFactorSlider.width = panel.width - 150;
             ScalePanel.AlignTo(decalPropFixCB, UIAlignAnchor.TopLeft);
@@ -97,11 +105,11 @@ namespace PropAnarchy {
         private static UIPanel AddTab(UITabstrip tabStrip, string tabName, int tabIndex, bool autoLayout) {
             UIButton tabButton = tabStrip.AddTab(tabName);
 
-            tabButton.normalBgSprite = "SubBarButtonBase";
-            tabButton.disabledBgSprite = "SubBarButtonBaseDisabled";
-            tabButton.focusedBgSprite = "SubBarButtonBaseFocused";
-            tabButton.hoveredBgSprite = "SubBarButtonBaseHovered";
-            tabButton.pressedBgSprite = "SubBarButtonBasePressed";
+            tabButton.normalBgSprite = @"SubBarButtonBase";
+            tabButton.disabledBgSprite = @"SubBarButtonBaseDisabled";
+            tabButton.focusedBgSprite = @"SubBarButtonBaseFocused";
+            tabButton.hoveredBgSprite = @"SubBarButtonBaseHovered";
+            tabButton.pressedBgSprite = @"SubBarButtonBasePressed";
             tabButton.tooltip = tabName;
             tabButton.width = 175;
             tabButton.textScale = TabFontScale;
@@ -120,7 +128,7 @@ namespace PropAnarchy {
         }
 
         private static UICheckBox AddCheckBox(UIPanel panel, string name, bool defaultVal, PropertyChangedEventHandler<bool> callback) {
-            UICheckBox cb = (UICheckBox)panel.AttachUIComponent(UITemplateManager.GetAsGameObject("OptionsCheckBoxTemplate"));
+            UICheckBox cb = (UICheckBox)panel.AttachUIComponent(UITemplateManager.GetAsGameObject(@"OptionsCheckBoxTemplate"));
             cb.eventCheckChanged += callback;
             cb.text = name;
             cb.height += 10;
@@ -150,7 +158,7 @@ namespace PropAnarchy {
         }
 
         private static UISlider AddSlider(UIPanel panel, float min, float max, float step, float defaultVal, PropertyChangedEventHandler<float> callback) {
-            UISlider slider = panel.Find<UISlider>("Slider");
+            UISlider slider = panel.Find<UISlider>(@"Slider");
             slider.minValue = min;
             slider.maxValue = max;
             slider.stepSize = step;
@@ -160,11 +168,11 @@ namespace PropAnarchy {
         }
 
         private static UIDropDown AddDropdown(UIPanel panel, UIComponent alignTo, string text, string[] options, int defaultSelection, PropertyChangedEventHandler<int> callback) {
-            UIPanel uiPanel = panel.AttachUIComponent(UITemplateManager.GetAsGameObject("OptionsDropdownTemplate")) as UIPanel;
+            UIPanel uiPanel = panel.AttachUIComponent(UITemplateManager.GetAsGameObject(@"OptionsDropdownTemplate")) as UIPanel;
             uiPanel.AlignTo(alignTo, UIAlignAnchor.BottomLeft);
-            UILabel label = uiPanel.Find<UILabel>("Label");
+            UILabel label = uiPanel.Find<UILabel>(@"Label");
             label.text = text;
-            UIDropDown dropDown = uiPanel.Find<UIDropDown>("Dropdown");
+            UIDropDown dropDown = uiPanel.Find<UIDropDown>(@"Dropdown");
             dropDown.width = 340;
             dropDown.items = options;
             dropDown.selectedIndex = defaultSelection;
@@ -172,8 +180,8 @@ namespace PropAnarchy {
             return dropDown;
         }
 
-        internal static void SetPropAnarchyState(bool state) {
+        internal static void SetPropSnapState(bool state) => m_propSnappingCB.isChecked = state;
 
-        }
+        internal static void SetPropAnarchyState(bool state) => m_propAnarchyCB.isChecked = state;
     }
 }

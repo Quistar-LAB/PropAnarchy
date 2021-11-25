@@ -1,7 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
 using ColossalFramework.UI;
-using EManagersLib.API;
+using EManagersLib;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -119,8 +119,7 @@ namespace PropAnarchy.PLT {
                 set {
                     m_prefab = value;
                     float itemWidth, itemLength, itemMaxWidth;
-                    if (value is PropInfo) {
-                        PropInfo propInfo = m_prefab as PropInfo;
+                    if (value is PropInfo propInfo) {
                         m_itemModelX = itemWidth = propInfo.m_mesh.bounds.extents.x * 2f;
                         m_itemModelZ = itemLength = propInfo.m_mesh.bounds.extents.z * 2f;
                         m_itemWidth = itemWidth < itemLength ? itemWidth : itemLength;
@@ -136,8 +135,7 @@ namespace PropAnarchy.PLT {
                         Randomizer randomizer = new Randomizer(seed);
                         m_color = propInfo.GetColor(ref randomizer);
                         m_scale = propInfo.m_minScale + randomizer.Int32(10000u) * (propInfo.m_maxScale - propInfo.m_minScale) * 0.0001f;
-                    } else {
-                        TreeInfo treeInfo = m_prefab as TreeInfo;
+                    } else if (value is TreeInfo treeInfo) {
                         m_itemModelX = itemWidth = treeInfo.m_mesh.bounds.extents.x * 2f;
                         m_itemModelZ = itemLength = treeInfo.m_mesh.bounds.extents.z * 2f;
                         m_itemWidth = itemWidth < itemLength ? itemWidth : itemLength;

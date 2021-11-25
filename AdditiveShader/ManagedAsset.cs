@@ -1,38 +1,21 @@
-﻿using EManagersLib.API;
+﻿using EManagersLib;
 using System;
 using UnityEngine;
 
 namespace PropAnarchy.AdditiveShader {
     public struct ManagedAsset {
+        private const string FADEPROPERTY = "_InvFade";
+        private const string INTENSITYPROPERTY = "_Intensity";
         /// <summary>
         /// The type of asset associated with an <see cref="ManagedAsset"/> instance.
         /// </summary>
-        public enum AssetType {
-            /// <summary>
-            /// Denotes an invalid asset type. Should never happen.
-            /// </summary>
-            None = 0,
-            /// <summary>
-            /// A <see cref="PropInfo"/> asset.
-            /// </summary>
-            Prop = 1,
-            /// <summary>
-            /// A <see cref="BuildingInfo"/> asset.
-            /// </summary>
-            Building = 1 << 1,
-            /// <summary>
-            /// A <see cref="BuildingInfoSub"/> asset.
-            /// </summary>
-            SubBuilding = 1 << 2,
-            /// <summary>
-            /// A <see cref="VehicleInfoSub"/> asset.
-            /// </summary>
-            Vehicle = 1 << 3,
-            /// <summary>
-            /// A <see cref="BuildingInfo"/> asset which contains
-            /// a shader-using <see cref="PropInfo"/> asset.
-            /// </summary>
-            Container = 1 << 4,
+        public enum AssetType : int {
+            None,
+            Prop,
+            Building,
+            SubBuilding,
+            Vehicle,
+            Container,
         }
         /// <summary>
         /// Used to force visibility update during instantiation.
@@ -67,7 +50,7 @@ namespace PropAnarchy.AdditiveShader {
         private readonly float backup_minLodDistance;        // BuildingInfo, BuildingInfoSub
         private readonly float backup_maxPropDistance;       // Container (BuildingInfo)
 
-        private readonly PrefabInfo m_prefab;
+        public readonly PrefabInfo m_prefab;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManagedAsset"/> class
@@ -84,15 +67,15 @@ namespace PropAnarchy.AdditiveShader {
             Profile = new ShaderProfile(prefab.m_mesh.name);
             backup_lodHasDifferentShader = prefab.m_lodHasDifferentShader;
             backup_lodMissing = false;
-            backup_meshColors = null;
-            backup_InvFade = prefab.m_material.GetFloat("_InvFade");
+            backup_meshColors = prefab.m_mesh.colors;
+            backup_InvFade = prefab.m_material.GetFloat(FADEPROPERTY);
             backup_lodRenderDistance = prefab.m_lodRenderDistance;
             backup_maxRenderDistance = prefab.m_maxRenderDistance;
             backup_maxLodDistance = 0f;
             backup_minLodDistance = 0f;
             backup_maxPropDistance = 0f;
             prefab.m_lodHasDifferentShader = false;
-            prefab.m_material.SetFloat("_InvFade", Profile.Fade);
+            prefab.m_material.SetFloat(FADEPROPERTY, Profile.Fade);
             prefab.m_lodRenderDistance = EMath.Max(prefab.m_lodRenderDistance, CachedRenderDistance);
             prefab.m_maxRenderDistance = EMath.Max(prefab.m_maxRenderDistance, CachedRenderDistance);
             SetVisible(Profile.IsAlwaysOn, FORCE_UPDATE);
@@ -110,12 +93,12 @@ namespace PropAnarchy.AdditiveShader {
             m_prefab = prefab;
             IsContainer = false;
             IsVisible = true;
-            CachedRenderDistance = RenderDistance(prefab.m_generatedInfo.m_size);
+            CachedRenderDistance = RenderDistance(prefab.m_generatedInfo.m_max);
             Profile = new ShaderProfile(prefab.m_mesh.name);
             backup_lodHasDifferentShader = prefab.m_lodHasDifferentShader;
             backup_lodMissing = prefab.m_lodMissing;
-            backup_meshColors = (Color[])prefab.m_mesh.colors.Clone();
-            backup_InvFade = prefab.m_material.GetFloat("_InvFade");
+            backup_meshColors = prefab.m_mesh.colors;
+            backup_InvFade = prefab.m_material.GetFloat(FADEPROPERTY);
             backup_lodRenderDistance = 0f;
             backup_maxRenderDistance = 0f;
             backup_maxLodDistance = prefab.m_maxLodDistance;
@@ -123,8 +106,8 @@ namespace PropAnarchy.AdditiveShader {
             backup_maxPropDistance = 0f;
             prefab.m_lodHasDifferentShader = false;
             prefab.m_lodMissing = true;
-            prefab.m_material.SetFloat("_InvFade", Profile.Fade);
-            SetAllColorWhite(prefab.m_mesh.colors);
+            prefab.m_material.SetFloat(FADEPROPERTY, Profile.Fade);
+            prefab.m_mesh.colors = AssignNewColors(prefab.m_mesh.vertices.Length);
             prefab.m_maxLodDistance = EMath.Max(prefab.m_maxLodDistance, CachedRenderDistance);
             prefab.m_minLodDistance = EMath.Max(prefab.m_minLodDistance, CachedRenderDistance);
             SetVisible(Profile.IsAlwaysOn, FORCE_UPDATE);
@@ -154,7 +137,7 @@ namespace PropAnarchy.AdditiveShader {
             Profile = new ShaderProfile(CONTAINER_BUILDING);
             backup_lodHasDifferentShader = false;
             backup_lodMissing = false;
-            backup_meshColors = null;
+            backup_meshColors = prefab.m_mesh.colors;
             backup_InvFade = 0f;
             backup_lodRenderDistance = 0f;
             backup_maxRenderDistance = 0f;
@@ -177,20 +160,20 @@ namespace PropAnarchy.AdditiveShader {
             m_prefab = prefab;
             IsContainer = false;
             IsVisible = true;
-            CachedRenderDistance = RenderDistance(prefab.m_generatedInfo.m_size);
+            CachedRenderDistance = RenderDistance(prefab.m_generatedInfo.m_max);
             Profile = new ShaderProfile(prefab.m_mesh.name);
             backup_lodHasDifferentShader = prefab.m_lodHasDifferentShader;
             backup_lodMissing = false;
-            backup_meshColors = prefab.m_mesh.colors.Clone() as Color[];
-            backup_InvFade = prefab.m_material.GetFloat("_InvFade");
+            backup_meshColors = prefab.m_mesh.colors;
+            backup_InvFade = prefab.m_material.GetFloat(FADEPROPERTY);
             backup_lodRenderDistance = 0f;
             backup_maxRenderDistance = 0f;
             backup_maxLodDistance = prefab.m_maxLodDistance;
             backup_minLodDistance = prefab.m_minLodDistance;
             backup_maxPropDistance = 0f;
             prefab.m_lodHasDifferentShader = false;
-            prefab.m_material.SetFloat("_InvFade", Profile.Fade);
-            SetAllColorWhite(prefab.m_mesh.colors);
+            prefab.m_material.SetFloat(FADEPROPERTY, Profile.Fade);
+            prefab.m_mesh.colors = AssignNewColors(prefab.m_mesh.vertices.Length);
             prefab.m_maxLodDistance = EMath.Max(prefab.m_maxLodDistance, CachedRenderDistance);
             prefab.m_minLodDistance = EMath.Max(prefab.m_minLodDistance, CachedRenderDistance);
             SetVisible(Profile.IsAlwaysOn, FORCE_UPDATE);
@@ -213,14 +196,14 @@ namespace PropAnarchy.AdditiveShader {
             backup_lodHasDifferentShader = false;
             backup_lodMissing = false;
             backup_meshColors = prefab.m_mesh.colors.Clone() as Color[];
-            backup_InvFade = prefab.m_material.GetFloat("_InvFade");
+            backup_InvFade = prefab.m_material.GetFloat(FADEPROPERTY);
             backup_lodRenderDistance = prefab.m_lodRenderDistance;
             backup_maxRenderDistance = prefab.m_maxRenderDistance;
             backup_maxLodDistance = 0f;
             backup_minLodDistance = 0f;
             backup_maxPropDistance = 0f;
-            prefab.m_material.SetFloat("_InvFade", Profile.Fade);
-            SetAllColorWhite(prefab.m_mesh.colors);
+            prefab.m_material.SetFloat(FADEPROPERTY, Profile.Fade);
+            prefab.m_mesh.colors = AssignNewColors(prefab.m_mesh.vertices.Length);
             prefab.m_lodRenderDistance = EMath.Max(prefab.m_lodRenderDistance, CachedRenderDistance);
             prefab.m_maxRenderDistance = EMath.Max(prefab.m_maxRenderDistance, CachedRenderDistance);
             SetVisible(Profile.IsAlwaysOn, FORCE_UPDATE);
@@ -290,16 +273,22 @@ namespace PropAnarchy.AdditiveShader {
                 IsVisible = visible;
                 switch (TypeOfAsset) {
                 case AssetType.Prop:
-                    (m_prefab as PropInfo).m_material.SetFloat("_Intensity", visible ? Profile.Intensity : 0f);
+                    PropInfo propInfo = m_prefab as PropInfo;
+                    propInfo.m_lodRenderDistance = propInfo.m_maxRenderDistance = CachedRenderDistance;
+                    propInfo.m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
                     break;
                 case AssetType.Building:
-                    (m_prefab as BuildingInfo).m_material.SetFloat("_Intensity", visible ? Profile.Intensity : 0f);
+                    BuildingInfo building = m_prefab as BuildingInfo;
+                    building.m_maxLodDistance = building.m_minLodDistance = CachedRenderDistance;
+                    building.m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
                     break;
                 case AssetType.SubBuilding:
-                    (m_prefab as BuildingInfoSub).m_material.SetFloat("_Intensity", visible ? Profile.Intensity : 0f);
+                    BuildingInfoSub subBuilding = m_prefab as BuildingInfoSub;
+                    subBuilding.m_maxLodDistance = subBuilding.m_minLodDistance = CachedRenderDistance;
+                    subBuilding.m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
                     break;
                 case AssetType.Vehicle:
-                    (m_prefab as VehicleInfoSub).m_material.SetFloat("_Intensity", visible ? Profile.Intensity : 0f);
+                    (m_prefab as VehicleInfoSub).m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
                     break;
                 }
             }
@@ -311,7 +300,7 @@ namespace PropAnarchy.AdditiveShader {
         /// </summary>
         /// <param name="size">The asset mesh size.</param>
         /// <returns>Returns the render distance applicable to the asset.</returns>
-        private static float RenderDistance(Vector3 size) => (size.x + 30) * (size.y + 30) * (size.z + 30) * 0.1f;
+        private static float RenderDistance(Vector3 size) => (size.x + 30f) * (size.y + 30f) * (size.z + 30f) * 0.1f;
 
         private static void SetAllColorWhite(Color[] colors) {
             Color white; white.r = 1; white.g = 1; white.b = 1; white.a = 1;
@@ -319,6 +308,13 @@ namespace PropAnarchy.AdditiveShader {
             for (int i = 0; i < len; i++) {
                 colors[i] = white;
             }
+        }
+
+        public Color[] AssignNewColors(int verticesCount) {
+            Color white = Color.white;
+            Color[] colors = new Color[verticesCount];
+            for (int i = 0; i < verticesCount; i++) colors[i] = white;
+            return colors;
         }
 
         /// <summary>
@@ -329,7 +325,7 @@ namespace PropAnarchy.AdditiveShader {
             case AssetType.Prop:
                 PropInfo propInfo = m_prefab as PropInfo;
                 propInfo.m_lodHasDifferentShader = backup_lodHasDifferentShader;
-                propInfo.m_material.SetFloat("_InvFade", backup_InvFade);
+                propInfo.m_material.SetFloat(FADEPROPERTY, backup_InvFade);
                 propInfo.m_lodRenderDistance = backup_lodRenderDistance;
                 propInfo.m_maxRenderDistance = backup_maxRenderDistance;
                 return;
@@ -337,7 +333,7 @@ namespace PropAnarchy.AdditiveShader {
                 BuildingInfo buildingInfo = m_prefab as BuildingInfo;
                 buildingInfo.m_lodHasDifferentShader = backup_lodHasDifferentShader;
                 buildingInfo.m_lodMissing = backup_lodMissing;
-                buildingInfo.m_material.SetFloat("_InvFade", backup_InvFade);
+                buildingInfo.m_material.SetFloat(FADEPROPERTY, backup_InvFade);
                 buildingInfo.m_mesh.colors = backup_meshColors;
                 buildingInfo.m_maxLodDistance = backup_maxLodDistance;
                 buildingInfo.m_minLodDistance = backup_minLodDistance;
@@ -349,7 +345,7 @@ namespace PropAnarchy.AdditiveShader {
             case AssetType.SubBuilding:
                 BuildingInfoSub subBuilding = m_prefab as BuildingInfoSub;
                 subBuilding.m_lodHasDifferentShader = backup_lodHasDifferentShader;
-                subBuilding.m_material.SetFloat("_InvFade", backup_InvFade);
+                subBuilding.m_material.SetFloat(FADEPROPERTY, backup_InvFade);
                 subBuilding.m_mesh.colors = backup_meshColors;
                 subBuilding.m_maxLodDistance = backup_maxLodDistance;
                 subBuilding.m_minLodDistance = backup_maxRenderDistance;

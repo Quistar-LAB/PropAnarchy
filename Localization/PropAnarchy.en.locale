@@ -56,6 +56,8 @@
     <string name="PropAnarchyIsOn">Prop Anarchy is ON</string>
     <!-- Prop Snapping -->
     <string name="PropSnapping">Prop Snapping</string>
+    <string name="PropSnapIsOff">Prop Snapping is OFF</string>
+    <string name="PropSnapIsOn">Prop Snapping is ON</string>
     <!-- Decal Prop Fix -->
     <string name="DecalPropFix">Decal Prop Fix</string>
     <!-- Prop Anarchy -->

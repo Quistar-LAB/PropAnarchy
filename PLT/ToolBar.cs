@@ -38,12 +38,11 @@ namespace PropAnarchy.PLT {
             };
 
             base.Awake();
-            PALocale locale = SingletonLite<PALocale>.instance;
             atlas = m_sharedTextures = PAUtils.CreateTextureAtlas(@"PLTAtlas", @"PropAnarchy.PLT.Icons.", m_spriteNamesPLT, 1024);
             size = new Vector2(PLT_TOOLBAR_WIDTH, PLT_TOOLBAR_HEIGHT);
             UIMultiStateButton fenceModeToggleBtn = AddToggleBtn(this, @"PLTToggleFenceMode", atlas, @"PLT_MultiStateZero", @"PLT_MultiStateOne", @"PLT_FenceModeZero", @"PLT_FenceModeOne");
             fenceModeToggleBtn.relativePosition = new Vector3(0, 0);
-            fenceModeToggleBtn.tooltip = locale.GetLocale(@"PLTToggleFenceMode");
+            fenceModeToggleBtn.tooltip = PALocale.GetLocale(@"PLTToggleFenceMode");
             fenceModeToggleBtn.isVisible = false;
             PropLineTool.GetFenceMode = () => fenceModeToggleBtn.activeStateIndex != 0;
             UITabstrip controlTabStrip = AddUIComponent<UITabstrip>();
@@ -70,7 +69,7 @@ namespace PropAnarchy.PLT {
             PropLineTool.DrawMode.SetCurrentSelected = (value) => controlTabStrip.selectedIndex = value;
             UIMultiStateButton controlPanelToggleBtn = AddToggleBtn(this, @"PLTToggleControlPanel", atlas, @"PLT_ToggleCPZero", @"PLT_ToggleCPOne", @"", @"");
             controlPanelToggleBtn.relativePosition = new Vector3(PLT_TOOLBAR_BTNSIZE * 6f, 0f);
-            controlPanelToggleBtn.tooltip = locale.GetLocale(@"PLTToggleControlPanel");
+            controlPanelToggleBtn.tooltip = PALocale.GetLocale(@"PLTToggleControlPanel");
             controlPanelToggleBtn.isVisible = false;
             controlPanelToggleBtn.eventActiveStateIndexChanged += (c, index) => {
                 if (index != 0) OptionPanel.Open(PropLineTool.m_itemType);
@@ -139,7 +138,7 @@ namespace PropAnarchy.PLT {
                 m_brushPanel = brushPanel = brushGO.GetComponent<UIPanel>();
                 brushPanel.eventVisibilityChanged += (c, isVisible) => {
                     if (isVisible && PropLineTool.DrawMode.Current != PropLineTool.DrawMode.SINGLE) {
-                        brushPanel.isVisible = false;
+                        //brushPanel.isVisible = false;
                     }
                 };
             }

@@ -35,6 +35,7 @@ namespace PropAnarchy.AdditiveShader {
 
         [Flags]
         public enum Profiles : ushort {
+            PROFILE_TYPE = 0xff00,
             RC = 0x0001,
             ALWAYSON = 0X0002,
             STATIC = 0x0004,
@@ -47,6 +48,7 @@ namespace PropAnarchy.AdditiveShader {
             DayTime = 0x0400 | TOGGLEDBYTWILIGHT | DAYTIMEONLY,
             NightTime = 0x0800 | OVERLAPMIDNIGHT | TOGGLEDBYTWILIGHT | NIGHTTIMEONLY,
             Container = 0x1000 | ALWAYSON,
+            OldRonyxProfile = 0x2000 // This is used for old Ronyx69 additive shader compatible assets
         }
 
         public readonly Profiles m_profile;
@@ -59,6 +61,7 @@ namespace PropAnarchy.AdditiveShader {
         public ShaderProfile(string rawMeshName) {
             char[] DELIMITERS = { ' ' };
             try {
+                PAModule.PALog($"RawName: {rawMeshName}");
                 string[] tags = rawMeshName.Split(DELIMITERS, StringSplitOptions.RemoveEmptyEntries);
                 // New AdditiveShader Tags [ KEYWORD FADE INTENSITY ]
                 switch (tags[1]) {
@@ -100,16 +103,9 @@ namespace PropAnarchy.AdditiveShader {
                 default: // For parsing old Additive Shader tags [ ON - OFF - FADE - INTENSITY ]
                     OnTime = float.Parse(tags[1], NumberStyles.Float, CultureInfo.InvariantCulture);
                     OffTime = float.Parse(tags[2], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    m_profile = OnTime == OffTime || OnTime == 0f && OffTime == 24f ? Profiles.ALWAYSON | Profiles.STATIC : 0u;
-                    m_profile |= OffTime < OnTime ? Profiles.OVERLAPMIDNIGHT : 0u;
-                    m_profile |= ((m_profile & (Profiles.ALWAYSON | Profiles.OVERLAPMIDNIGHT)) == (Profiles.ALWAYSON | Profiles.OVERLAPMIDNIGHT) ?
-                        IsDuringSunset(OnTime) && IsDuringSunrise(OffTime) : IsDuringSunrise(OnTime) && IsDuringSunset(OffTime)) ? Profiles.TOGGLEDBYTWILIGHT : 0u;
-                    m_profile |= (m_profile & Profiles.ALWAYSON) == 0 && (m_profile & Profiles.OVERLAPMIDNIGHT) == 0 && SUNSET_START < OnTime && OffTime < SUNSET_END ?
-                        Profiles.DAYTIMEONLY : 0u;
-                    m_profile |= ((m_profile & Profiles.ALWAYSON) == 0 && (m_profile & Profiles.OVERLAPMIDNIGHT) == 0 ?
-                        SUNSET_START < OnTime && OffTime < SUNRISE_END : (SUNSET_START < OnTime || OffTime < SUNRISE_END)) ? Profiles.NIGHTTIMEONLY : 0u;
                     Fade = float.Parse(tags[3], NumberStyles.Float, CultureInfo.InvariantCulture);
                     Intensity = float.Parse(tags[4], NumberStyles.Float, CultureInfo.InvariantCulture);
+                    m_profile = Profiles.OldRonyxProfile;
                     break;
                 }
             } catch (Exception e) {

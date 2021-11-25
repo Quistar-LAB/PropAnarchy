@@ -1,5 +1,4 @@
-﻿using ColossalFramework;
-using ColossalFramework.Globalization;
+﻿using ColossalFramework.Globalization;
 using ColossalFramework.UI;
 using System.Globalization;
 using UnityEngine;
@@ -24,7 +23,6 @@ namespace PropAnarchy.PLT {
 #pragma warning restore IDE1006
 
         public override void Awake() {
-            PALocale locale = SingletonLite<PALocale>.instance;
             base.Awake();
             atlas = PAUtils.GetAtlas(@"Ingame");
             backgroundSprite = @"MenuPanel2";
@@ -43,14 +41,14 @@ namespace PropAnarchy.PLT {
             tabContainer.size = new Vector2(OPTIONPANEL_WIDTH, OPTIONPANEL_HEIGHT - TITLEBAR_HEIGHT);
             tabContainer.relativePosition = new Vector3(0f, TITLEBAR_HEIGHT);
             tabstrip.tabPages = tabContainer;
-            UIPanel paramsPanel = AddTab(this, tabstrip, locale.GetLocale(@"PLTParameters"), 0);
-            PopulateParams(paramsPanel, locale);
-            UIPanel optionsPanel = AddTab(this, tabstrip, locale.GetLocale(@"PLTOptions"), 1);
-            PopulateOptions(optionsPanel, locale);
+            UIPanel paramsPanel = AddTab(this, tabstrip, PALocale.GetLocale(@"PLTParameters"), 0);
+            PopulateParams(paramsPanel);
+            UIPanel optionsPanel = AddTab(this, tabstrip, PALocale.GetLocale(@"PLTOptions"), 1);
+            PopulateOptions(optionsPanel);
             titleBar.relativePosition = new Vector3(0f, 0f);
             tabstrip.relativePosition = new Vector3(PADDING_TABSTRIP_SIDES, PADDING_PANEL);
             tabstrip.tabPages.relativePosition = new Vector3(0f, TITLEBAR_HEIGHT);
-            UILabel mainTitleBar = CreateLabel(this, locale.GetLocale(@"PLTTitleBar"), 0.85f, UIHorizontalAlignment.Right, new RectOffset(2, 7, 2, 5), new Vector2(180f, 30f), new Vector3(187f, 7f));
+            UILabel mainTitleBar = CreateLabel(this, PALocale.GetLocale(@"PLTTitleBar"), 0.85f, UIHorizontalAlignment.Right, new RectOffset(2, 7, 2, 5), new Vector2(180f, 30f), new Vector3(187f, 7f));
             mainTitleBar.textColor = new Color32(164, 164, 164, 255);
             mainTitleBar.disabledTextColor = new Color32(82, 82, 82, 255);
             mainTitleBar.relativePosition = new Vector3(187f, 7f);
@@ -75,7 +73,7 @@ namespace PropAnarchy.PLT {
 
         public static void ToggleAnglePanel(PropLineTool.ItemType mode) => eventOnAnglePanelToggle?.Invoke(mode);
 
-        private static void PopulateParams(UIPanel parent, PALocale locale) {
+        private static void PopulateParams(UIPanel parent) {
             const float SPACING_OFFSETY = 83f;
             const float ANGLE_OFFSETY = 230f;
             const float BUTTON_WIDTH = 80f;
@@ -101,22 +99,22 @@ namespace PropAnarchy.PLT {
             spacingBtn.relativePosition = new Vector2(BUTTON_WIDTH + TAB_HORIZONTAL_SPACING, BUTTON_HEIGHT);
             SetButtonSprite(spacingBtn, @"", @"PLT_SpacingwiseZero");
             itemwiseBtn.focusedBgSprite = @"PLT_ItemwiseOneFocused";
-            itemwiseBtn.tooltip = locale.GetLocale(@"PLTItemWiseTooltip");
+            itemwiseBtn.tooltip = PALocale.GetLocale(@"PLTItemWiseTooltip");
             spacingBtn.focusedBgSprite = @"PLT_SpacingwiseOneFocused";
-            spacingBtn.tooltip = locale.GetLocale(@"PLTSpacingTooltip");
+            spacingBtn.tooltip = PALocale.GetLocale(@"PLTSpacingTooltip");
             controlMode.selectedIndex = controlMode.startSelectedIndex = (int)PropLineTool.m_controlMode;
             controlMode.eventSelectedIndexChanged += (c, index) => {
                 PropLineTool.m_controlMode = (PropLineTool.ControlMode)index;
             };
-            CreateBlueBtn(parent, locale.GetLocale(@"PLTDecouplePrevSegment"), 0.8f, new Vector2(250f, 24f), new Vector3(62f, 45f)).eventClick += (c, p) => {
+            CreateBlueBtn(parent, PALocale.GetLocale(@"PLTDecouplePrevSegment"), 0.8f, new Vector2(250f, 24f), new Vector3(62f, 45f)).eventClick += (c, p) => {
                 SegmentState.ResetLastContinueParameters();
             };
             _ = CreateDivider(parent, new Vector3(12f, SPACING_OFFSETY - 8f));
             _ = CreateDivider(parent, new Vector3(12f, ANGLE_OFFSETY - 8f));
-            UILabel spacingLabel = CreateLabel(parent, locale.GetLocale(@"PLTSpacingTitle"), 1.25f, UIHorizontalAlignment.Left, new RectOffset(5, 5, 5, 5), Vector2.zero, new Vector3(12f, SPACING_OFFSETY + 2f));
+            UILabel spacingLabel = CreateLabel(parent, PALocale.GetLocale(@"PLTSpacingTitle"), 1.25f, UIHorizontalAlignment.Left, new RectOffset(5, 5, 5, 5), Vector2.zero, new Vector3(12f, SPACING_OFFSETY + 2f));
             UIPLTCheckbox autoDefaultCB = parent.AddUIComponent<UIPLTCheckbox>();
-            autoDefaultCB.text = locale.GetLocale(@"PLTAutoDefaultSpacing");
-            autoDefaultCB.tooltip = locale.GetLocale(@"PLTAutoDefaultSpacingTooltip");
+            autoDefaultCB.text = PALocale.GetLocale(@"PLTAutoDefaultSpacing");
+            autoDefaultCB.tooltip = PALocale.GetLocale(@"PLTAutoDefaultSpacingTooltip");
             autoDefaultCB.isChecked = Settings.AutoDefaultSpacing;
             autoDefaultCB.relativePosition = new Vector3(parent.width - autoDefaultCB.width - 20f, (spacingLabel.height - autoDefaultCB.height) / 2f + SPACING_OFFSETY + 2f);
             autoDefaultCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
@@ -129,7 +127,7 @@ namespace PropAnarchy.PLT {
                     PropLineTool.DrawMode.CurrentMode.UpdatePlacement();
                 }
             };
-            UINumEditbox spacingField = CreateNumboxField(parent, locale.GetLocale(@"PLTSpacingTitle"), @"m", out _);
+            UINumEditbox spacingField = CreateNumboxField(parent, PALocale.GetLocale(@"PLTSpacingTitle"), @"m", out _);
             spacingField.parent.relativePosition = new Vector2(parent.width - spacingField.parent.width - 20f, SPACING_OFFSETY + spacingLabel.height + 5f);
             spacingField.Value = PropLineTool.ItemInfo.ItemDefaultSpacing;
             spacingField.eventValueChanged += (c, value) => SegmentState.m_pendingPlacementUpdate = true;
@@ -140,7 +138,7 @@ namespace PropAnarchy.PLT {
             UIPanel anglePanel = parent.AddUIComponent<UIPanel>();
             anglePanel.size = new Vector2(parent.width, parent.height - ANGLE_OFFSETY);
             anglePanel.relativePosition = new Vector2(0f, ANGLE_OFFSETY);
-            UILabel angleLabel = CreateLabel(anglePanel, locale.GetLocale(@"PLTAngleTitle"), 1.25f, UIHorizontalAlignment.Left, new RectOffset(5, 5, 5, 5), Vector2.zero, new Vector3(12f, 2f));
+            UILabel angleLabel = CreateLabel(anglePanel, PALocale.GetLocale(@"PLTAngleTitle"), 1.25f, UIHorizontalAlignment.Left, new RectOffset(5, 5, 5, 5), Vector2.zero, new Vector3(12f, 2f));
             UITabstrip angleMode = anglePanel.AddUIComponent<UITabstrip>();
             UIButton angleDynamicBtn = angleMode.AddTab();
             RectOffset btnPadding = new RectOffset(8, 5, 5, 3);
@@ -149,19 +147,19 @@ namespace PropAnarchy.PLT {
             angleDynamicBtn.textVerticalAlignment = UIVerticalAlignment.Middle;
             angleDynamicBtn.textHorizontalAlignment = UIHorizontalAlignment.Center;
             angleDynamicBtn.textScale = 0.875f;
-            angleDynamicBtn.text = locale.GetLocale(@"PLTAngleDynamic");
+            angleDynamicBtn.text = PALocale.GetLocale(@"PLTAngleDynamic");
             angleDynamicBtn.normalBgSprite = @"SubBarButtonBase";
             angleDynamicBtn.disabledBgSprite = @"SubBarButtonBaseDisabled";
             angleDynamicBtn.focusedBgSprite = @"SubBarButtonBaseFocused";
             angleDynamicBtn.hoveredBgSprite = @"SubBarButtonBaseHovered";
             angleDynamicBtn.pressedBgSprite = @"SubBarButtonBasePressed";
-            UIButton angleSingleBtn = angleMode.AddTab(locale.GetLocale(@"PLTAngleSingle"), angleDynamicBtn, false);
+            UIButton angleSingleBtn = angleMode.AddTab(PALocale.GetLocale(@"PLTAngleSingle"), angleDynamicBtn, false);
             angleSingleBtn.autoSize = false;
             angleSingleBtn.textPadding = btnPadding;
             angleSingleBtn.textVerticalAlignment = UIVerticalAlignment.Middle;
             angleSingleBtn.textHorizontalAlignment = UIHorizontalAlignment.Center;
             angleSingleBtn.textScale = 0.875f;
-            angleSingleBtn.text = locale.GetLocale(@"PLTAngleSingle");
+            angleSingleBtn.text = PALocale.GetLocale(@"PLTAngleSingle");
             angleSingleBtn.size = angleDynamicBtn.size;
             angleSingleBtn.normalBgSprite = @"SubBarButtonBase";
             angleSingleBtn.disabledBgSprite = @"SubBarButtonBaseDisabled";
@@ -173,15 +171,15 @@ namespace PropAnarchy.PLT {
             angleDynamicBtn.relativePosition = Vector2.zero;
             angleSingleBtn.relativePosition = new Vector2(angleDynamicBtn.width, 0f);
             UIPLTCheckbox flip180CB = anglePanel.AddUIComponent<UIPLTCheckbox>();
-            flip180CB.text = locale.GetLocale(@"PLTFlip180");
-            flip180CB.tooltip = locale.GetLocale(@"PLTFlip180Tooltip");
+            flip180CB.text = PALocale.GetLocale(@"PLTFlip180");
+            flip180CB.tooltip = PALocale.GetLocale(@"PLTFlip180Tooltip");
             flip180CB.isChecked = Settings.AngleFlip180;
             flip180CB.relativePosition = new Vector2(angleLabel.relativePosition.x + 5f, angleLabel.height + 10f);
             flip180CB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
                 Settings.AngleFlip180 = index != 0;
                 PropLineTool.DrawMode.CurrentMode.UpdatePlacement();
             };
-            UINumEditbox angleField = CreateNumboxField(anglePanel, locale.GetLocale(@"PLTRelativeAngle"), angleMode.selectedIndex == 0 ? @"Δ°" : @"°", out UILabel angleUnit);
+            UINumEditbox angleField = CreateNumboxField(anglePanel, PALocale.GetLocale(@"PLTRelativeAngle"), angleMode.selectedIndex == 0 ? @"Δ°" : @"°", out UILabel angleUnit);
             angleField.parent.relativePosition = new Vector2(anglePanel.width - angleField.parent.width - 20f, angleLabel.height + 5f);
             angleField.Value = angleMode.selectedIndex == 0 ? PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg : PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg;
             angleField.eventValueChanged += (c, value) => {
@@ -207,7 +205,7 @@ namespace PropAnarchy.PLT {
             eventOnOptionOpen += eventOnAnglePanelToggle;
         }
 
-        private static void PopulateOptions(UIPanel parent, PALocale locale) {
+        private static void PopulateOptions(UIPanel parent) {
             const float OFFSETX = 24f;
             const float STARTY = 15f;
             const float PADDINGY = 10f;
@@ -215,32 +213,32 @@ namespace PropAnarchy.PLT {
             const float CHECKBOXWIDTH = 24f;
             parent.autoLayout = false;
             UIPLTCheckbox showUndoPreviewCB = parent.AddUIComponent<UIPLTCheckbox>();
-            showUndoPreviewCB.text = locale.GetLocale(@"PLTShowUndoPreview");
-            showUndoPreviewCB.tooltip = locale.GetLocale(@"PLTShowUndoPreviewTooltip");
+            showUndoPreviewCB.text = PALocale.GetLocale(@"PLTShowUndoPreview");
+            showUndoPreviewCB.tooltip = PALocale.GetLocale(@"PLTShowUndoPreviewTooltip");
             showUndoPreviewCB.isChecked = Settings.ShowUndoPreviews;
             showUndoPreviewCB.relativePosition = new Vector3(OFFSETX, STARTY);
             showUndoPreviewCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.ShowUndoPreviews = index != 0;
             _ = CreateDivider(parent, new Vector3(12f, STARTY + PADDINGY + showUndoPreviewCB.height));
             UIPLTCheckbox errorCheckCB = parent.AddUIComponent<UIPLTCheckbox>();
-            errorCheckCB.text = locale.GetLocale(@"PLTErrorChecking");
-            errorCheckCB.tooltip = locale.GetLocale(@"PLTErrorCheckingTooltip");
+            errorCheckCB.text = PALocale.GetLocale(@"PLTErrorChecking");
+            errorCheckCB.tooltip = PALocale.GetLocale(@"PLTErrorCheckingTooltip");
             errorCheckCB.isChecked = Settings.ErrorChecking;
             errorCheckCB.relativePosition = new Vector3(OFFSETX, showUndoPreviewCB.relativePosition.y + showUndoPreviewCB.height + DIVIDERHEIGHT * 2f + PADDINGY);
             UIPLTCheckbox errorGuideLinesCB = parent.AddUIComponent<UIPLTCheckbox>();
-            errorGuideLinesCB.text = locale.GetLocale(@"PLTShowErrorGuides");
-            errorGuideLinesCB.tooltip = locale.GetLocale(@"PLTShowErrorGuidesTooltip");
+            errorGuideLinesCB.text = PALocale.GetLocale(@"PLTShowErrorGuides");
+            errorGuideLinesCB.tooltip = PALocale.GetLocale(@"PLTShowErrorGuidesTooltip");
             errorGuideLinesCB.isChecked = Settings.ShowErrorGuides;
             errorGuideLinesCB.relativePosition = new Vector3(OFFSETX + CHECKBOXWIDTH, errorCheckCB.relativePosition.y + errorCheckCB.height + PADDINGY);
             errorGuideLinesCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.ShowErrorGuides = index != 0;
             UIPLTCheckbox pltAnarchyCB = parent.AddUIComponent<UIPLTCheckbox>();
-            pltAnarchyCB.text = locale.GetLocale(@"PLTAnarchy");
-            pltAnarchyCB.tooltip = locale.GetLocale(@"PLTAnarchyTooltip");
+            pltAnarchyCB.text = PALocale.GetLocale(@"PLTAnarchy");
+            pltAnarchyCB.tooltip = PALocale.GetLocale(@"PLTAnarchyTooltip");
             pltAnarchyCB.isChecked = Settings.AnarchyPLT;
             pltAnarchyCB.relativePosition = new Vector3(OFFSETX + CHECKBOXWIDTH, errorGuideLinesCB.relativePosition.y + errorGuideLinesCB.height + PADDINGY);
             pltAnarchyCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.AnarchyPLT = index != 0;
             UIPLTCheckbox placeBlockedItemCB = parent.AddUIComponent<UIPLTCheckbox>();
-            placeBlockedItemCB.text = locale.GetLocale(@"PLTPlaceBlockedItem");
-            placeBlockedItemCB.tooltip = locale.GetLocale(@"PLTPlaceBlockedItemTooltip");
+            placeBlockedItemCB.text = PALocale.GetLocale(@"PLTPlaceBlockedItem");
+            placeBlockedItemCB.tooltip = PALocale.GetLocale(@"PLTPlaceBlockedItemTooltip");
             placeBlockedItemCB.isChecked = Settings.PlaceBlockedItems;
             placeBlockedItemCB.relativePosition = new Vector3(pltAnarchyCB.relativePosition.x + CHECKBOXWIDTH, pltAnarchyCB.relativePosition.y + pltAnarchyCB.height + PADDINGY);
             placeBlockedItemCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.PlaceBlockedItems = index != 0;
@@ -259,20 +257,20 @@ namespace PropAnarchy.PLT {
             };
             _ = CreateDivider(parent, new Vector3(12f, placeBlockedItemCB.relativePosition.y + placeBlockedItemCB.height + PADDINGY));
             UIPLTCheckbox meshCenterCorrectionCB = parent.AddUIComponent<UIPLTCheckbox>();
-            meshCenterCorrectionCB.text = locale.GetLocale(@"PLTMeshCenterCorrection");
-            meshCenterCorrectionCB.tooltip = locale.GetLocale(@"PLTMeshCenterCorrectionTooltip");
+            meshCenterCorrectionCB.text = PALocale.GetLocale(@"PLTMeshCenterCorrection");
+            meshCenterCorrectionCB.tooltip = PALocale.GetLocale(@"PLTMeshCenterCorrectionTooltip");
             meshCenterCorrectionCB.isChecked = Settings.UseMeshCenterCorrection;
             meshCenterCorrectionCB.relativePosition = new Vector3(OFFSETX, placeBlockedItemCB.relativePosition.y + placeBlockedItemCB.height + DIVIDERHEIGHT * 2f + PADDINGY);
             meshCenterCorrectionCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.UseMeshCenterCorrection = index != 0;
             UIPLTCheckbox perfectCircleCB = parent.AddUIComponent<UIPLTCheckbox>();
-            perfectCircleCB.text = locale.GetLocale(@"PLTPerfectCircle");
-            perfectCircleCB.tooltip = locale.GetLocale(@"PLTPerfectCircleTooltip");
+            perfectCircleCB.text = PALocale.GetLocale(@"PLTPerfectCircle");
+            perfectCircleCB.tooltip = PALocale.GetLocale(@"PLTPerfectCircleTooltip");
             perfectCircleCB.isChecked = Settings.PerfectCircles;
             perfectCircleCB.relativePosition = new Vector3(OFFSETX, meshCenterCorrectionCB.relativePosition.y + meshCenterCorrectionCB.height + PADDINGY);
             perfectCircleCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.PerfectCircles = index != 0;
             UIPLTCheckbox linearFenceFillCB = parent.AddUIComponent<UIPLTCheckbox>();
-            linearFenceFillCB.text = locale.GetLocale(@"PLTLinearFence");
-            linearFenceFillCB.tooltip = locale.GetLocale(@"PLTLinearFenceTooltip");
+            linearFenceFillCB.text = PALocale.GetLocale(@"PLTLinearFence");
+            linearFenceFillCB.tooltip = PALocale.GetLocale(@"PLTLinearFenceTooltip");
             linearFenceFillCB.isChecked = Settings.LinearFenceFill;
             linearFenceFillCB.relativePosition = new Vector3(OFFSETX, perfectCircleCB.relativePosition.y + perfectCircleCB.height + PADDINGY);
             linearFenceFillCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.LinearFenceFill = index != 0;
@@ -508,7 +506,6 @@ namespace PropAnarchy.PLT {
 
         public class UIBasicSpacingCalculator : UICalculator {
             public override void Awake() {
-                PALocale locale = SingletonLite<PALocale>.instance;
                 base.Awake();
                 Vector2 longsize = new Vector2(50f, 14f);
                 Vector2 shortSize = new Vector2(25f, 14f);
@@ -517,17 +514,17 @@ namespace PropAnarchy.PLT {
                 m_adjustPanel.size = new Vector2(203f, 40f);
                 m_adjustPanel.relativePosition = new Vector3(120f, 0f);
 
-                AddButton(m_setPanel, locale.GetLocale(@"PLTDefault"), TEXTSCALE, new Vector2(50f, 32f), new Vector3(4f, 4f)).eventClick += (c, p) => {
+                AddButton(m_setPanel, PALocale.GetLocale(@"PLTDefault"), TEXTSCALE, new Vector2(50f, 32f), new Vector3(4f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
                         PropLineTool.SetSpacingValue(PropLineTool.ItemInfo.ItemDefaultSpacing);
                     }
                 };
-                AddButton(m_setPanel, locale.GetLocale(@"PLTLength"), TEXTSCALE, longsize, new Vector3(58f, 4f)).eventClick += (c, p) => {
+                AddButton(m_setPanel, PALocale.GetLocale(@"PLTLength"), TEXTSCALE, longsize, new Vector3(58f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
                         PropLineTool.SetSpacingValue(PropLineTool.ItemInfo.ItemLength);
                     }
                 };
-                AddButton(m_setPanel, locale.GetLocale(@"PLTWidth"), TEXTSCALE, longsize, new Vector3(58f, 22f)).eventClick += (c, p) => {
+                AddButton(m_setPanel, PALocale.GetLocale(@"PLTWidth"), TEXTSCALE, longsize, new Vector3(58f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
                         PropLineTool.SetSpacingValue(PropLineTool.ItemInfo.ItemWidth);
                     }
@@ -572,7 +569,7 @@ namespace PropAnarchy.PLT {
                         PropLineTool.ItemInfo.ItemSpacing -= 100f;
                     }
                 };
-                AddButton(m_adjustPanel, locale.GetLocale(@"PLTRound"), TEXTSCALE, new Vector2(73f, 32f), new Vector3(126f, 4f)).eventClick += (c, p) => {
+                AddButton(m_adjustPanel, PALocale.GetLocale(@"PLTRound"), TEXTSCALE, new Vector2(73f, 32f), new Vector3(126f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
                         PropLineTool.ItemInfo.ItemSpacing = Mathf.Round(PropLineTool.ItemInfo.ItemSpacing);
                     }
@@ -582,7 +579,6 @@ namespace PropAnarchy.PLT {
 
         public class UIBasicAngleCalculator : UICalculator {
             public override void Awake() {
-                PALocale locale = SingletonLite<PALocale>.instance;
                 Vector2 longsize = new Vector2(50f, 14f);
                 Vector2 shortSize = new Vector2(25f, 14f);
                 base.Awake();
@@ -592,7 +588,7 @@ namespace PropAnarchy.PLT {
                 UIPanel adjustPanel = m_adjustPanel;
                 adjustPanel.size = new Vector2(255f, 40f);
                 adjustPanel.relativePosition = new Vector3(68f, 0f);
-                AddButton(setPanel, locale.GetLocale(@"PLTZero"), TEXTSCALE, new Vector2(50f, 32f), new Vector3(4f, 4f)).eventClick += (c, p) => {
+                AddButton(setPanel, PALocale.GetLocale(@"PLTZero"), TEXTSCALE, new Vector2(50f, 32f), new Vector3(4f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
                         eventOnAngleValueChange?.Invoke(c, 0f);
                     }
@@ -741,7 +737,7 @@ namespace PropAnarchy.PLT {
                         }
                     }
                 };
-                AddButton(adjustPanel, locale.GetLocale(@"PLTRound"), TEXTSCALE, new Vector2(73f, 32f), new Vector3(178f, 4f)).eventClick += (c, p) => {
+                AddButton(adjustPanel, PALocale.GetLocale(@"PLTRound"), TEXTSCALE, new Vector2(73f, 32f), new Vector3(178f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
                         switch (PropLineTool.m_angleMode) {
                         case PropLineTool.AngleMode.DYNAMIC:

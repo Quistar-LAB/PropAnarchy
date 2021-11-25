@@ -44,9 +44,8 @@
     <Reference Include="ColossalManaged">
       <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\ColossalManaged.dll</HintPath>
     </Reference>
-    <Reference Include="EManagersLib.API, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Users\Quistar\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\EManagersLib\EManagersLib.API.dll</HintPath>
+    <Reference Include="EManagersLib">
+      <HintPath>C:\Users\Quistar\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\EManagersLib\EManagersLib.dll</HintPath>
     </Reference>
     <Reference Include="ICities">
       <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\ICities.dll</HintPath>
@@ -60,12 +59,16 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml" />
+    <Reference Include="UIIndicator">
+      <HintPath>C:\Users\Quistar\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\EManagersLib\UIIndicator.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AdditiveShader\Manager.cs" />
+    <Compile Include="AdaptivePropVisibility\Patcher.cs" />
+    <Compile Include="AdditiveShader\AdditiveShaderManager.cs" />
     <Compile Include="AdditiveShader\ManagedAsset.cs" />
     <Compile Include="AdditiveShader\ShaderProfile.cs" />
     <Compile Include="DecalPropFix\DecalPropFix.cs" />
@@ -178,7 +181,6 @@
 if exist "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)" del "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)"
 xcopy /y "$(TargetPath)" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
 xcopy /y "$(TargetDir)\CitiesHarmony.API.dll" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
-xcopy /y "$(TargetDir)\EManagersLib.API.dll" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
 xcopy "$(ProjectDir)Localization" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\Locale" /e /y /i /r</PostBuildEvent>
   </PropertyGroup>
 </Project>

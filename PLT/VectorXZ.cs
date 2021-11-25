@@ -1,4 +1,4 @@
-﻿using System;
+﻿using EManagersLib;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
@@ -6,7 +6,7 @@ namespace PropAnarchy.PLT {
         public const float THRESHOLD = 1E-05f;
         public float x, z;
 #pragma warning disable IDE1006
-        public float magnitude => (float)Math.Sqrt(x * x + z * z);
+        public float magnitude => EMath.Sqrt(x * x + z * z);
         public float sqrMagnitude => x * x + z * z;
         public VectorXZ normalized {
             get {
@@ -61,18 +61,13 @@ namespace PropAnarchy.PLT {
         public static float Dot(VectorXZ lhs, in VectorXZ rhs) => lhs.x * rhs.x + lhs.z * rhs.z;
 
         public static VectorXZ Lerp(VectorXZ a, VectorXZ b, float t) {
-            float Clamp01(float value) {
-                if (value < 0f) return 0f;
-                else if (value > 1f) return 1f;
-                return value;
-            }
-            t = Clamp01(t);
+            t = EMath.Clamp01(t);
             return new VectorXZ(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t);
         }
 
-        public static VectorXZ Max(VectorXZ lhs, VectorXZ rhs) => new VectorXZ(Math.Max(lhs.x, rhs.x), Math.Max(lhs.z, rhs.z));
+        public static VectorXZ Max(VectorXZ lhs, VectorXZ rhs) => new VectorXZ(EMath.Max(lhs.x, rhs.x), EMath.Max(lhs.z, rhs.z));
 
-        public static VectorXZ Min(VectorXZ lhs, VectorXZ rhs) => new VectorXZ(Math.Min(lhs.x, rhs.x), Math.Min(lhs.z, rhs.z));
+        public static VectorXZ Min(VectorXZ lhs, VectorXZ rhs) => new VectorXZ(EMath.Min(lhs.x, rhs.x), EMath.Min(lhs.z, rhs.z));
 
         public void Normalize() {
             float num = magnitude;

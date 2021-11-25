@@ -70,7 +70,7 @@ namespace PropAnarchy {
             return texture;
         }
 
-        public static UITextureAtlas GetAtlas(string name) {
+        internal static UITextureAtlas GetAtlas(string name) {
             UITextureAtlas[] atlases = Resources.FindObjectsOfTypeAll(typeof(UITextureAtlas)) as UITextureAtlas[];
             for (int i = 0; i < atlases.Length; i++) {
                 if (atlases[i].name == name)

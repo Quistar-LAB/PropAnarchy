@@ -1,37 +1,37 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
+using System.Threading;
+using UI;
 using UnityEngine;
 using static PropAnarchy.PAModule;
 
 namespace PropAnarchy {
     internal class PAKeyBinding : UICustomControl {
-        private const string thisCategory = "PropAnarchy";
+        private const string thisCategory = @"PropAnarchy";
         private SavedInputKey m_EditingBinding;
 
-#if ENABLEPROPANARCHY
-        [RebindableKey("PropAnarchy")]
-        private static readonly string togglePropAnarchy = "togglePropAnarchy";
-#endif
-        [RebindableKey("PropAnarchy")]
-        private static readonly string groupProps = "groupProps";
-        [RebindableKey("PropAnarchy")]
-        private static readonly string ungroupProps = "ungroupProps";
-        [RebindableKey("PropAnarchy")]
-        private static readonly string incrementPropSize = "incrPropVariation";
-        [RebindableKey("PropAnarchy")]
-        private static readonly string decrementPropSize = "decrPropVariation";
+        [RebindableKey(@"TreeAnarchy")]
+        private static readonly string togglePropSnapping = @"togglePropSnapping";
+        [RebindableKey(@"PropAnarchy")]
+        private static readonly string togglePropAnarchy = @"togglePropAnarchy";
+        [RebindableKey(@"PropAnarchy")]
+        private static readonly string groupProps = @"groupProps";
+        [RebindableKey(@"PropAnarchy")]
+        private static readonly string ungroupProps = @"ungroupProps";
+        [RebindableKey(@"PropAnarchy")]
+        private static readonly string incrementPropSize = @"incrPropVariation";
+        [RebindableKey(@"PropAnarchy")]
+        private static readonly string decrementPropSize = @"decrPropVariation";
 
-#if ENABLEPROPANARCHY
+        private static readonly InputKey defaultTogglePropSnappingKey = SavedInputKey.Encode(KeyCode.S, false, false, true);
         private static readonly InputKey defaultTogglePropAnarchyKey = SavedInputKey.Encode(KeyCode.A, false, false, true);
-#endif
         private static readonly InputKey defaultGroupPropKey = SavedInputKey.Encode(KeyCode.G, true, false, false);
         private static readonly InputKey defaultUngroupPropKey = SavedInputKey.Encode(KeyCode.U, true, false, false);
         private static readonly InputKey defaultIncrementPropSizeKey = SavedInputKey.Encode(KeyCode.Period, false, false, false);
         private static readonly InputKey defaultDecrementPropSizeKey = SavedInputKey.Encode(KeyCode.Comma, false, false, false);
 
-#if ENABLEPROPANARCHY
+        private static readonly SavedInputKey m_propSnapping = new SavedInputKey(togglePropSnapping, KeybindingConfigFile, defaultTogglePropSnappingKey, true);
         private static readonly SavedInputKey m_propAnarchy = new SavedInputKey(togglePropAnarchy, KeybindingConfigFile, defaultTogglePropAnarchyKey, true);
-#endif
         private static readonly SavedInputKey m_groupProps = new SavedInputKey(groupProps, KeybindingConfigFile, defaultGroupPropKey, true);
         private static readonly SavedInputKey m_ungroupProps = new SavedInputKey(ungroupProps, KeybindingConfigFile, defaultUngroupPropKey, true);
         private static readonly SavedInputKey m_incrPropVariation = new SavedInputKey(incrementPropSize, KeybindingConfigFile, defaultIncrementPropSizeKey, true);
@@ -44,18 +44,20 @@ namespace PropAnarchy {
                     //SingletonLite<PAManager>.instance.GroupProps();
                 } else if (m_ungroupProps.IsPressed(e)) {
                     //SingletonLite<PAManager>.instance.UngroupProps();
-                }
-#if ENABLEPROPANARCHY
-                else if (m_propAnarchy.IsPressed(e)) {
+                } else if (m_propSnapping.IsPressed(e)) {
+                    bool state = UsePropSnapping = !UsePropSnapping;
+                    PAOptionPanel.SetPropSnapState(state);
+                    UIIndicator.SnapIndicator?.SetState(state);
+                    ThreadPool.QueueUserWorkItem(SaveSettings);
+                } else if (m_propAnarchy.IsPressed(e)) {
                     bool state = UsePropAnarchy = !UsePropAnarchy;
                     PAOptionPanel.SetPropAnarchyState(state);
-                    SaveSettings();
-                }
-#endif
-                else if (IsCustomPressed(m_incrPropVariation, e)) {
-                    SingletonLite<PAManager>.instance.IncrementPropSize();
+                    UIIndicator.AnarchyIndicator?.SetState(state);
+                    ThreadPool.QueueUserWorkItem(SaveSettings);
+                } else if (IsCustomPressed(m_incrPropVariation, e)) {
+                    PAManager.IncrementPropSize();
                 } else if (IsCustomPressed(m_decrPropVariation, e)) {
-                    SingletonLite<PAManager>.instance.DecrementPropSize();
+                    PAManager.DecrementPropSize();
                 }
             }
         }
@@ -67,14 +69,13 @@ namespace PropAnarchy {
             desc.autoHeight = true;
             desc.wordWrap = true;
             desc.textScale = PAOptionPanel.SmallFontScale;
-            desc.text = SingletonLite<PALocale>.instance.GetLocale("KeyBindDescription");
-#if ENABLETREEANARCHY
-            AddKeymapping("PropAnarchy", m_propAnarchy);
-#endif
-            AddKeymapping("GroupProps", m_groupProps);
-            AddKeymapping("UngroupProps", m_ungroupProps);
-            AddKeymapping("IncreasePropSize", m_incrPropVariation);
-            AddKeymapping("DecreasePropSize", m_decrPropVariation);
+            desc.text = PALocale.GetLocale(@"KeyBindDescription");
+            AddKeymapping(@"PropSnapping", m_propSnapping);
+            AddKeymapping(@"PropAnarchy", m_propAnarchy);
+            AddKeymapping(@"GroupProps", m_groupProps);
+            AddKeymapping(@"UngroupProps", m_ungroupProps);
+            AddKeymapping(@"IncreasePropSize", m_incrPropVariation);
+            AddKeymapping(@"DecreasePropSize", m_decrPropVariation);
         }
 
         private bool IsCustomPressed(SavedInputKey inputKey, Event e) {
@@ -87,19 +88,17 @@ namespace PropAnarchy {
 
         private int listCount = 0;
         private void AddKeymapping(string key, SavedInputKey savedInputKey) {
-            PALocale locale = SingletonLite<PALocale>.instance;
-            UIPanel uIPanel = component.AttachUIComponent(UITemplateManager.GetAsGameObject("KeyBindingTemplate")) as UIPanel;
+            UIPanel uIPanel = component.AttachUIComponent(UITemplateManager.GetAsGameObject(@"KeyBindingTemplate")) as UIPanel;
             if (listCount++ % 2 == 1) uIPanel.backgroundSprite = null;
 
-            UILabel uILabel = uIPanel.Find<UILabel>("Name");
-            UIButton uIButton = uIPanel.Find<UIButton>("Binding");
+            UILabel uILabel = uIPanel.Find<UILabel>(@"Name");
+            UIButton uIButton = uIPanel.Find<UIButton>(@"Binding");
 
             uIButton.eventKeyDown += new KeyPressHandler(OnBindingKeyDown);
             uIButton.eventMouseDown += new MouseEventHandler(OnBindingMouseDown);
-            uILabel.objectUserData = locale;
             uILabel.stringUserData = key;
-            uILabel.text = locale.GetLocale(key);
-            uIButton.text = savedInputKey.ToLocalizedString("KEYNAME");
+            uILabel.text = PALocale.GetLocale(key);
+            uIButton.text = savedInputKey.ToLocalizedString(@"KEYNAME");
             uIButton.objectUserData = savedInputKey;
             uIButton.stringUserData = thisCategory; // used for localization TODO:
         }
@@ -115,7 +114,7 @@ namespace PropAnarchy {
                 }
                 m_EditingBinding.value = inputKey;
                 UITextComponent uITextComponent = p.source as UITextComponent;
-                uITextComponent.text = m_EditingBinding.ToLocalizedString("KEYNAME");
+                uITextComponent.text = m_EditingBinding.ToLocalizedString(@"KEYNAME");
                 m_EditingBinding = null;
             }
         }
@@ -126,7 +125,7 @@ namespace PropAnarchy {
                 m_EditingBinding = (SavedInputKey)p.source.objectUserData;
                 UIButton uIButton = p.source as UIButton;
                 uIButton.buttonsMask = (UIMouseButton.Left | UIMouseButton.Right | UIMouseButton.Middle | UIMouseButton.Special0 | UIMouseButton.Special1 | UIMouseButton.Special2 | UIMouseButton.Special3);
-                uIButton.text = SingletonLite<PALocale>.instance.GetLocale("PressAnyKey");
+                uIButton.text = PALocale.GetLocale(@"PressAnyKey");
                 p.source.Focus();
                 UIView.PushModal(p.source);
             } else if (!IsUnbindableMouseButton(p.buttons)) {
@@ -135,7 +134,7 @@ namespace PropAnarchy {
                 InputKey inputKey = SavedInputKey.Encode(ButtonToKeycode(p.buttons), IsControlDown(), IsShiftDown(), IsAltDown());
                 m_EditingBinding.value = inputKey;
                 UIButton uIButton2 = p.source as UIButton;
-                uIButton2.text = m_EditingBinding.ToLocalizedString("KEYNAME");
+                uIButton2.text = m_EditingBinding.ToLocalizedString(@"KEYNAME");
                 uIButton2.buttonsMask = UIMouseButton.Left;
                 m_EditingBinding = null;
             }
