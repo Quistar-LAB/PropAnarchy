@@ -78,20 +78,15 @@ namespace PropAnarchy.AdditiveShader {
                         assets[i].SetVisible(true);
                         break;
                     default:
-                        onTime = profile.OnTime;
-                        offTime = profile.OffTime;
-                        PAModule.PALog($"Setting by twilight: OnTime: {onTime} -- OffTime: {offTime}");
-                        if (isNightTime && assets[i].Profile.IsToggledByTwilight) {
-                            PAModule.PALog($"Setting by twilight: OnTime: {onTime} -- OffTime: {offTime}");
-                            assets[i].SetVisibleByTwilight(isNightTime);
-                        } else {
-                            assets[i].SetVisibleByTime(time);
+                        //if (isNightTime && assets[i].Profile.IsToggledByTwilight) {
+                        //    assets[i].SetVisibleByTwilight(isNightTime);
+                        //} else {
+                        //    assets[i].SetVisibleByTime(time);
+                        //}
+                        if (!assets[i].IsContainer && !assets[i].Profile.IsStatic) {
+                            if (assets[i].Profile.IsToggledByTwilight) assets[i].SetVisibleByTwilight(isNightTime);
+                            else assets[i].SetVisibleByTime(time);
                         }
-                        //if (!assets[i].IsContainer && !assets[i].Profile.IsStatic) {
-                        //    if (assets[i].Profile.IsToggledByTwilight) assets[i].SetVisibleByTwilight(isNightTime);
-                        //    else assets[i].SetVisibleByTime(time);
-                        // }
-
                         break;
                     }
                     yield return null;
