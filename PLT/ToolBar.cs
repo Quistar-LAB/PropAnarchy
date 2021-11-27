@@ -1,7 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
+using EManagersLib;
 using HarmonyLib;
-using System.Threading;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
@@ -80,11 +80,13 @@ namespace PropAnarchy.PLT {
             controlTabStrip.eventSelectedIndexChanged += (c, index) => {
                 PropLineTool.DrawMode.Current = index;
                 if (index == PropLineTool.DrawMode.SINGLE) {
-                    ToolsModifierControl.toolController.CurrentTool = m_previousTool;
-                    controlPanelToggleBtn.activeStateIndex = 0;
-                    if (!m_brushPanel.isVisible) m_brushPanel.Show();
-                    fenceModeToggleBtn.isVisible = false;
-                    controlPanelToggleBtn.isVisible = false;
+                    ToolBase currentTool = ToolsModifierControl.toolController.CurrentTool;
+                    if (currentTool is TreeTool || currentTool is PropTool) {
+                        controlPanelToggleBtn.activeStateIndex = 0;
+                        if (!m_brushPanel.isVisible) m_brushPanel.Show();
+                        fenceModeToggleBtn.isVisible = false;
+                        controlPanelToggleBtn.isVisible = false;
+                    }
                 } else {
                     if (m_brushPanel.isVisible) m_brushPanel.Hide();
                     fenceModeToggleBtn.isVisible = true;
@@ -119,7 +121,7 @@ namespace PropAnarchy.PLT {
                 if (widthDifference != 0f) {
                     float absX = absolutePosition.x;
                     float absY = absolutePosition.y;
-                    float newX = Mathf.RoundToInt(absX - (widthDifference / 2));
+                    float newX = EMath.RoundToInt(absX - (widthDifference / 2));
                     if (newX < 0) newX = 0;
                     float newY = absY + optionsBar.height - height - 6f;
                     ItemClass.Availability mode = Singleton<ToolManager>.instance.m_properties.m_mode;
@@ -134,37 +136,28 @@ namespace PropAnarchy.PLT {
             }
             GameObject brushGO = GameObject.Find(@"BrushPanel");
             if (!(brushGO is null)) {
-                UIPanel brushPanel;
-                m_brushPanel = brushPanel = brushGO.GetComponent<UIPanel>();
-                brushPanel.eventVisibilityChanged += (c, isVisible) => {
-                    if (isVisible && PropLineTool.DrawMode.Current != PropLineTool.DrawMode.SINGLE) {
-                        //brushPanel.isVisible = false;
-                    }
-                };
+                m_brushPanel = brushGO.GetComponent<UIPanel>();
             }
         }
 
-        public override void OnDestroy() {
-        }
-
-        private static void SetPLT(object _) => ToolsModifierControl.SetTool<PropLineTool>();
+        public override void OnDestroy() { }
 
         public static void SetToolPostfix(ToolBase tool) {
-            ToolBar toolBar = PropLineTool.m_toolBar;
-            if (!(m_previousTool is MoveIt.MoveItTool) && (tool is PropTool || tool is TreeTool)) {
-                m_previousTool = tool;
-                toolBar.isVisible = true;
-                PropLineTool.m_itemType = tool is PropTool ? PropLineTool.ItemType.PROP : PropLineTool.ItemType.TREE;
-                if (PropLineTool.DrawMode.Current != PropLineTool.DrawMode.SINGLE) {
-                    ThreadPool.QueueUserWorkItem(SetPLT);
+            if (tool is TreeTool || tool is PropTool || tool is PropLineTool) {
+                if(tool is TreeTool || tool is PropTool) {
+                    PropLineTool.DrawMode.Current = PropLineTool.DrawMode.SINGLE;
+                    PropLineTool.DrawMode.SetCurrentSelected(0);
                 }
-                return;
-            }
-            m_previousTool = tool;
-            if (toolBar.m_IsVisible && !(tool is PropLineTool)) {
-                toolBar.isVisible = false;
-                PropLineTool.DrawMode.SetCurrentSelected(0);
-                OptionPanel.Close();
+                if (!PropLineTool.m_toolBar.isVisible) {
+                    PropLineTool.DrawMode.SetCurrentSelected(0);
+                    PropLineTool.m_toolBar.Show();
+                }
+                if (PropLineTool.DrawMode.Current == PropLineTool.DrawMode.SINGLE) {
+                    if (!m_brushPanel.isVisible) m_brushPanel.Show();
+                }
+            } else {
+                if (PropLineTool.m_toolBar.isVisible) PropLineTool.m_toolBar.Hide();
+                if (m_brushPanel.isVisible) m_brushPanel.Hide();
             }
         }
 

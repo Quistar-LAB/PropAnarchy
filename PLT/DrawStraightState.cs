@@ -1,5 +1,5 @@
 ﻿using ColossalFramework.Math;
-using System;
+using EManagersLib;
 using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
@@ -530,98 +530,124 @@ namespace PropAnarchy.PLT {
         }
 
         public override bool CalculateAllPositionsBySpacing(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode, float spacing, float initialOffset, VectorXZ lastFenceEndpoint) {
-            int Clamp(int value) {
-                if (value < 0) return 0;
-                else if (value > MAX_ITEM_ARRAY_LENGTH) return MAX_ITEM_ARRAY_LENGTH;
-                return value;
-            }
             int numItems, numItemsRaw;
-            float t, deltaT;
+            float initialT, finalT, deltaT;
+            initialOffset = EMath.Abs(initialOffset);
+
+            // first early exit condition
+            if (spacing == 0 || !IsLengthLongEnough()) {
+                m_itemCount = 0;
+                return false;
+            }
             ref Segment3 mainSegment = ref m_mainSegment;
-            bool isMaxFillContinue = SegmentState.IsMaxFillContinue;
             if (fenceMode) {
                 float lengthFull = mainSegment.LengthXZ();
-                float lengthAfterFirst = isMaxFillContinue ? lengthFull - initialOffset : lengthFull;
-                numItemsRaw = Mathf.FloorToInt(Math.Abs(lengthAfterFirst / spacing));
-                numItems = Math.Min(m_itemCount, Clamp(numItemsRaw));
+                float speed = mainSegment.LinearSpeedXZ();
+                float lengthAfterFirst = SegmentState.IsMaxFillContinue ? lengthFull - initialOffset : lengthFull;
+                float numItemsFloat = EMath.Abs(lengthAfterFirst / spacing);
+                numItemsRaw = EMath.FloorToInt(numItemsFloat);
+                numItems = EMath.Min(m_itemCount, EMath.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
                 //add an extra item at the end if within 75% of spacing
                 bool extraItem = false;
-                if ((lengthAfterFirst % spacing) / spacing >= 0.75f && numItems < MAX_ITEM_ARRAY_LENGTH) {
+                float remainder = lengthAfterFirst % spacing;
+                float remFraction = remainder / spacing;
+                if (remFraction >= 0.75f && numItems < MAX_ITEM_ARRAY_LENGTH) {
                     numItems += 1;
                     extraItem = true;
                 }
-                float finalT;
-                deltaT = spacing / mainSegment.LinearSpeedXZ();
-                t = 0f;
-                if (isMaxFillContinue && initialOffset > 0f) {
+                //If not MaxFillContinue:
+                //In straight fence mode, no segment-linking occurs
+                //   so we don't use initialOffset here
+                //the continuous draw resets the first control point to the last fence endpoint
+                deltaT = spacing / speed;
+                float t = 0f;
+                //Max Fill Continue
+                if (SegmentState.IsMaxFillContinue && initialOffset > 0f) {
                     t = initialOffset / lengthFull;
                 }
+
+                //calculate endpoints
                 for (int i = 0; i < numItems + 1; i++) {
                     fenceEndPoints[i] = mainSegment.LinePosition(t);
                     t += deltaT;
                 }
+
+                //then calculate midpoints
                 for (int i = 0; i < numItems; i++) {
-                    items[i].Position = Vector3.Lerp(fenceEndPoints[i], fenceEndPoints[i + 1], 0.50f);
+                    items[i].Position = EMath.Lerp(fenceEndPoints[i], fenceEndPoints[i + 1], 0.50f);
                 }
+
+                //linear fence fill
                 bool realizedLinearFenceFill = false;
                 if (Settings.LinearFenceFill) {
                     if (numItems > 0 && numItems < MAX_ITEM_ARRAY_LENGTH) {
-                        if (numItems == 1) {
-                            if (lengthFull > spacing) realizedLinearFenceFill = true;
-                        } else realizedLinearFenceFill = true;
+                        realizedLinearFenceFill = true;
                     }
-                    //if conditions for linear fence fill are met
+                    // if conditions for linear fence fill are met
                     if (realizedLinearFenceFill) {
-                        //account for extra item
-                        if (!extraItem) numItems++;
+                        // account for extra item
+                        if (!extraItem) {
+                            numItems++;
+                        }
                         VectorXZ p0 = mainSegment.a;
                         VectorXZ p1 = mainSegment.b;
                         fenceEndPoints[numItems] = p1;
+
                         VectorXZ localX = (p1 - p0).normalized;
-                        VectorXZ finalOffset = (0.00390625f * localX) + (0.00390625f * new VectorXZ(localX.z, -1f * localX.x));
-                        VectorXZ finalFenceMidpoint = p1 + 0.5f * spacing * (p0 - p1).normalized;
-                        finalFenceMidpoint += finalOffset;    //correct for z-fighting
-                        items[numItems - 1].Position = finalFenceMidpoint;
+                        items[numItems - 1].Position = (p1 + (0.5f * spacing) * (p0 - p1).normalized) + (0.00390625f * localX) + (0.00390625f * new VectorXZ(localX.z, -1f * localX.x));
                     }
                 }
                 finalT = t - deltaT;
                 Vector3 finalPos = mainSegment.LinePosition(finalT);
-                //prep for MaxFillContinue
+
+                // Prep for MaxFillContinue
                 if (SegmentState.IsReadyForMaxContinue) {
                     SegmentState.NewFinalOffset = Vector3.Distance(mainSegment.a, finalPos);
                 } else {
                     SegmentState.NewFinalOffset = Vector3.Distance(finalPos, mainSegment.b);
                 }
-                m_itemCount = numItems;
-                return true;
-            }
-            float speed = mainSegment.LinearSpeedXZ();
-            if (speed == 0) {
-                m_itemCount = 0;
-                return false;
-            }
-            //use ceiling for non-fence, because the point at the beginning is an extra point
-            numItemsRaw = Mathf.CeilToInt(mainSegment.LengthXZ() - initialOffset);
-            numItems = Math.Min(m_itemCount, Clamp((int)(numItemsRaw / spacing)));
-            if (numItems > 0) {
-                deltaT = spacing / speed;
-                t = 0f;
-                if (initialOffset > 0f) {
-                    t = initialOffset / speed;
+            } else {
+                float lengthFull = mainSegment.LengthXZ();
+                float lengthAfterFirst = lengthFull - initialOffset;
+                float speed = mainSegment.LinearSpeedXZ();
+
+                //use ceiling for non-fence, because the point at the beginning is an extra point
+                numItemsRaw = EMath.CeilToInt(lengthAfterFirst / spacing);
+                numItems = EMath.Min(m_itemCount, EMath.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
+                if (speed == 0) {
+                    return false;
                 }
+                deltaT = spacing / speed;
+                float t = 0f;
+                if (initialOffset > 0f) {
+                    //calculate initial _t
+                    initialT = initialOffset / speed;
+                    t = initialT;
+                }
+
                 for (int i = 0; i < numItems; i++) {
                     items[i].m_t = t;
                     items[i].Position = mainSegment.LinePosition(t);
                     t += deltaT;
                 }
-                if (SegmentState.IsReadyForMaxContinue) {
-                    SegmentState.NewFinalOffset = spacing + (float)Math.Sqrt((mainSegment.a - items[numItems - 1].Position).sqrMagnitude); ;
+                if (numItems - 1 >= 0) {
+                    if (SegmentState.IsReadyForMaxContinue) {
+                        SegmentState.NewFinalOffset = spacing + Vector3.Distance(mainSegment.a, items[numItems - 1].Position);
+                    } else {
+                        SegmentState.NewFinalOffset = spacing + Vector3.Distance(items[numItems - 1].Position, mainSegment.b);
+                    }
                 } else {
-                    SegmentState.NewFinalOffset = spacing - (float)Math.Sqrt((items[numItems - 1].Position - mainSegment.b).sqrMagnitude); ;
+                    SegmentState.LastFenceEndpoint = EMath.Vector3Down;
+                    SegmentState.LastFinalOffset = 0f;
+                    //UpdatePlacement();
                 }
             }
             m_itemCount = numItems;
-            SegmentState.MaxItemCountExceeded = numItemsRaw > MAX_ITEM_ARRAY_LENGTH;
+            if (EMath.FloorToInt(numItemsRaw) > MAX_ITEM_ARRAY_LENGTH) {
+                SegmentState.MaxItemCountExceeded = true;
+            } else {
+                SegmentState.MaxItemCountExceeded = false;
+            }
             return true;
         }
 

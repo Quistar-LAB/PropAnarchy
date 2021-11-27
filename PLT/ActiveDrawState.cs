@@ -1,4 +1,5 @@
 ﻿using ColossalFramework.Math;
+using EManagersLib;
 using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
@@ -103,11 +104,25 @@ namespace PropAnarchy.PLT {
             }
         }
         private bool CalculateAllPositions(bool continueDrawing, bool fenceMode, ItemInfo[] items, Vector3[] fenceEndPoints) {
+            float initialOffset = 0f;
+            Vector3 lastFenceEndPoint = EMath.Vector3Down;
+
+            if (continueDrawing) {
+                initialOffset = SegmentState.LastFinalOffset;
+                lastFenceEndPoint = SegmentState.LastFenceEndpoint;
+            } else {
+                switch (DrawMode.Current) {
+                default:
+                case DrawMode.STRAIGHT:
+                    lastFenceEndPoint = m_mainSegment.b;
+                    break;
+                }
+            }
             switch (m_controlMode) {
             case ControlMode.ITEMWISE:
-                return CalculateItemwisePosition(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, continueDrawing ? SegmentState.LastFinalOffset : 0f, continueDrawing ? SegmentState.LastFenceEndpoint : m_mainSegment.b);
+                return CalculateItemwisePosition(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, initialOffset, lastFenceEndPoint);
             case ControlMode.SPACING:
-                return CalculateAllPositionsBySpacing(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, continueDrawing ? SegmentState.LastFinalOffset : 0f, continueDrawing ? SegmentState.LastFenceEndpoint : m_mainSegment.b);
+                return CalculateAllPositionsBySpacing(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, initialOffset, lastFenceEndPoint);
             }
             return false;
         }

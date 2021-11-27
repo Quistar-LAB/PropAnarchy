@@ -1,4 +1,5 @@
 ﻿using ColossalFramework.Math;
+using EManagersLib;
 using System;
 using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
@@ -501,18 +502,25 @@ namespace PropAnarchy.PLT {
 
         public override bool CalculateAllPositionsBySpacing(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode, float spacing, float initialOffset, VectorXZ lastFenceEndpoint) {
             int numItems, numItemsRaw;
-            float t = 0f, finalT;
-            Bezier3 mainBezier = m_mainBezier;
-            if (initialOffset < 0f) initialOffset = Math.Abs(initialOffset);
-            float lengthFull = mainBezier.CubicBezierArcLengthXZGauss12(0f, 1f);
+            float finalT;
+            ref Bezier3 mainBezier = ref m_mainBezier;
+            initialOffset = EMath.Abs(initialOffset);
+
+            if (spacing == 0 || !IsLengthLongEnough() || (fenceMode && m_mainElbowAngle * Mathf.Rad2Deg < 5f)) {
+                m_itemCount = 0;
+                return false;
+            }
             if (fenceMode) {
-                numItemsRaw = Mathf.CeilToInt((SegmentState.IsMaxFillContinue ? lengthFull - initialOffset : lengthFull) / spacing);
-                numItems = Mathf.Min(m_itemCount, Mathf.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
+                float lengthFull = mainBezier.CubicBezierArcLengthXZGauss12(0f, 1f);
+                float lengthAfterFirst = SegmentState.IsMaxFillContinue ? lengthFull - initialOffset : lengthFull;
                 if (spacing > lengthFull) {
                     m_itemCount = 0;
                     return false;
                 }
-                if (numItems > MAX_ITEM_ARRAY_LENGTH) numItems = MAX_ITEM_ARRAY_LENGTH;
+                numItemsRaw = EMath.CeilToInt(lengthAfterFirst / spacing);
+                numItems = EMath.Min(m_itemCount, EMath.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
+
+                float t = 0f;
                 float penultimateT = 0f;
                 int forLoopStart = 0;
                 //max fill continue
@@ -521,6 +529,7 @@ namespace PropAnarchy.PLT {
                     mainBezier.StepDistanceCurve(0f, initialOffset, TOLERANCE, out t);
                     goto label_endpointsForLoop;
                 } else if (initialOffset > 0f) {
+                    //first continueDrawing if (1/4)
                     fenceEndPoints[0] = lastFenceEndpoint;
                     if (!mainBezier.LinkCircleCurveFenceIntersectXZ(lastFenceEndpoint, spacing, TOLERANCE, out t, false)) {
                         forLoopStart = 0;
@@ -528,10 +537,9 @@ namespace PropAnarchy.PLT {
                         goto label_endpointsForLoop;
                     }
                     //third continueDrawing if (3/4)
-                    fenceEndPoints[1] = m_mainBezier.Position(t);
+                    fenceEndPoints[1] = mainBezier.Position(t);
                     //fourth continueDrawing if (4/4)
                     if (!mainBezier.CircleCurveFenceIntersectXZ(t, spacing, TOLERANCE, out t, false)) {
-                        //failed to converge
                         numItems = 1;
                         goto label_endpointsFinish;
                     }
@@ -539,60 +547,71 @@ namespace PropAnarchy.PLT {
                 }
 label_endpointsForLoop:
                 for (int i = forLoopStart; i < numItems + 1; i++) {
+                    //this should be the first if (1/3)
+                    //this is necessary for bendy fence mode since we didn't estimate count
                     if (t > 1f) {
                         numItems = i - 1;
                         goto label_endpointsFinish;
                     }
+                    //second if (2/3)
                     fenceEndPoints[i] = mainBezier.Position(t);
                     penultimateT = t;
+                    //third if (3/3)
                     if (!mainBezier.CircleCurveFenceIntersectXZ(t, spacing, TOLERANCE, out t, false)) {
-                        //failed to converge
                         numItems = i - 1;
                         goto label_endpointsFinish;
                     }
                 }
 label_endpointsFinish:
-                numItems = Mathf.Clamp(numItems, 0, MAX_ITEM_ARRAY_LENGTH);
-                finalT = t;
+                numItems = EMath.Clamp(numItems, 0, MAX_ITEM_ARRAY_LENGTH);
                 //then calculate midpoints
                 for (int i = 0; i < numItems; i++) {
-                    items[i].Position = Vector3.Lerp(fenceEndPoints[i], fenceEndPoints[i + 1], 0.50f);
+                    items[i].Position = EMath.Lerp(fenceEndPoints[i], fenceEndPoints[i + 1], 0.50f);
                 }
                 //prep for MaxFillContinue
                 if (SegmentState.IsReadyForMaxContinue) {
-                    SegmentState.NewFinalOffset = mainBezier.CubicBezierArcLengthXZGauss12(0f, penultimateT);
+                    SegmentState.NewFinalOffset = m_mainBezier.CubicBezierArcLengthXZGauss12(0f, penultimateT);
                 } else {
-                    SegmentState.NewFinalOffset = mainBezier.CubicBezierArcLengthXZGauss04(finalT, 1f);
+                    SegmentState.NewFinalOffset = m_mainBezier.CubicBezierArcLengthXZGauss04(t, 1f);
                 }
-                m_itemCount = numItems;
-                return true;
-            }
-            if (m_mainArm1.Length() + m_mainArm2.Length() <= 0.01f) {
-                m_itemCount = 0;
-                return false;
-            }
-            //use ceiling for non-fence, because the point at the beginning is an extra point
-            numItemsRaw = Mathf.CeilToInt((lengthFull - initialOffset) / spacing);
-            numItems = Mathf.Min(m_itemCount, Mathf.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
-            if (initialOffset > 0f) {
-                mainBezier.StepDistanceCurve(0f, initialOffset, TOLERANCE, out t);
-            }
-            if (numItems > 0) {
+            } else {
+                if (m_mainArm1.Length() + m_mainArm2.Length() <= 0.01f) {
+                    return false;
+                }
+                float lengthFull = mainBezier.CubicBezierArcLengthXZGauss12(0f, 1f);
+                float lengthAfterFirst = lengthFull - initialOffset;
+                //use ceiling for non-fence, because the point at the beginning is an extra point
+                numItemsRaw = EMath.CeilToInt(lengthAfterFirst / spacing);
+                numItems = EMath.Min(m_itemCount, EMath.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
+                float t = 0f;
+                if (initialOffset > 0f) {
+                    mainBezier.StepDistanceCurve(0f, initialOffset, TOLERANCE, out t);
+                }
                 for (int i = 0; i < numItems; i++) {
                     items[i].m_t = t;
                     items[i].Position = mainBezier.Position(t);
                     mainBezier.StepDistanceCurve(t, spacing, TOLERANCE, out t);
                 }
-                finalT = items[numItems - 1].m_t;
-                if (SegmentState.IsReadyForMaxContinue) {
-                    SegmentState.NewFinalOffset = spacing + mainBezier.CubicBezierArcLengthXZGauss12(0f, finalT);
+                if (numItems - 1 >= 0) {
+                    finalT = items[numItems - 1].m_t;
+                    if (SegmentState.IsReadyForMaxContinue) {
+                        SegmentState.NewFinalOffset = spacing + mainBezier.CubicBezierArcLengthXZGauss12(0f, finalT);
+                    } else {
+                        SegmentState.NewFinalOffset = spacing - mainBezier.CubicBezierArcLengthXZGauss04(finalT, 1f);
+                    }
                 } else {
-                    SegmentState.NewFinalOffset = spacing + mainBezier.CubicBezierArcLengthXZGauss04(finalT, 1f);
+                    SegmentState.LastFenceEndpoint = EMath.Vector3Down;
+                    SegmentState.LastFinalOffset = 0f;
+                    //UpdatePlacement();
                 }
-                m_itemCount = numItems;
-                return true;
             }
-            return false;
+            m_itemCount = numItems;
+            if (EMath.FloorToInt(numItemsRaw) > MAX_ITEM_ARRAY_LENGTH) {
+                SegmentState.MaxItemCountExceeded = true;
+            } else {
+                SegmentState.MaxItemCountExceeded = false;
+            }
+            return true;
         }
 
         public override void DiscoverHoverState(VectorXZ position) {
