@@ -88,13 +88,13 @@ namespace PropAnarchy {
                 int prefabLen = prefabs.Length;
                 for (int i = 0; i < prefabLen; i++) {
                     PrefabInfo prefab = prefabs[i];
-                    if (prefab is PropInfo prop && prop.m_isCustomContent) {
+                    if (prefab is PropInfo prop) {
                         DecalPropFix.AssignFix(prop);
                         if (prop.m_mesh && prop.m_mesh.name is string propData && AdditiveShaderManager.HasValidData(propData)) {
                             assets.Add(new ManagedAsset(prop));
                             PALog(@"[AdditiveShader] : Loaded a prop - " + prop.name + @" marked as having the AdditiveShader");
                         }
-                    } else if (prefab is BuildingInfo building && building.m_isCustomContent) {
+                    } else if (prefab is BuildingInfo building) {
                         if (building.m_mesh && AdditiveShaderManager.HasValidData(building.m_mesh.name)) {
                             assets.Add(new ManagedAsset(building));
                             PALog(@"[AdditiveShader] : Loaded a building - " + building.name + @" marked as having the AdditiveShader");
@@ -102,11 +102,11 @@ namespace PropAnarchy {
                         if (!(building.m_props is null) && AdditiveShaderManager.ContainsShaderProps(building)) {
                             assets.Add(new ManagedAsset(building, true));
                         }
-                    } else if (prefab is BuildingInfoSub buildingSub && buildingSub.m_isCustomContent && buildingSub.m_mesh &&
+                    } else if (prefab is BuildingInfoSub buildingSub && buildingSub.m_mesh &&
                                buildingSub.m_mesh.name is string buildingSubData && AdditiveShaderManager.HasValidData(buildingSubData)) {
                         assets.Add(new ManagedAsset(buildingSub));
                         PALog(@"[AdditiveShader] : Loaded a building sub - " + buildingSub.name + @" marked as having the AdditiveShader");
-                    } else if (prefab is VehicleInfoSub vehicleSub && vehicleSub.m_isCustomContent && vehicleSub.m_mesh &&
+                    } else if (prefab is VehicleInfoSub vehicleSub && vehicleSub.m_mesh &&
                                vehicleSub.m_mesh.name is string vehicleSubData && AdditiveShaderManager.HasValidData(vehicleSubData)) {
                         assets.Add(new ManagedAsset(vehicleSub));
                         PALog(@"[AdditiveShader] : Loaded a vehicle sub - " + vehicleSub.name + @" mesh marked as having the AdditiveShader");
