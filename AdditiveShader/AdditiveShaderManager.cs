@@ -105,7 +105,7 @@ namespace PropAnarchy.AdditiveShader {
                 if (!(renderGroup is null)) {
                     renderGroup.SetLayerDataDirty(buildingLayer);
                     renderGroup.SetLayerDataDirty(propsLayer);
-                    renderGroup.UpdateMeshData();
+                    //renderGroup.UpdateMeshData();
                 }
             }
         }
