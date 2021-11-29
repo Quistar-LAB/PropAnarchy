@@ -2,6 +2,7 @@
 using ColossalFramework.UI;
 using EManagersLib;
 using HarmonyLib;
+using System.Threading;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
@@ -17,7 +18,7 @@ namespace PropAnarchy.PLT {
         private const string PLT_CURVED_NAME = @"Curved";
         private const string PLT_FREEFORM_NAME = @"Freeform";
         private const string PLT_CIRCLE_NAME = @"Circle";
-        private static UIPanel m_brushPanel;
+        private static UIPanel m_brushPanel = null;
         public static UITextureAtlas m_sharedTextures;
         public static ToolBase m_previousTool;
         public override void Awake() {
@@ -94,21 +95,6 @@ namespace PropAnarchy.PLT {
                     ToolsModifierControl.SetTool<PropLineTool>();
                 }
             };
-            landscapingStrip.eventSelectedIndexChanged += (c, index) => {
-                switch (index) {
-                case 3: /* TreeTool */
-                    PropLineTool.m_itemType = PropLineTool.ItemType.TREE;
-                    OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.TREE);
-                    break;
-                case 4: /* PropTool */
-                    PropLineTool.m_itemType = PropLineTool.ItemType.PROP;
-                    OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.PROP);
-                    break;
-                default:
-                    PropLineTool.m_itemType = PropLineTool.ItemType.UNDEFINED;
-                    break;
-                }
-            };
         }
 
         public override void Start() {
@@ -142,22 +128,45 @@ namespace PropAnarchy.PLT {
 
         public override void OnDestroy() { }
 
+        public static void ActivatePLT(object _) {
+            Thread.Sleep(1);
+            ToolsModifierControl.SetTool<PropLineTool>();
+        }
+
+        public static bool SetToolPrefix(ToolBase tool) {
+            if ((tool is TreeTool || tool is PropTool) && ToolsModifierControl.toolController.CurrentTool is PropLineTool) {
+                if(PropLineTool.DrawMode.Current != PropLineTool.DrawMode.SINGLE)
+                    return false;
+            }
+            return true;
+        }
+
         public static void SetToolPostfix(ToolBase tool) {
-            if (tool is TreeTool || tool is PropTool || tool is PropLineTool) {
-                if(tool is TreeTool || tool is PropTool) {
-                    PropLineTool.DrawMode.Current = PropLineTool.DrawMode.SINGLE;
-                    PropLineTool.DrawMode.SetCurrentSelected(0);
-                }
-                if (!PropLineTool.m_toolBar.isVisible) {
-                    PropLineTool.DrawMode.SetCurrentSelected(0);
+            if (!(tool is null) && !(PropLineTool.m_toolBar is null) && !(m_brushPanel is null)) {
+                if (tool is TreeTool || tool is PropTool) {
+                    if(tool is TreeTool) {
+                        PropLineTool.m_itemType = PropLineTool.ItemType.TREE;
+                        OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.TREE);
+                    } else {
+                        PropLineTool.m_itemType = PropLineTool.ItemType.PROP;
+                        OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.PROP);
+                    }
+                    if (!PropLineTool.m_toolBar.isVisible) {
+                        PropLineTool.DrawMode.SetCurrentSelected?.Invoke(0);
+                        PropLineTool.m_toolBar.Show();
+                    }
+                    if (PropLineTool.DrawMode.Current == PropLineTool.DrawMode.SINGLE) {
+                        if (!m_brushPanel.isVisible) m_brushPanel.Show();
+                    }
+                } else if (tool is PropLineTool) {
                     PropLineTool.m_toolBar.Show();
+                } else {
+                    if (PropLineTool.m_toolBar.isVisible) {
+                        PropLineTool.m_toolBar.Hide();
+                        PropLineTool.m_optionPanel.Hide();
+                    }
+                    if (m_brushPanel.isVisible) m_brushPanel.Hide();
                 }
-                if (PropLineTool.DrawMode.Current == PropLineTool.DrawMode.SINGLE) {
-                    if (!m_brushPanel.isVisible) m_brushPanel.Show();
-                }
-            } else {
-                if (PropLineTool.m_toolBar.isVisible) PropLineTool.m_toolBar.Hide();
-                if (m_brushPanel.isVisible) m_brushPanel.Hide();
             }
         }
 
