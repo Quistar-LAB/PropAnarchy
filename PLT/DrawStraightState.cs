@@ -342,7 +342,7 @@ namespace PropAnarchy.PLT {
                 if (m_itemCount < (GetFenceMode() ? 1 : 2) && m_controlMode != ControlMode.ITEMWISE) goto default;
                 bool angleObjectMode = m_itemType == ItemType.PROP;
                 VectorXZ angleCenter = m_items[HoverItemAngleCenterIndex].Position;
-                VectorXZ anglePos = Circle2.Position3FromAngleXZ(angleCenter, HOVER_ANGLELOCUS_DIAMETER, m_hoverAngle);
+                VectorXZ anglePos = CircleXZ.Position3FromAngleXZ(angleCenter, HOVER_ANGLELOCUS_DIAMETER, m_hoverAngle);
                 VectorXZ spacingPos = GetFenceMode() ? m_fenceEndPoints[HoverItemPositionIndex] : m_items[HoverItemPositionIndex].Position;
                 if (spacingPos.IsInsideCircleXZ(HOVER_POINTDISTANCE_THRESHOLD, position)) {
                     m_hoverState = m_controlMode == ControlMode.ITEMWISE ? HoverState.ItemwiseItem : HoverState.SpacingLocus;
@@ -350,9 +350,9 @@ namespace PropAnarchy.PLT {
                     m_hoverState = HoverState.AngleLocus;
                 } else if (angleObjectMode && angleCenter.IsNearCircleOutlineXZ(HOVER_ANGLELOCUS_DIAMETER, position, angleLocusDistanceThreshold)) {
                     m_hoverState = HoverState.AngleLocus;
-                } else if (ControlPoint.m_controlPoints[0].m_position.IsInsideCircleXZ(HOVER_POINTDISTANCE_THRESHOLD, position)) {
+                } else if (VectorXZ.IsInsideCircleXZ(ControlPoint.m_controlPoints[0].m_position, HOVER_POINTDISTANCE_THRESHOLD, position)) {
                     m_hoverState = HoverState.ControlPointFirst;
-                } else if (ControlPoint.m_controlPoints[1].m_position.IsInsideCircleXZ(HOVER_POINTDISTANCE_THRESHOLD, position)) {
+                } else if (VectorXZ.IsInsideCircleXZ(ControlPoint.m_controlPoints[1].m_position, HOVER_POINTDISTANCE_THRESHOLD, position)) {
                     m_hoverState = HoverState.ControlPointSecond;
                 } else if (m_mainSegment.IsCloseToSegmentXZ(HOVER_CURVEDISTANCE_THRESHOLD, position, out _)) {
                     m_hoverState = HoverState.Curve;
@@ -381,7 +381,7 @@ namespace PropAnarchy.PLT {
                     break;
                 case ActiveState.ChangeSpacing:
                     if (m_mainSegment.IsCloseToSegmentXZ(HOVER_CURVEDISTANCE_THRESHOLD * 8f, m_cachedPosition, out float hoverCurveT)) {
-                        float curveT = Mathf.Clamp(hoverCurveT, m_items[0].m_t, 0.995f);
+                        float curveT = EMath.Clamp(hoverCurveT, m_items[0].m_t, 0.995f);
                         VectorXZ linePosition = m_mainSegment.LinePosition(curveT); ;
                         if (GetFenceMode()) {
                             //since straight fence mode auto snaps to last fence endpoint
@@ -399,16 +399,14 @@ namespace PropAnarchy.PLT {
                     Vector3 xAxis; xAxis.x = 1; xAxis.y = 0; xAxis.z = 0;
                     Vector3 yAxis; yAxis.x = 0; yAxis.y = 1; yAxis.z = 0;
                     if (m_angleMode == AngleMode.DYNAMIC) {
-                        Vector3 angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
-                        angleVector.y = 0f;
+                        VectorXZ angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
                         angleVector.Normalize();
-                        m_hoverAngle = PLTMath.AngleSigned(angleVector, xAxis, yAxis);
-                        ItemInfo.m_itemAngleOffset = PLTMath.AngleSigned(angleVector, m_lockedBackupItemDirection, yAxis);
+                        m_hoverAngle = angleVector.AngleSigned(xAxis, yAxis);
+                        ItemInfo.m_itemAngleOffset = angleVector.AngleSigned(m_lockedBackupItemDirection, yAxis);
                     } else if (m_angleMode == AngleMode.SINGLE) {
-                        Vector3 angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
-                        angleVector.y = 0f;
+                        VectorXZ angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
                         angleVector.Normalize();
-                        float angle = PLTMath.AngleSigned(angleVector, xAxis, yAxis);
+                        float angle = angleVector.AngleSigned(xAxis, yAxis);
                         m_hoverAngle = angle;
                         ItemInfo.m_itemAngleSingle = angle + Mathf.PI;
                     }
@@ -444,29 +442,28 @@ namespace PropAnarchy.PLT {
             return false;
         }
 
-        public override void UpdateCurve(ControlPoint.PointInfo[] cachedControlPoints, int cachedControlPointCount) {
+        public override void UpdateCurve(ControlPoint.PointInfo[] controlPoints, int controlPointCount) {
             SegmentState.m_pendingPlacementUpdate = true;
-            if (cachedControlPointCount >= 1) {
-                m_mainSegment.a = cachedControlPoints[0].m_position;
-                m_mainSegment.b = cachedControlPoints[1].m_position;
+            if (controlPointCount > 0) {
+                m_mainSegment.a = controlPoints[0].m_position;
+                m_mainSegment.b = controlPoints[1].m_position;
             }
         }
 
         public override bool ContinueDrawing(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount) {
-            Vector3 vectorDown; vectorDown.x = 0; vectorDown.y = -1; vectorDown.z = 0;
             Vector3 p1 = controlPoints[1].m_position;
-            if (GetFenceMode()) {
-                Vector3 lastFenceEndPoint = SegmentState.LastFenceEndpoint;
-                if (lastFenceEndPoint == vectorDown) return false;
-                p1 = lastFenceEndPoint;
-            }
+            //if (GetFenceMode()) {
+            //    Vector3 lastFenceEndPoint = SegmentState.LastFenceEndpoint;
+            //    if (lastFenceEndPoint == EMath.Vector3Down) return false;
+            //    p1 = lastFenceEndPoint;
+            //}
             controlPoints[0].m_position = p1;
             controlPointCount = 1;
             SegmentState.IsContinueDrawing = true;
             return true;
         }
 
-        public override bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ControlPoint.PointInfo[] cachedControlPoints, ref int controlPointCount) {
+        public override bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount) {
             if (m_lockingMode == LockingMode.Off) {
                 if (SegmentState.IsReadyForMaxContinue) {
                     UpdatePlacement(true, false);
@@ -475,10 +472,10 @@ namespace PropAnarchy.PLT {
                     if (ContinueDrawing(controlPoints, ref controlPointCount)) {
                         GoToActiveState(ActiveState.CreatePointSecond);
                         ControlPoint.Modify(DrawMode.CurrentMode, m_mousePosition, 1, ActiveState.CreatePointSecond, DrawMode.Current);
-                        if (GetFenceMode()) {
-                            ControlPoint.Modify(DrawMode.CurrentMode, SegmentState.m_segmentInfo.m_lastFenceEndpoint, 0, ActiveState.CreatePointSecond, DrawMode.Current);
-                        }
-                        UpdateCurve(cachedControlPoints, controlPointCount);
+                        //if (GetFenceMode()) {
+                        //    ControlPoint.Modify(DrawMode.CurrentMode, SegmentState.m_segmentInfo.m_lastFenceEndpoint, 0, ActiveState.CreatePointSecond, DrawMode.Current);
+                        //}
+                        UpdateCurve(controlPoints, controlPointCount);
                         UpdatePlacement(true, false);
                     } else {
                         ControlPoint.Reset();
@@ -521,7 +518,7 @@ namespace PropAnarchy.PLT {
                 fenceEndPoints[0] = positionStart;
                 Vector3 positionEnd = mainSegment.LinePosition(hoverItemwiseT + deltaT);
                 fenceEndPoints[1] = positionEnd;
-                items[0].Position = Vector3.Lerp(positionStart, positionEnd, 0.50f);
+                items[0].Position = EMath.Lerp(positionStart, positionEnd, 0.50f);
                 return true;
             }
             items[0].m_t = hoverItemwiseT;
@@ -630,11 +627,11 @@ namespace PropAnarchy.PLT {
                     items[i].Position = mainSegment.LinePosition(t);
                     t += deltaT;
                 }
-                if (numItems - 1 >= 0) {
+                if (numItems > 0) {
                     if (SegmentState.IsReadyForMaxContinue) {
                         SegmentState.NewFinalOffset = spacing + Vector3.Distance(mainSegment.a, items[numItems - 1].Position);
                     } else {
-                        SegmentState.NewFinalOffset = spacing + Vector3.Distance(items[numItems - 1].Position, mainSegment.b);
+                        SegmentState.NewFinalOffset = spacing - Vector3.Distance(items[numItems - 1].Position, mainSegment.b);
                     }
                 } else {
                     SegmentState.LastFenceEndpoint = EMath.Vector3Down;

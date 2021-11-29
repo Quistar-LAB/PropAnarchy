@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using static PropAnarchy.PLT.PropLineTool;
+﻿using EManagersLib;
+using UnityEngine;
 
 namespace PropAnarchy.PLT {
     public static class SegmentState {
@@ -20,7 +20,7 @@ namespace PropAnarchy.PLT {
             //error checking
             public bool m_allItemsValid;
             public bool IsReadyForMaxContinue => m_maxItemCountExceeded;
-            public static SegmentInfo Default => new SegmentInfo(0f, 0f, m_vectorDown, m_vectorDown, false, false, false, false, true);
+            public static SegmentInfo Default => new SegmentInfo(0f, 0f, EMath.Vector3Down, EMath.Vector3Down, false, false, false, false, true);
             public SegmentInfo(float lastFinalOffset, float newFinalOffset, Vector3 lastFenceEndpoint, Vector3 newFenceEndpoint, bool isContinueDrawing, bool keepLastOffsets, bool maxItemCountExceeded, bool isMaxFillContinue, bool allItemsValid) {
                 m_lastFinalOffset = lastFinalOffset;
                 m_newFinalOffset = newFinalOffset;
@@ -111,17 +111,17 @@ namespace PropAnarchy.PLT {
                 }
                 IsMaxFillContinue = m_segmentInfo.m_maxItemCountExceeded;
             } else {
-                LastFenceEndpoint = m_vectorDown;
+                LastFenceEndpoint = EMath.Vector3Down;
                 LastFinalOffset = 0f;
                 IsMaxFillContinue = false;
                 m_segmentInfo.m_keepLastOffsets = false;
             }
-            m_segmentInfo.m_newFenceEndpoint = m_vectorDown;
+            m_segmentInfo.m_newFenceEndpoint = EMath.Vector3Down;
             m_segmentInfo.m_newFinalOffset = 0f;
         }
 
         public static void ResetLastContinueParameters() {
-            LastFenceEndpoint = m_vectorDown;
+            LastFenceEndpoint = EMath.Vector3Down;
             LastFinalOffset = 0f;
         }
 
@@ -131,10 +131,11 @@ namespace PropAnarchy.PLT {
             LastFenceEndpoint = lastFenceEndpointVector;
         }
 
-        public static bool AreLastContinueParametersZero() => (m_segmentInfo.m_lastFenceEndpoint == m_vectorZero) && m_segmentInfo.m_lastFinalOffset == 0f;
+        public static bool AreLastContinueParametersZero() => (m_segmentInfo.m_lastFenceEndpoint == EMath.Vector3Zero) && m_segmentInfo.m_lastFinalOffset == 0f;
 
-        public static bool AreNewContinueParametersEmpty() => (m_segmentInfo.m_newFenceEndpoint == m_vectorZero) && m_segmentInfo.m_newFinalOffset == 0f;
+        public static bool AreNewContinueParametersEmpty() => (m_segmentInfo.m_newFenceEndpoint == EMath.Vector3Zero) && m_segmentInfo.m_newFinalOffset == 0f;
 
-        public static bool IsPositionEqualToLastFenceEndpoint(VectorXZ position) => (position - m_segmentInfo.m_lastFenceEndpoint).magnitude <= 0.002f;
+        public static bool IsPositionEqualToLastFenceEndpoint(VectorXZ position) => (position - m_segmentInfo.m_lastFenceEndpoint).sqrMagnitude <= 0.002f;
+        //public static bool IsPositionEqualToLastFenceEndpoint(VectorXZ position) => (position - m_segmentInfo.m_lastFenceEndpoint).magnitude <= 0.002f;
     }
 }

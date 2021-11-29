@@ -1,5 +1,4 @@
 ﻿using ColossalFramework.Math;
-using EManagersLib;
 using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
@@ -31,7 +30,7 @@ namespace PropAnarchy.PLT {
         public static Bezier3 m_mainBezier = new Bezier3();
         public static CircleXZ m_mainCircle = new CircleXZ();
         public virtual void OnToolGUI(Event e, bool isInsideUI) {
-            m_keyboardAltDown = (e.modifiers & EventModifiers.Alt) == EventModifiers.Alt;
+            m_isCopyPlacing = m_keyboardAltDown = (e.modifiers & EventModifiers.Alt) == EventModifiers.Alt;
             m_keyboardCtrlDown = (e.modifiers & EventModifiers.Control) == EventModifiers.Control;
         }
         public virtual void OnToolUpdate() { }
@@ -43,10 +42,10 @@ namespace PropAnarchy.PLT {
         public abstract bool ContinueDrawing(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount);
         public abstract bool IsLengthLongEnough();
         public abstract bool IsActiveStateAnItemRenderState();
-        public bool PostCheckAndContinue() => PostCheckAndContinue(ControlPoint.m_controlPoints, ControlPoint.m_controlPoints, ref ControlPoint.m_validPoints);
-        public abstract bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ControlPoint.PointInfo[] cachedControlPoints, ref int controlPointCount);
+        public bool PostCheckAndContinue() => PostCheckAndContinue(ControlPoint.m_controlPoints, ref ControlPoint.m_validPoints);
+        public abstract bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount);
         public void UpdateCurve() => UpdateCurve(ControlPoint.m_controlPoints, ControlPoint.m_validPoints);
-        public abstract void UpdateCurve(ControlPoint.PointInfo[] cachedControlPoints, int cachedControlPointCount);
+        public abstract void UpdateCurve(ControlPoint.PointInfo[] controlPoints, int controlPointCount);
         public abstract void RevertDrawingFromLockMode();
         public abstract void Update();
         public bool UpdatePlacement() => UpdatePlacement(SegmentState.m_segmentInfo.m_isContinueDrawing, SegmentState.m_segmentInfo.m_keepLastOffsets);
@@ -84,14 +83,14 @@ namespace PropAnarchy.PLT {
             if (fenceMode) {
                 float offsetAngle = Mathf.Deg2Rad * (((ItemInfo.m_itemModelZ > ItemInfo.m_itemModelX ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.m_itemAngleOffset) * Mathf.Rad2Deg % 360f);
                 for (int i = 0; i < itemCount; i++) {
-                    items[i].m_angle = PLTMath.AngleSigned(items[i].m_itemDirection, xAxis, yAxis) + Mathf.PI + offsetAngle;
+                    items[i].m_angle = Vector3Extensions.AngleSigned(items[i].m_itemDirection, xAxis, yAxis) + Mathf.PI + offsetAngle;
                 }
             } else {
                 switch (m_angleMode) {
                 case AngleMode.DYNAMIC:
                     float offsetAngle = Mathf.Deg2Rad * (((ItemInfo.m_itemModelZ > ItemInfo.m_itemModelX ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.m_itemAngleOffset) * Mathf.Rad2Deg % 360f);
                     for (int i = 0; i < itemCount; i++) {
-                        items[i].m_angle = PLTMath.AngleSigned(items[i].m_itemDirection, xAxis, yAxis) + Mathf.PI + offsetAngle;
+                        items[i].m_angle = Vector3Extensions.AngleSigned(items[i].m_itemDirection, xAxis, yAxis) + Mathf.PI + offsetAngle;
                     }
                     break;
                 case AngleMode.SINGLE:
@@ -104,25 +103,13 @@ namespace PropAnarchy.PLT {
             }
         }
         private bool CalculateAllPositions(bool continueDrawing, bool fenceMode, ItemInfo[] items, Vector3[] fenceEndPoints) {
-            float initialOffset = 0f;
-            Vector3 lastFenceEndPoint = EMath.Vector3Down;
-
-            if (continueDrawing) {
-                initialOffset = SegmentState.LastFinalOffset;
-                lastFenceEndPoint = SegmentState.LastFenceEndpoint;
-            } else {
-                switch (DrawMode.Current) {
-                default:
-                case DrawMode.STRAIGHT:
-                    lastFenceEndPoint = m_mainSegment.b;
-                    break;
-                }
-            }
             switch (m_controlMode) {
             case ControlMode.ITEMWISE:
-                return CalculateItemwisePosition(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, initialOffset, lastFenceEndPoint);
+                if (continueDrawing) return CalculateItemwisePosition(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, SegmentState.LastFinalOffset, SegmentState.LastFenceEndpoint);
+                return CalculateItemwisePosition(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, 0f, m_mainSegment.b);
             case ControlMode.SPACING:
-                return CalculateAllPositionsBySpacing(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, initialOffset, lastFenceEndPoint);
+                if (continueDrawing) return CalculateAllPositionsBySpacing(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, SegmentState.LastFinalOffset, SegmentState.LastFenceEndpoint);
+                return CalculateAllPositionsBySpacing(items, fenceEndPoints, fenceMode, ItemInfo.ItemSpacing, 0f, m_mainSegment.b);
             }
             return false;
         }

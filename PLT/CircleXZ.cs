@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EManagersLib;
+using System;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
@@ -25,8 +26,8 @@ namespace PropAnarchy.PLT {
             float angleStart = m_angleStart;
             if (radius == 0f) return center;
             Vector3 position;
-            position.x = center.x + radius * (float)Math.Cos(angleStart + 2f * Mathf.PI * t);
-            position.z = center.z + radius * (float)Math.Sin(angleStart + 2f * Mathf.PI * t);
+            position.x = center.x + radius * (float)EMath.Cos(angleStart + 2f * Mathf.PI * t);
+            position.z = center.z + radius * (float)EMath.Sin(angleStart + 2f * Mathf.PI * t);
             position.y = center.y;
             return position;
         }
@@ -41,8 +42,8 @@ namespace PropAnarchy.PLT {
             float angleStart = m_angleStart;
             if (radius == 0f) return VectorXZ.zero;
             VectorXZ tangent;
-            tangent.x = (-2f * Mathf.PI) * radius * (float)Math.Sin(angleStart + (2f * Mathf.PI) * t);
-            tangent.z = (2f * Mathf.PI) * radius * (float)Math.Cos(angleStart + (2f * Mathf.PI) * t);
+            tangent.x = (-2f * Mathf.PI) * radius * (float)EMath.Sin(angleStart + (2f * Mathf.PI) * t);
+            tangent.z = (2f * Mathf.PI) * radius * (float)EMath.Cos(angleStart + (2f * Mathf.PI) * t);
             return tangent;
         }
 
@@ -83,7 +84,7 @@ namespace PropAnarchy.PLT {
                 return val - 0.5f;
             }
             if (arcLength == 0f) return Settings.PerfectCircles ? m_rawRadius : m_radius;
-            float radiusPerfect = arcLength * Round(Math.Abs(Circumference / arcLength)) / (2f * Mathf.PI);
+            float radiusPerfect = arcLength * Round(EMath.Abs(Circumference / arcLength)) / (2f * Mathf.PI);
             return radiusPerfect > 0f ? radiusPerfect : Settings.PerfectCircles ? m_rawRadius : m_radius;
         }
 
@@ -94,9 +95,9 @@ namespace PropAnarchy.PLT {
                 return val - 0.5f;
             }
             if (chordLength == 0f) return Settings.PerfectCircles ? m_rawRadius : m_radius;
-            float numChordsPerfect = Round(Math.Abs(2f * Mathf.PI / ChordAngle(chordLength)));
+            float numChordsPerfect = Round(EMath.Abs(2f * Mathf.PI / ChordAngle(chordLength)));
             if (numChordsPerfect <= 0f) return Settings.PerfectCircles ? m_rawRadius : m_radius;
-            float radiusPerfect = chordLength / (2f * (float)Math.Sin(2f * Mathf.PI / numChordsPerfect / 2f));
+            float radiusPerfect = chordLength / (2f * (float)EMath.Sin(2f * Mathf.PI / numChordsPerfect / 2f));
             return radiusPerfect > 0f ? radiusPerfect : (Settings.PerfectCircles ? m_rawRadius : m_radius);
         }
 
@@ -123,7 +124,7 @@ namespace PropAnarchy.PLT {
             if (distanceThreshold == 0f) {
                 t = 0.5f;
                 return pointOfInterest == circleCenter;
-            } else if (distanceThreshold < 0f) distanceThreshold = Math.Abs(distanceThreshold);
+            } else if (distanceThreshold < 0f) distanceThreshold = EMath.Abs(distanceThreshold);
             float circleRadius = m_radius;
             return isClose(DistanceSqr(pointOfInterest, out t), circleRadius - distanceThreshold, circleRadius + distanceThreshold);
         }
@@ -136,7 +137,7 @@ namespace PropAnarchy.PLT {
             bool isNearCircle(float distanceSqr, float min, float max) => distanceSqr >= min * min && distanceSqr <= max * max;
             VectorXZ circleCenter = m_center;
             if (distance == 0f) return pointOfInterest == circleCenter;
-            else if (distance < 0f) distance = Math.Abs(distance);
+            else if (distance < 0f) distance = EMath.Abs(distance);
             float circleRadius = m_radius;
             return isNearCircle((pointOfInterest - circleCenter).sqrMagnitude, circleRadius - distance, circleRadius + distance);
         }
@@ -148,7 +149,7 @@ namespace PropAnarchy.PLT {
             pointVector.Normalize();
             VectorXZ zeroVector = outlinePos - center;
             zeroVector.Normalize();
-            float angleFromStart = PLTMath.AngleSigned(pointVector, zeroVector, PropLineTool.m_vectorUp);
+            float angleFromStart = Vector3Extensions.AngleSigned(pointVector, zeroVector, PropLineTool.m_vectorUp);
             if (angleFromStart < 0f) {
                 angleFromStart += 2f * Mathf.PI;
             }
@@ -172,6 +173,13 @@ namespace PropAnarchy.PLT {
             m_angleStart = 0f;
         }
 
+        public static VectorXZ Position3FromAngleXZ(VectorXZ center, float radius, float theta) {
+            VectorXZ result;
+            result.x = center.x + radius * (float)EMath.Cos(theta);
+            result.z = center.z + radius * (float)EMath.Sin(theta);
+            return result;
+        }
+
         /// <param name="angleStart">Angle in radians.</param>
         public CircleXZ(Vector3 center, float radius, float angleStart) {
             m_center = center;
@@ -192,7 +200,7 @@ namespace PropAnarchy.PLT {
             VectorXZ radiusVector = pointOnCircle - center;
             m_rawRadius = radiusVector.magnitude;
             m_radius = m_rawRadius;
-            m_angleStart = PLTMath.AngleSigned(radiusVector, PropLineTool.m_vectorRight, PropLineTool.m_vectorUp);
+            m_angleStart = radiusVector.AngleSigned(PropLineTool.m_vectorRight, PropLineTool.m_vectorUp);
             if (perfectRadius > 0f) {
                 m_radius = PropLineTool.GetFenceMode() ? PerfectRadiusByChords(perfectRadius) : PerfectRadiusByArcs(perfectRadius);
             }
@@ -210,7 +218,7 @@ namespace PropAnarchy.PLT {
             VectorXZ radiusVector = pointOnCircle - center;
             m_rawRadius = radiusVector.magnitude;
             m_radius = m_rawRadius;
-            m_angleStart = PLTMath.AngleSigned(radiusVector, PropLineTool.m_vectorRight, PropLineTool.m_vectorUp);
+            m_angleStart = radiusVector.AngleSigned(PropLineTool.m_vectorRight, PropLineTool.m_vectorUp);
             if (perfectRadius > 0f) {
                 m_radius = PropLineTool.GetFenceMode() ? PerfectRadiusByChords(perfectRadius) : PerfectRadiusByArcs(perfectRadius);
             }

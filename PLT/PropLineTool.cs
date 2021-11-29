@@ -223,7 +223,7 @@ namespace PropAnarchy.PLT {
         internal static EffectInfo m_placementEffect;
         private static AudioGroup m_defaultAudioGroup;
         internal static Vector3[] m_fenceEndPoints;
-        internal static ToolBar m_toolBar;
+        internal static ToolBar m_toolBar = null;
         internal static OptionPanel m_optionPanel;
         private static PropTool m_propTool;
         private static TreeTool m_treeTool;
@@ -241,8 +241,6 @@ namespace PropAnarchy.PLT {
         internal static bool m_mouseRayValid;
         private static float m_mouseRayLength;
         private static Ray m_mouseRay;
-        internal static bool m_mouseLeftDown;
-        internal static bool m_mouseRightDown;
         internal static bool m_keyboardCtrlDown;
         internal static bool m_keyboardAltDown;
 
@@ -257,8 +255,6 @@ namespace PropAnarchy.PLT {
         internal static float m_lockedBackupItemwiseT = 0f;
 
         public static float m_hoverAngle = 0f;
-        //Hovered Curve Position
-        private static float m_hoverCurveT = 0f;
         //Hovered Curve Position for Itemwise Placement
         public static float m_hoverItemwiseT = 0f;
         public static HoverState m_hoverState = HoverState.Unbound;
@@ -367,10 +363,9 @@ namespace PropAnarchy.PLT {
         }
 
         public static void DispatchPlacementEffect(ref Vector3 position, bool isBulldozeEffect) {
-            Vector3 vectorUp; vectorUp.x = 0; vectorUp.y = 1; vectorUp.z = 0;
             InstanceID id = default;
             EffectInfo effectInfo = isBulldozeEffect ? m_bulldozeEffect : m_placementEffect;
-            EffectInfo.SpawnArea spawnArea = new EffectInfo.SpawnArea(position, vectorUp, 1f);
+            EffectInfo.SpawnArea spawnArea = new EffectInfo.SpawnArea(position, m_vectorUp, 1f);
             DispatchItemEffect(effectInfo, id, spawnArea, default, 0f, 1f, m_defaultAudioGroup);
         }
 
@@ -602,12 +597,12 @@ namespace PropAnarchy.PLT {
                 if (m_hoverState == HoverState.SpacingLocus) {
                     DrawMode.CurrentMode.RenderProgressiveSpacingFill(cameraInfo, ItemInfo.ItemSpacing, LINESIZE, 0.20f, Color.Lerp(highlightColor, lockIdleColor, 0.50f), false, true);
                 }
-                Vector3 anglePos;
-                Vector3 angleCenter;
+                VectorXZ anglePos;
+                VectorXZ angleCenter;
                 Color32 blendColor;
                 if (ItemInfo.Prefab is PropInfo) {
                     angleCenter = m_items[HoverItemAngleCenterIndex].Position;
-                    anglePos = Circle2.Position3FromAngleXZ(angleCenter, HOVER_ANGLELOCUS_DIAMETER, m_hoverAngle);
+                    anglePos = CircleXZ.Position3FromAngleXZ(angleCenter, HOVER_ANGLELOCUS_DIAMETER, m_hoverAngle);
                     Color32 angleColor = m_hoverState == HoverState.AngleLocus ? highlightColor : baseColor;
                     RenderCircle(cameraInfo, anglePos, HOVER_POINT_DIAMETER, angleColor, false, false);
                     blendColor = Color.Lerp(baseColor, angleColor, 0.50f);
@@ -640,7 +635,7 @@ namespace PropAnarchy.PLT {
                 break;
             case ActiveState.ChangeAngle:
                 angleCenter = m_items[HoverItemAngleCenterIndex].Position;
-                anglePos = Circle2.Position3FromAngleXZ(angleCenter, HOVER_ANGLELOCUS_DIAMETER, m_hoverAngle);
+                anglePos = CircleXZ.Position3FromAngleXZ(angleCenter, HOVER_ANGLELOCUS_DIAMETER, m_hoverAngle);
                 blendColor = Color.Lerp(baseColor, highlightColor, 0.50f);
                 blendColor.a = 88;
                 RenderCircle(cameraInfo, anglePos, HOVER_POINT_DIAMETER, highlightColor, false, false);
@@ -664,10 +659,10 @@ namespace PropAnarchy.PLT {
 
                 if (ItemInfo.Prefab is PropInfo) {
                     PropInfo propInfo = ItemInfo.Prefab as PropInfo;
-                    radius = Math.Max(propInfo.m_generatedInfo.m_size.x, propInfo.m_generatedInfo.m_size.z) * Math.Max(propInfo.m_maxScale, propInfo.m_minScale);
+                    radius = EMath.Max(propInfo.m_generatedInfo.m_size.x, propInfo.m_generatedInfo.m_size.z) * EMath.Max(propInfo.m_maxScale, propInfo.m_minScale);
                 } else if (ItemInfo.Prefab is TreeInfo) {
                     TreeInfo treeInfo = ItemInfo.Prefab as TreeInfo;
-                    radius = Math.Max(treeInfo.m_generatedInfo.m_size.x, treeInfo.m_generatedInfo.m_size.z) * Math.Max(treeInfo.m_maxScale, treeInfo.m_minScale);
+                    radius = EMath.Max(treeInfo.m_generatedInfo.m_size.x, treeInfo.m_generatedInfo.m_size.z) * EMath.Max(treeInfo.m_maxScale, treeInfo.m_minScale);
                 } else {
                     return;
                 }
@@ -752,6 +747,7 @@ namespace PropAnarchy.PLT {
                 toolsField.SetValue(toolController, tools);
                 Harmony harmony = new Harmony(PLTHarmonyID);
                 harmony.Patch(AccessTools.Method(typeof(ToolController), @"SetTool"),
+                    prefix: new HarmonyMethod(AccessTools.Method(typeof(ToolBar), nameof(ToolBar.SetToolPrefix))),
                     postfix: new HarmonyMethod(AccessTools.Method(typeof(ToolBar), nameof(ToolBar.SetToolPostfix))));
                 harmony.Patch(AccessTools.Method(typeof(BeautificationPanel), @"OnButtonClicked"),
                     postfix: new HarmonyMethod(AccessTools.Method(typeof(PropLineTool), nameof(BeautificationPanelOnClickPostfix))));

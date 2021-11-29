@@ -382,7 +382,7 @@ namespace PropAnarchy.PLT {
             }
         }
 
-        public override bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ControlPoint.PointInfo[] cachedControlPoints, ref int controlPointCount) {
+        public override bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount) {
             if (m_lockingMode == LockingMode.Off) {
                 if (SegmentState.IsReadyForMaxContinue) {
                     UpdatePlacement(true, false);
@@ -562,7 +562,7 @@ namespace PropAnarchy.PLT {
                 if (m_itemCount >= (GetFenceMode() ? 1 : 2) || m_controlMode == ControlMode.ITEMWISE) {
                     bool angleObjectMode = m_itemType == ItemType.PROP;
                     VectorXZ angleCenter = m_items[HoverItemAngleCenterIndex].Position;
-                    VectorXZ anglePos = Circle2.Position3FromAngleXZ(angleCenter, angleLocusRadius, m_hoverAngle);
+                    VectorXZ anglePos = CircleXZ.Position3FromAngleXZ(angleCenter, angleLocusRadius, m_hoverAngle);
                     VectorXZ spacingPos = GetFenceMode() ? m_fenceEndPoints[HoverItemPositionIndex] : m_items[HoverItemPositionIndex].Position;
                     if (spacingPos.IsInsideCircleXZ(pointRadius, position)) {
                         m_hoverState = m_controlMode == ControlMode.ITEMWISE ? HoverState.ItemwiseItem : HoverState.SpacingLocus;
@@ -570,9 +570,9 @@ namespace PropAnarchy.PLT {
                         m_hoverState = HoverState.AngleLocus;
                     } else if (angleObjectMode && angleCenter.IsNearCircleOutlineXZ(HOVER_ANGLELOCUS_DIAMETER, position, angleLocusDistanceThreshold)) {
                         m_hoverState = HoverState.AngleLocus;
-                    } else if (ControlPoint.m_controlPoints[0].m_position.IsInsideCircleXZ(pointRadius, position)) {
+                    } else if (VectorXZ.IsInsideCircleXZ(ControlPoint.m_controlPoints[0].m_position, pointRadius, position)) {
                         m_hoverState = HoverState.ControlPointFirst;
-                    } else if (ControlPoint.m_controlPoints[1].m_position.IsInsideCircleXZ(pointRadius, position)) {
+                    } else if (VectorXZ.IsInsideCircleXZ(ControlPoint.m_controlPoints[1].m_position, pointRadius, position)) {
                         m_hoverState = HoverState.ControlPointSecond;
                     } else if (m_mainCircle.IsCloseToCircle3XZ(HOVER_CURVEDISTANCE_THRESHOLD, position, out _)) {
                         m_hoverState = HoverState.Curve;
@@ -628,12 +628,12 @@ namespace PropAnarchy.PLT {
                     if (m_angleMode == AngleMode.DYNAMIC) {
                         VectorXZ angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
                         angleVector.Normalize();
-                        m_hoverAngle = PLTMath.AngleSigned(angleVector, xAxis, yAxis);
-                        ItemInfo.m_itemAngleOffset = PLTMath.AngleSigned(angleVector, m_lockedBackupItemDirection, yAxis);
+                        m_hoverAngle = angleVector.AngleSigned(xAxis, yAxis);
+                        ItemInfo.m_itemAngleOffset = angleVector.AngleSigned(m_lockedBackupItemDirection, yAxis);
                     } else if (m_angleMode == AngleMode.SINGLE) {
                         VectorXZ angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
                         angleVector.Normalize();
-                        float angle = PLTMath.AngleSigned(angleVector, xAxis, yAxis);
+                        float angle = angleVector.AngleSigned(xAxis, yAxis);
                         m_hoverAngle = angle;
                         ItemInfo.m_itemAngleSingle = angle + Mathf.PI;
                     }

@@ -5,12 +5,10 @@ namespace PropAnarchy.PLT {
         private const float CENTER_AREA_FRACTION = 0.00390625f;
         private static bool IsCenterAreaSignificant(Mesh mesh, out Vector3 centerCorrectionOrtho) {
             if (!(mesh is null)) {
-                Vector3 center = mesh.bounds.center;
-                Vector3 size = mesh.bounds.size;
-                if (center.SqrMagnitudeXZ() >= CENTER_AREA_FRACTION * size.SqrMagnitudeXZ()) {
-                    //negate center vector
-                    centerCorrectionOrtho = -center;
-                    centerCorrectionOrtho.y = 0f;
+                VectorXZ center = mesh.bounds.center;
+                VectorXZ size = mesh.bounds.size;
+                if (center.sqrMagnitude >= CENTER_AREA_FRACTION * size.sqrMagnitude) {
+                    centerCorrectionOrtho = -center;    //negate center vector
                     return true;
                 }
             }

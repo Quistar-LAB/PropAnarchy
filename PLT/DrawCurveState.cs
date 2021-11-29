@@ -1,6 +1,5 @@
 ﻿using ColossalFramework.Math;
 using EManagersLib;
-using System;
 using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
@@ -380,7 +379,7 @@ namespace PropAnarchy.PLT {
             return true;
         }
 
-        public override bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ControlPoint.PointInfo[] cachedControlPoints, ref int controlPointCount) {
+        public override bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount) {
             if (m_lockingMode == LockingMode.Off) {
                 if (SegmentState.IsReadyForMaxContinue) {
                     UpdatePlacement(true, false);
@@ -417,13 +416,11 @@ namespace PropAnarchy.PLT {
                 //***SUPER-IMPORTANT (for convergence of fenceMode)***
                 m_mainBezier.BezierXZ();
                 //calculate direction here in case controlPoint direction was not set correctly
-                Vector3 dirArm1 = (m_mainArm1.b - m_mainArm1.a);
-                dirArm1.y = 0f;
+                VectorXZ dirArm1 = (m_mainArm1.b - m_mainArm1.a);
                 dirArm1.Normalize();
-                Vector3 dirArm2 = (m_mainArm2.b - m_mainArm2.a);
-                dirArm2.y = 0f;
+                VectorXZ dirArm2 = (m_mainArm2.b - m_mainArm2.a);
                 dirArm2.Normalize();
-                m_mainElbowAngle = Math.Abs(PLTMath.AngleSigned(-dirArm1, dirArm2, m_vectorUp));
+                m_mainElbowAngle = EMath.Abs((-dirArm1).AngleSigned(dirArm2, m_vectorUp));
             }
         }
 
@@ -632,23 +629,22 @@ label_endpointsFinish:
             case ActiveState.LockIdle:
                 if (m_itemCount >= (GetFenceMode() ? 1 : 2) || m_controlMode == ControlMode.ITEMWISE) {
                     bool angleObjectMode = m_itemType == ItemType.PROP;
-                    Vector3 angleCenter = m_items[HoverItemAngleCenterIndex].Position;
-                    Vector3 anglePos = Circle2.Position3FromAngleXZ(angleCenter, angleLocusRadius, m_hoverAngle);
-                    Vector3 spacingPos = GetFenceMode() ? m_fenceEndPoints[HoverItemPositionIndex] : m_items[HoverItemPositionIndex].Position;
-                    if (spacingPos.IsInsideCircleXZ(pointRadius, position)) {
+                    VectorXZ angleCenter = m_items[HoverItemAngleCenterIndex].Position;
+                    VectorXZ anglePos = CircleXZ.Position3FromAngleXZ(angleCenter, angleLocusRadius, m_hoverAngle);
+                    VectorXZ spacingPos = GetFenceMode() ? m_fenceEndPoints[HoverItemPositionIndex] : m_items[HoverItemPositionIndex].Position;
+                    if (VectorXZ.IsInsideCircleXZ(spacingPos, pointRadius, position)) {
                         m_hoverState = m_controlMode == ControlMode.ITEMWISE ? HoverState.ItemwiseItem : HoverState.SpacingLocus;
-                    } else if (angleObjectMode && anglePos.IsInsideCircleXZ(anglePointRadius, position)) {
+                    } else if (angleObjectMode && VectorXZ.IsInsideCircleXZ(anglePos, anglePointRadius, position)) {
                         m_hoverState = HoverState.AngleLocus;
-                    } else if (angleObjectMode && angleCenter.IsNearCircleOutlineXZ(HOVER_ANGLELOCUS_DIAMETER, position, angleLocusDistanceThreshold)) {
+                    } else if (angleObjectMode && VectorXZ.IsNearCircleOutlineXZ(angleCenter, HOVER_ANGLELOCUS_DIAMETER, position, angleLocusDistanceThreshold)) {
                         m_hoverState = HoverState.AngleLocus;
-                    } else if (ControlPoint.m_controlPoints[0].m_position.IsInsideCircleXZ(pointRadius, position)) {
+                    } else if (VectorXZ.IsInsideCircleXZ(ControlPoint.m_controlPoints[0].m_position, pointRadius, position)) {
                         m_hoverState = HoverState.ControlPointFirst;
-                    } else if (ControlPoint.m_controlPoints[1].m_position.IsInsideCircleXZ(pointRadius, position)) {
+                    } else if (VectorXZ.IsInsideCircleXZ(ControlPoint.m_controlPoints[1].m_position, pointRadius, position)) {
                         m_hoverState = HoverState.ControlPointSecond;
-                    } else if (ControlPoint.m_controlPoints[2].m_position.IsInsideCircleXZ(pointRadius, position)) {
+                    } else if (VectorXZ.IsInsideCircleXZ(ControlPoint.m_controlPoints[2].m_position, pointRadius, position)) {
                         m_hoverState = HoverState.ControlPointThird;
                     } else if (mainBezier.IsCloseToCurveXZ(HOVER_CURVEDISTANCE_THRESHOLD, position, out float _)) {
-                        PAModule.PALog($"Inside Curve detected");
                         m_hoverState = HoverState.Curve;
                     } else {
                         m_hoverState = HoverState.Unbound;
@@ -693,16 +689,14 @@ label_endpointsFinish:
                 case ActiveState.ChangeAngle:
                     Vector3 yAxis = m_vectorUp;
                     if (m_angleMode == AngleMode.DYNAMIC) {
-                        Vector3 angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
-                        angleVector.y = 0f;
+                        VectorXZ angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
                         angleVector.Normalize();
-                        m_hoverAngle = PLTMath.AngleSigned(angleVector, m_vectorRight, yAxis);
-                        ItemInfo.m_itemAngleOffset = PLTMath.AngleSigned(angleVector, m_lockedBackupItemDirection, yAxis);
+                        m_hoverAngle = angleVector.AngleSigned(m_vectorRight, yAxis);
+                        ItemInfo.m_itemAngleOffset = angleVector.AngleSigned(m_lockedBackupItemDirection, yAxis);
                     } else if (m_angleMode == AngleMode.SINGLE) {
-                        Vector3 angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
-                        angleVector.y = 0f;
+                        VectorXZ angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
                         angleVector.Normalize();
-                        float angle = PLTMath.AngleSigned(angleVector, m_vectorRight, yAxis);
+                        float angle = angleVector.AngleSigned(m_vectorRight, yAxis);
                         m_hoverAngle = angle;
                         ItemInfo.m_itemAngleSingle = angle + Mathf.PI;
                     }

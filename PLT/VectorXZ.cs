@@ -1,4 +1,5 @@
 ﻿using EManagersLib;
+using System;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
@@ -91,5 +92,36 @@ namespace PropAnarchy.PLT {
             return isNearCircle((pointOfInterest - this).sqrMagnitude, circleRadius - distance, circleRadius + distance);
         }
 
+        public Vector3 Cross(Vector3 rhs) {
+            return new Vector3(0f - z * rhs.y, z * rhs.x - x * rhs.z, x * rhs.y - 0f);
+        }
+
+        public Vector3 Cross(VectorXZ rhs) {
+            return new Vector3(0f, z * rhs.x - x * rhs.z, 0f);
+        }
+
+        public float Dot(Vector3 rhs) {
+            return x * rhs.x + z * rhs.z;
+        }
+
+        public float Dot(VectorXZ rhs) {
+            return x * rhs.x + z * rhs.z;
+        }
+
+        public float AngleSigned(VectorXZ v2, Vector3 n) => (float)Math.Atan2(Vector3.Dot(n, Cross(v2)), Dot(v2));
+        public float AngleSigned(Vector3 v2, Vector3 n) => (float)Math.Atan2(Vector3.Dot(n, Cross(v2)), Dot(v2));
+
+        public static bool IsInsideCircleXZ(VectorXZ circleCenter, float radius, VectorXZ pointOfInterest) {
+            if (radius == 0f) return pointOfInterest == circleCenter;
+            else if (radius < 0f) radius = EMath.Abs(radius);
+            return (pointOfInterest - circleCenter).sqrMagnitude <= radius * radius;
+        }
+
+        public static bool IsNearCircleOutlineXZ(VectorXZ circleCenter, float circleRadius, VectorXZ pointOfInterest, float distance) {
+            bool isNearCircle(float distanceSqr, float min, float max) => distanceSqr >= min * min && distanceSqr <= max * max;
+            if (distance == 0f) return pointOfInterest == circleCenter;
+            else if (distance < 0f) distance = EMath.Abs(distance);
+            return isNearCircle((pointOfInterest - circleCenter).sqrMagnitude, circleRadius - distance, circleRadius + distance);
+        }
     }
 }
