@@ -224,7 +224,7 @@ namespace PropAnarchy.PLT {
         private static AudioGroup m_defaultAudioGroup;
         internal static Vector3[] m_fenceEndPoints;
         internal static ToolBar m_toolBar = null;
-        internal static OptionPanel m_optionPanel;
+        internal static OptionPanel m_optionPanel = null;
         private static PropTool m_propTool;
         private static TreeTool m_treeTool;
         internal static ItemType m_itemType;

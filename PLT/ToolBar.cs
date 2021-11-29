@@ -18,9 +18,9 @@ namespace PropAnarchy.PLT {
         private const string PLT_CURVED_NAME = @"Curved";
         private const string PLT_FREEFORM_NAME = @"Freeform";
         private const string PLT_CIRCLE_NAME = @"Circle";
-        private static UIPanel m_brushPanel = null;
-        public static UITextureAtlas m_sharedTextures;
-        public static ToolBase m_previousTool;
+        private static UIPanel m_brushPanel;
+        internal static UITextureAtlas m_sharedTextures;
+        internal static ToolBase m_previousTool;
         public override void Awake() {
             string[] m_spriteNamesPLT = {
                 "PLT_MultiStateZero", "PLT_MultiStateZeroFocused", "PLT_MultiStateZeroHovered", "PLT_MultiStateZeroPressed", "PLT_MultiStateZeroDisabled",
@@ -84,12 +84,12 @@ namespace PropAnarchy.PLT {
                     ToolBase currentTool = ToolsModifierControl.toolController.CurrentTool;
                     if (currentTool is TreeTool || currentTool is PropTool) {
                         controlPanelToggleBtn.activeStateIndex = 0;
-                        if (!m_brushPanel.isVisible) m_brushPanel.Show();
+                        if (m_brushPanel && !m_brushPanel.isVisible) m_brushPanel.Show();
                         fenceModeToggleBtn.isVisible = false;
                         controlPanelToggleBtn.isVisible = false;
                     }
                 } else {
-                    if (m_brushPanel.isVisible) m_brushPanel.Hide();
+                    if (m_brushPanel && m_brushPanel.isVisible) m_brushPanel.Hide();
                     fenceModeToggleBtn.isVisible = true;
                     controlPanelToggleBtn.isVisible = true;
                     ToolsModifierControl.SetTool<PropLineTool>();
@@ -135,7 +135,7 @@ namespace PropAnarchy.PLT {
 
         public static bool SetToolPrefix(ToolBase tool) {
             if ((tool is TreeTool || tool is PropTool) && ToolsModifierControl.toolController.CurrentTool is PropLineTool) {
-                if(PropLineTool.DrawMode.Current != PropLineTool.DrawMode.SINGLE)
+                if (PropLineTool.DrawMode.Current != PropLineTool.DrawMode.SINGLE)
                     return false;
             }
             return true;
@@ -144,7 +144,7 @@ namespace PropAnarchy.PLT {
         public static void SetToolPostfix(ToolBase tool) {
             if (!(tool is null) && !(PropLineTool.m_toolBar is null) && !(m_brushPanel is null)) {
                 if (tool is TreeTool || tool is PropTool) {
-                    if(tool is TreeTool) {
+                    if (tool is TreeTool) {
                         PropLineTool.m_itemType = PropLineTool.ItemType.TREE;
                         OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.TREE);
                     } else {
