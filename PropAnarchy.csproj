@@ -53,8 +53,9 @@
     <Reference Include="Mono.Simd">
       <HintPath>C:\Program Files (x86)\Mono-2.6.4\lib\mono\2.0\Mono.Simd.dll</HintPath>
     </Reference>
-    <Reference Include="MoveIt">
-      <HintPath>.\MoveIt.dll</HintPath>
+    <Reference Include="MoveIt, Version=2.9.2.42170, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\MoveIt.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -71,6 +72,7 @@
     <Compile Include="AdditiveShader\AdditiveShaderManager.cs" />
     <Compile Include="AdditiveShader\ManagedAsset.cs" />
     <Compile Include="AdditiveShader\ShaderProfile.cs" />
+    <Compile Include="PAPatcher.cs" />
     <Compile Include="PAPainter.cs" />
     <Compile Include="DecalPropFix\DecalPropFix.cs" />
     <Compile Include="PAUtils.cs" />
