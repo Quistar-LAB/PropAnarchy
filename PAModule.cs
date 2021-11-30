@@ -13,12 +13,13 @@ using System.Threading;
 using System.Xml;
 using UI;
 using UnityEngine;
+using CitiesHarmony.API;
 
 namespace PropAnarchy {
     public class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = @"Prop Anarchy";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.4.9";
+        internal const string m_modVersion = @"0.5.0";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
@@ -79,7 +80,8 @@ namespace PropAnarchy {
             OutputPluginsList();
         }
 
-        public void OnReleased() { }
+        public void OnReleased() {
+        }
 
         public void UpdateCustomPrefabs(object _) {
             List<ManagedAsset> assets = new List<ManagedAsset>();
@@ -116,21 +118,26 @@ namespace PropAnarchy {
                 UnityEngine.Debug.LogException(e);
             } finally {
                 if (assets.Count > 0) {
-                    AdditiveShaderManager.m_managedAssets = assets.ToArray();
-                    foreach (var asset in assets) {
-                        if (asset.IsContainer || asset.Profile.IsStatic) {
-                            asset.SetVisible(true);
+                    ManagedAsset[] managedAssets = assets.ToArray();
+                    int assetsLen = managedAssets.Length;
+                    AdditiveShaderManager.m_managedAssets = managedAssets;
+                    for(int i = 0; i < assetsLen; i++) {
+                        if(assets[i].IsContainer || assets[i].Profile.IsStatic) {
+                            assets[i].SetVisible(true);
                         } else {
-                            asset.SetVisible(false);
+                            assets[i].SetVisible(false);
                         }
                     }
-                    Singleton<AdditiveShaderManager>.instance.StartCoroutine(@"AdditiveShaderThread");
+                    // Adding Additive Shader thread as a coroutine into UIView. This saves valuable resources
+                    // instead of creating another gameobject to do mundane work
+                    UIView.GetAView().StartCoroutine(AdditiveShaderManager.AdditiveShaderThread());
                     AdditiveShaderManager.RefreshRenderGroups();
                 }
             }
         }
 
         public void OnLevelLoaded(LoadMode mode) {
+            PAPatcher.LateEnablePatches();
             if (ShowIndicators) {
                 UIIndicator indicatorPanel = UIIndicator.Setup();
                 if (indicatorPanel) {
@@ -159,18 +166,16 @@ namespace PropAnarchy {
                 }
             }
             PAOptionPanel.UpdateState(true);
-            // Initialize Additive Shader Manager
-            Singleton<AdditiveShaderManager>.Ensure();
-            ThreadPool.QueueUserWorkItem(UpdateCustomPrefabs); // This thread handles initialization of Additive Shader asset and Decal Prop Fix
-
-            PLT.PropLineTool.InitializedPLT();
             // The original mods created a new GameObject for running additive shader routines. I'm opting
             // to just use existing GameObject and add a coroutine so it doesn't stress Update()
+            ThreadPool.QueueUserWorkItem(UpdateCustomPrefabs); // This thread handles initialization of Additive Shader asset and Decal Prop Fix
+            PLT.PropLineTool.InitializedPLT();
         }
 
         public void OnLevelUnloading() {
+            PAPatcher.LateDisablePatches();
             PLT.PropLineTool.UnloadPLT();
-            Singleton<AdditiveShaderManager>.instance.StopCoroutine(@"AdditiveShaderThread");
+            UIView.GetAView().StopCoroutine(AdditiveShaderManager.AdditiveShaderThread());
             AdditiveShaderManager.m_managedAssets = null;
         }
         #endregion LoadingExtension
