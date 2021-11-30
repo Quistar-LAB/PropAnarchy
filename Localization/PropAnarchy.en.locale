@@ -6,6 +6,8 @@
 ]>
 <!-- PropAnarchy Default Locale Template -->
 <resources>
+    <!-- Painter Translation -->
+    <string name="PainterTooltip">Prop Painter</string>
     <!-- PLT Specific Translation -->
     <string name="PLTToggleSnapping">PLT: Toggle Snapping</string>
     <string name="PLTToggleFenceMode">PLT: Toggle Fence Mode</string>
