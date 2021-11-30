@@ -13,7 +13,6 @@ using System.Threading;
 using System.Xml;
 using UI;
 using UnityEngine;
-using CitiesHarmony.API;
 
 namespace PropAnarchy {
     public class PAModule : ILoadingExtension, IUserMod {
@@ -121,8 +120,8 @@ namespace PropAnarchy {
                     ManagedAsset[] managedAssets = assets.ToArray();
                     int assetsLen = managedAssets.Length;
                     AdditiveShaderManager.m_managedAssets = managedAssets;
-                    for(int i = 0; i < assetsLen; i++) {
-                        if(assets[i].IsContainer || assets[i].Profile.IsStatic) {
+                    for (int i = 0; i < assetsLen; i++) {
+                        if (assets[i].IsContainer || assets[i].Profile.IsStatic) {
                             assets[i].SetVisible(true);
                         } else {
                             assets[i].SetVisible(false);

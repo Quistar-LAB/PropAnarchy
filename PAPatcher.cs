@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using HarmonyLib;
-using PropAnarchy.PLT;
+﻿using HarmonyLib;
 using MoveIt;
+using PropAnarchy.PLT;
+using System;
+using System.Collections.Generic;
 using System.Reflection.Emit;
-using System.Reflection;
-using ColossalFramework.UI;
 
 namespace PropAnarchy {
     internal static class PAPatcher {
@@ -15,11 +11,11 @@ namespace PropAnarchy {
 
         private static IEnumerable<CodeInstruction> UIToolOptionPanelStartTranspiler(IEnumerable<CodeInstruction> instructions) {
             using (var codes = instructions.GetEnumerator()) {
-                while(codes.MoveNext()) {
+                while (codes.MoveNext()) {
                     var cur = codes.Current;
-                    if(cur.opcode == OpCodes.Ldarg_0 && codes.MoveNext()) {
+                    if (cur.opcode == OpCodes.Ldarg_0 && codes.MoveNext()) {
                         var next = codes.Current;
-                        if(next.opcode == OpCodes.Ldstr && next.operand is string str && str.Equals("MoveIt_OthersBtn", StringComparison.Ordinal)) {
+                        if (next.opcode == OpCodes.Ldstr && next.operand is string str && str.Equals("MoveIt_OthersBtn", StringComparison.Ordinal)) {
                             yield return new CodeInstruction(OpCodes.Ldarg_0);
                             yield return new CodeInstruction(OpCodes.Ldarg_0);
                             yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(UIToolOptionPanel), "m_moreTools"));

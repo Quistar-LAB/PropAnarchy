@@ -1,11 +1,8 @@
 ﻿using ColossalFramework.UI;
 using EManagersLib;
 using MoveIt;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Threading;
-using HarmonyLib;
 
 namespace PropAnarchy {
     internal static class PAPainter {
