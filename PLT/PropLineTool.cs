@@ -2,7 +2,6 @@
 using ColossalFramework.Math;
 using ColossalFramework.UI;
 using EManagersLib;
-using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -10,7 +9,6 @@ using UnityEngine;
 
 namespace PropAnarchy.PLT {
     public class PropLineTool : ToolBase {
-        private const string PLTHarmonyID = @"com.Quistar.PropAnarchyPLT";
         public delegate void DrawCircle(RenderManager.CameraInfo cameraInfo, Color color, Vector3 center, float size, float minY, float maxY, bool renderLimits, bool alphaBlend);
         public delegate void DrawBezier(RenderManager.CameraInfo cameraInfo, Color color, Bezier3 bezier, float size, float cutStart, float cutEnd, float minY, float maxY, bool renderLimits, bool alphaBlend);
         public delegate void DrawSegment(RenderManager.CameraInfo cameraInfo, Color color, Segment3 segment, float size, float dashLen, float minY, float maxY, bool renderLimits, bool alphaBlend);
@@ -718,7 +716,7 @@ namespace PropAnarchy.PLT {
             }
         }
 
-        private static void BeautificationPanelOnClickPostfix(UIComponent comp) {
+        internal static void BeautificationPanelOnClickPostfix(UIComponent comp) {
             object objectUserData = comp.objectUserData;
             if (objectUserData is TreeInfo treeInfo) {
                 ItemInfo.Prefab = treeInfo;
@@ -745,19 +743,12 @@ namespace PropAnarchy.PLT {
                 Dictionary<Type, ToolBase> toolsDict = typeof(ToolsModifierControl).GetField("m_Tools", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null) as Dictionary<Type, ToolBase>;
                 toolsDict.Add(typeof(PropLineTool), propLineTool);
                 toolsField.SetValue(toolController, tools);
-                Harmony harmony = new Harmony(PLTHarmonyID);
-                harmony.Patch(AccessTools.Method(typeof(ToolController), @"SetTool"),
-                    prefix: new HarmonyMethod(AccessTools.Method(typeof(ToolBar), nameof(ToolBar.SetToolPrefix))),
-                    postfix: new HarmonyMethod(AccessTools.Method(typeof(ToolBar), nameof(ToolBar.SetToolPostfix))));
-                harmony.Patch(AccessTools.Method(typeof(BeautificationPanel), @"OnButtonClicked"),
-                    postfix: new HarmonyMethod(AccessTools.Method(typeof(PropLineTool), nameof(BeautificationPanelOnClickPostfix))));
             } catch (Exception e) {
                 Debug.LogException(e);
             }
         }
 
         public static void UnloadPLT() {
-            new Harmony(PLTHarmonyID).Unpatch(AccessTools.Method(typeof(ToolController), @"SetTool"), HarmonyPatchType.Postfix, PLTHarmonyID);
             PropLineTool propLineTool = ToolsModifierControl.toolController.gameObject.GetComponent<PropLineTool>();
             if (!(propLineTool is null)) {
                 if (!(m_toolBar is null)) {

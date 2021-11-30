@@ -20,7 +20,7 @@ namespace PropAnarchy.PLT {
         private const string PLT_CIRCLE_NAME = @"Circle";
         private static UIPanel m_brushPanel;
         internal static UITextureAtlas m_sharedTextures;
-        internal static ToolBase m_previousTool;
+
         public override void Awake() {
             string[] m_spriteNamesPLT = {
                 "PLT_MultiStateZero", "PLT_MultiStateZeroFocused", "PLT_MultiStateZeroHovered", "PLT_MultiStateZeroPressed", "PLT_MultiStateZeroDisabled",
@@ -76,8 +76,8 @@ namespace PropAnarchy.PLT {
                 if (index != 0) OptionPanel.Open(PropLineTool.m_itemType);
                 else OptionPanel.Close();
             };
-            LandscapingGroupPanel landscapingPanel = UIView.GetAView().GetComponentInChildren<LandscapingGroupPanel>();
-            UITabstrip landscapingStrip = AccessTools.Field(typeof(LandscapingGroupPanel), @"m_Strip").GetValue(landscapingPanel) as UITabstrip;
+            //LandscapingGroupPanel landscapingPanel = UIView.GetAView().GetComponentInChildren<LandscapingGroupPanel>();
+            //UITabstrip landscapingStrip = AccessTools.Field(typeof(LandscapingGroupPanel), @"m_Strip").GetValue(landscapingPanel) as UITabstrip;
             controlTabStrip.eventSelectedIndexChanged += (c, index) => {
                 PropLineTool.DrawMode.Current = index;
                 if (index == PropLineTool.DrawMode.SINGLE) {
@@ -100,6 +100,7 @@ namespace PropAnarchy.PLT {
         public override void Start() {
             UIComponent optionsBar = GameObject.Find(@"OptionsBar").GetComponent<UIComponent>();
             if (optionsBar is null) {
+                PAModule.PALog($"OptionBar not found");
                 absolutePosition = new Vector3(261f, 542f);
             } else {
                 absolutePosition = optionsBar.absolutePosition;
