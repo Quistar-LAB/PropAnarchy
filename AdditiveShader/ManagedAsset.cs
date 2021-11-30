@@ -302,14 +302,6 @@ namespace PropAnarchy.AdditiveShader {
         /// <returns>Returns the render distance applicable to the asset.</returns>
         private static float RenderDistance(Vector3 size) => (size.x + 30f) * (size.y + 30f) * (size.z + 30f) * 0.1f;
 
-        private static void SetAllColorWhite(Color[] colors) {
-            Color white; white.r = 1; white.g = 1; white.b = 1; white.a = 1;
-            int len = colors.Length;
-            for (int i = 0; i < len; i++) {
-                colors[i] = white;
-            }
-        }
-
         public Color[] AssignNewColors(int verticesCount) {
             Color white = Color.white;
             Color[] colors = new Color[verticesCount];

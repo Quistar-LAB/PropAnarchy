@@ -4,9 +4,8 @@ using System.Collections;
 using UnityEngine;
 
 namespace PropAnarchy.AdditiveShader {
-    public class AdditiveShaderManager : Singleton<AdditiveShaderManager> {
+    public static class AdditiveShaderManager {
         private const string SIGNATURE = @"AdditiveShader";
-        private const string MANAGERNAME = @"AdditiveShaderManager";
         public static ManagedAsset[] m_managedAssets;
 
         /// <summary>
@@ -37,23 +36,16 @@ namespace PropAnarchy.AdditiveShader {
             return result;
         }
 
-
-
-        AdditiveShaderManager() {
-            name = MANAGERNAME;
-        }
-
-#pragma warning disable IDE0051
-        private IEnumerator AdditiveShaderThread() {
-            const float THREADSLEEPDURATION = .8f;
+        internal static IEnumerator AdditiveShaderThread() {
+            const float THREADSLEEPDURATION = 2.8f;
             ManagedAsset[] assets = m_managedAssets;
+            int prefabCount = assets.Length;
             SimulationManager smInstance = Singleton<SimulationManager>.instance;
+            WaitForSeconds waitForSeconds = new WaitForSeconds(THREADSLEEPDURATION);
             while (true) {
-                yield return new WaitForSeconds(THREADSLEEPDURATION);
+                yield return waitForSeconds;
                 float time = smInstance.m_currentDayTimeHour;
                 bool isNightTime = smInstance.m_isNightTime;
-                int prefabCount = assets.Length;
-                PAModule.PALog($"Prefab Count to update: {prefabCount}");
                 for (int i = 0; i < prefabCount; i++) {
                     ShaderProfile profile = assets[i].Profile;
                     switch (profile.m_profile & ShaderProfile.Profiles.PROFILE_TYPE) {
@@ -78,11 +70,6 @@ namespace PropAnarchy.AdditiveShader {
                         assets[i].SetVisible(true);
                         break;
                     default:
-                        //if (isNightTime && assets[i].Profile.IsToggledByTwilight) {
-                        //    assets[i].SetVisibleByTwilight(isNightTime);
-                        //} else {
-                        //    assets[i].SetVisibleByTime(time);
-                        //}
                         if (!assets[i].IsContainer && !assets[i].Profile.IsStatic) {
                             if (assets[i].Profile.IsToggledByTwilight) assets[i].SetVisibleByTwilight(isNightTime);
                             else assets[i].SetVisibleByTime(time);
@@ -93,7 +80,6 @@ namespace PropAnarchy.AdditiveShader {
                 }
             }
         }
-#pragma warning restore IDE0051
 
         public static void RefreshRenderGroups() {
             int buildingLayer = LayerMask.NameToLayer(@"Buildings");

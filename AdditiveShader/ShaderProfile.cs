@@ -61,7 +61,6 @@ namespace PropAnarchy.AdditiveShader {
         public ShaderProfile(string rawMeshName) {
             char[] DELIMITERS = { ' ' };
             try {
-                PAModule.PALog($"RawName: {rawMeshName}");
                 string[] tags = rawMeshName.Split(DELIMITERS, StringSplitOptions.RemoveEmptyEntries);
                 // New AdditiveShader Tags [ KEYWORD FADE INTENSITY ]
                 switch (tags[1]) {
