@@ -223,9 +223,7 @@ namespace PropAnarchy.PLT {
         internal static Vector3[] m_fenceEndPoints;
         internal static ToolBar m_toolBar = null;
         internal static OptionPanel m_optionPanel = null;
-        private static PropTool m_propTool;
-        private static TreeTool m_treeTool;
-        internal static ItemType m_itemType;
+        internal static ItemType m_itemType = ItemType.TREE;
         internal static ControlMode m_controlMode;
         internal static AngleMode m_angleMode;
         internal static bool m_isCopyPlacing;
@@ -286,8 +284,6 @@ namespace PropAnarchy.PLT {
             m_defaultAudioGroup = Singleton<AudioManager>.instance.DefaultGroup;
             m_bulldozeEffect = Singleton<PropManager>.instance.m_properties.m_bulldozeEffect;
             m_placementEffect = Singleton<PropManager>.instance.m_properties.m_placementEffect;
-            m_treeTool = ToolsModifierControl.GetTool<TreeTool>();
-            m_propTool = ToolsModifierControl.GetTool<PropTool>();
             m_items = new ItemInfo[MAX_ITEM_ARRAY_LENGTH];
             m_fenceEndPoints = new Vector3[MAX_ITEM_ARRAY_LENGTH + 1];
             m_controlMode = ControlMode.SPACING;
@@ -312,7 +308,7 @@ namespace PropAnarchy.PLT {
             ResetPLT();
         }
 
-        protected override void OnToolGUI(Event e) => DrawMode.CurrentMode.OnToolGUI(e, m_toolController.IsInsideUI);
+        protected override void OnToolGUI(Event e) => DrawMode.CurrentMode?.OnToolGUI(e, m_toolController.IsInsideUI);
 
         private static bool IsVectorXZPositionChanging(VectorXZ oldPosition, VectorXZ newPosition) => (newPosition - oldPosition).sqrMagnitude > TOLERANCE * TOLERANCE;
 
@@ -432,12 +428,12 @@ namespace PropAnarchy.PLT {
             m_mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
             m_mouseRayLength = Camera.main.farClipPlane;
             m_mouseRayValid = (!m_toolController.IsInsideUI && Cursor.visible);
-            DrawMode.CurrentMode.OnToolLateUpdate();
+            DrawMode.CurrentMode?.OnToolLateUpdate();
             //Singleton<TerrainManager>.instance.RenderZones = false;
         }
 
         public override void RenderGeometry(RenderManager.CameraInfo cameraInfo) {
-            DrawMode.CurrentMode.OnRenderGeometry(cameraInfo);
+            DrawMode.CurrentMode?.OnRenderGeometry(cameraInfo);
             base.RenderGeometry(cameraInfo);
         }
 
@@ -463,12 +459,13 @@ namespace PropAnarchy.PLT {
             RaycastInput input = new RaycastInput(m_mouseRay, m_mouseRayLength);
             if (m_mouseRayValid && EToolBase.RayCast(input, out EToolBase.RaycastOutput raycastOutput) && !raycastOutput.m_currentEditObject) {
                 m_mousePosition = raycastOutput.m_hitPos;
-                DrawMode.CurrentMode.OnSimulationStep(raycastOutput.m_hitPos);
+                DrawMode.CurrentMode?.OnSimulationStep(raycastOutput.m_hitPos);
             }
         }
 
         public override void RenderOverlay(RenderManager.CameraInfo cameraInfo) {
             base.RenderOverlay(cameraInfo);
+            if (DrawMode.CurrentMode is null) return;
             Color mainCurveColor = Settings.m_PLTColor_locked;
             Color lockIdleColor = Settings.m_PLTColor_locked;
             Color curveWarningColor = Settings.m_PLTColor_curveWarning;
