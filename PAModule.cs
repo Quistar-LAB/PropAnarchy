@@ -1,4 +1,5 @@
-﻿using ColossalFramework;
+﻿using CitiesHarmony.API;
+using ColossalFramework;
 using ColossalFramework.Globalization;
 using ColossalFramework.Plugins;
 using ColossalFramework.UI;
@@ -18,7 +19,7 @@ namespace PropAnarchy {
     public class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = @"Prop Anarchy";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.5.0";
+        internal const string m_modVersion = @"0.5.1";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
@@ -63,9 +64,11 @@ namespace PropAnarchy {
         public void OnEnabled() {
             LoadSettings();
             PALocale.Init();
+            HarmonyHelper.DoOnHarmonyReady(PAPatcher.EnablePatches);
         }
         public void OnDisabled() {
             SaveSettings();
+            if (HarmonyHelper.IsHarmonyInstalled) PAPatcher.DisablePatches();
         }
         public void OnSettingsUI(UIHelperBase helper) {
             PALocale.OnLocaleChanged();
