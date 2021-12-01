@@ -35,11 +35,20 @@ namespace PropAnarchy {
             }
         }
 
-        internal static void LateEnablePatches() {
+        internal static void EnablePatches() {
             Harmony harmony = new Harmony(HARMONYID);
             harmony.Patch(AccessTools.Method(typeof(ToolController), @"SetTool"),
                 prefix: new HarmonyMethod(AccessTools.Method(typeof(ToolBar), nameof(ToolBar.SetToolPrefix))),
                 postfix: new HarmonyMethod(AccessTools.Method(typeof(ToolBar), nameof(ToolBar.SetToolPostfix))));
+        }
+
+        internal static void DisablePatches() {
+            Harmony harmony = new Harmony(HARMONYID);
+            harmony.Unpatch(AccessTools.Method(typeof(ToolController), @"SetTool"), HarmonyPatchType.All, HARMONYID);
+        }
+
+        internal static void LateEnablePatches() {
+            Harmony harmony = new Harmony(HARMONYID);
             harmony.Patch(AccessTools.Method(typeof(BeautificationPanel), @"OnButtonClicked"),
                 postfix: new HarmonyMethod(AccessTools.Method(typeof(PropLineTool), nameof(PropLineTool.BeautificationPanelOnClickPostfix))));
             harmony.Patch(AccessTools.Method(typeof(UIToolOptionPanel), nameof(UIToolOptionPanel.Start)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(PAPatcher), nameof(UIToolOptionPanelStartTranspiler))));
@@ -47,7 +56,6 @@ namespace PropAnarchy {
 
         internal static void LateDisablePatches() {
             Harmony harmony = new Harmony(HARMONYID);
-            harmony.Unpatch(AccessTools.Method(typeof(ToolController), @"SetTool"), HarmonyPatchType.All, HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(BeautificationPanel), @"OnButtonClicked"), HarmonyPatchType.Postfix, HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(UIToolOptionPanel), nameof(UIToolOptionPanel.Start)), HarmonyPatchType.Transpiler, HARMONYID);
         }
