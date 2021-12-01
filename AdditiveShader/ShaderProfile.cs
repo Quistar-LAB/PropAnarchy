@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 
 namespace PropAnarchy.AdditiveShader {
     /// <summary>
@@ -19,20 +18,19 @@ namespace PropAnarchy.AdditiveShader {
         // A 1-hour boundary around the sunrise/sunset times. This is because asset authors tend to use
         // +/- 1 hour (of sunrise/sunset) for their on/off times. We can bucket all the 'twilight'
         // shader assets and spread them around the day/night transitions.
-        private const float ONE_HOUR = 1.1f;
-        private const float SUNRISE_START = SUNRISE - ONE_HOUR;
-        private const float SUNRISE_END = SUNRISE + ONE_HOUR;
-        private const float SUNSET_START = SUNSET - ONE_HOUR;
-        private const float SUNSET_END = SUNSET + ONE_HOUR;
+        //private const float ONE_HOUR = 1.1f;
+        //private const float SUNRISE_START = SUNRISE - ONE_HOUR;
+        //private const float SUNRISE_END = SUNRISE + ONE_HOUR;
+        //private const float SUNSET_START = SUNSET - ONE_HOUR;
+        //private const float SUNSET_END = SUNSET + ONE_HOUR;
 
         // If tag present, prevents identification as a twilight-toggled shader.
-        private const string NOT_TWILIGHT = "not-twilight";
-        private const string ALWAYSON = "AlwaysOn";
-        private const string MODDED = "Modded";
-        private const string DAYTIME = "DayTime";
-        private const string NIGHTTIME = "NightTime";
-        private const string CONTAINER = "Container";
-
+        //private const string NOT_TWILIGHT = "not-twilight";
+        //private const string ALWAYSON = "AlwaysOn";
+        //private const string MODDED = "Modded";
+        //private const string DAYTIME = "DayTime";
+        //private const string NIGHTTIME = "NightTime";
+        //private const string CONTAINER = "Container";
         [Flags]
         public enum Profiles : ushort {
             PROFILE_TYPE = 0xff00,
@@ -59,56 +57,78 @@ namespace PropAnarchy.AdditiveShader {
         //{ "NightTime" , SUNSET , SUNRISE, false, false, false, true , true , false, true  },
         //{ "Container" , 0f     , 24f    , false, true , false, false, false, false, false }, // AssetType.Container
         public ShaderProfile(string rawMeshName) {
-            char[] DELIMITERS = { ' ' };
-            try {
-                string[] tags = rawMeshName.Split(DELIMITERS, StringSplitOptions.RemoveEmptyEntries);
-                // New AdditiveShader Tags [ KEYWORD FADE INTENSITY ]
-                switch (tags[1]) {
-                case ALWAYSON:
+            int start = 15;
+            int i = start;
+            if (rawMeshName[i] >= '0' && rawMeshName[i] <= '9') {
+                m_profile = Profiles.OldRonyxProfile;
+                while (rawMeshName[i++] != ' ') ;
+                OnTime = ParseFloat(rawMeshName, start, i - 1);
+                start = i;
+                while (rawMeshName[i++] != ' ') ;
+                OffTime = ParseFloat(rawMeshName, start, i - 1);
+                start = i;
+                while (rawMeshName[i++] != ' ') ;
+                Fade = ParseFloat(rawMeshName, start, i - 1);
+                start = i;
+                Intensity = ParseFloat(rawMeshName, start, rawMeshName.Length);
+            } else {
+                if (ParseAlwaysOn(rawMeshName, i)) {
+                    m_profile = Profiles.AlwaysOn;
                     OnTime = 0f;
                     OffTime = 24f;
-                    m_profile = Profiles.AlwaysOn;
-                    Fade = float.Parse(tags[2], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    Intensity = float.Parse(tags[3], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    break;
-                case MODDED:
+                    while (rawMeshName[++i] != ' ') ;
+                    start = ++i;
+                    while (rawMeshName[i++] != ' ') ;
+                    Fade = ParseFloat(rawMeshName, start, i - 1);
+                    start = i;
+                    Intensity = ParseFloat(rawMeshName, start, rawMeshName.Length);
+                } else if (ParseModded(rawMeshName, i)) {
+                    m_profile = Profiles.Modded;
                     OnTime = -1f;
                     OffTime = -1f;
-                    m_profile = Profiles.Modded;
-                    Fade = float.Parse(tags[2], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    Intensity = float.Parse(tags[3], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    break;
-                case DAYTIME:
+                    while (rawMeshName[++i] != ' ') ;
+                    start = ++i;
+                    while (rawMeshName[i++] != ' ') ;
+                    Fade = ParseFloat(rawMeshName, start, i - 1);
+                    start = i;
+                    Intensity = ParseFloat(rawMeshName, start, rawMeshName.Length);
+                } else if (ParseDayTime(rawMeshName, i)) {
+                    m_profile = Profiles.DayTime;
                     OnTime = SUNRISE;
                     OffTime = SUNSET;
-                    m_profile = Profiles.DayTime;
-                    Fade = float.Parse(tags[2], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    Intensity = float.Parse(tags[3], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    break;
-                case NIGHTTIME:
+                    while (rawMeshName[++i] != ' ') ;
+                    start = ++i;
+                    while (rawMeshName[i++] != ' ') ;
+                    Fade = ParseFloat(rawMeshName, start, i - 1);
+                    start = i;
+                    Intensity = ParseFloat(rawMeshName, start, rawMeshName.Length);
+                } else if (ParseNightTime(rawMeshName, i)) {
+                    m_profile = Profiles.NightTime;
                     OnTime = SUNSET;
                     OffTime = SUNRISE;
-                    m_profile = Profiles.NightTime;
-                    Fade = float.Parse(tags[2], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    Intensity = float.Parse(tags[3], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    break;
-                case CONTAINER:
+                    while (rawMeshName[++i] != ' ') ;
+                    start = ++i;
+                    while (rawMeshName[i++] != ' ') ;
+                    Fade = ParseFloat(rawMeshName, start, i - 1);
+                    start = i;
+                    Intensity = ParseFloat(rawMeshName, start, rawMeshName.Length);
+                } else if (ParseContainer(rawMeshName, i)) {
+                    m_profile = Profiles.Container;
                     OnTime = 0f;
                     OffTime = 24f;
-                    m_profile = Profiles.Container;
-                    Fade = float.Parse(tags[2], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    Intensity = float.Parse(tags[3], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    break;
-                default: // For parsing old Additive Shader tags [ ON - OFF - FADE - INTENSITY ]
-                    OnTime = float.Parse(tags[1], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    OffTime = float.Parse(tags[2], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    Fade = float.Parse(tags[3], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    Intensity = float.Parse(tags[4], NumberStyles.Float, CultureInfo.InvariantCulture);
-                    m_profile = Profiles.OldRonyxProfile;
-                    break;
+                    while (rawMeshName[++i] != ' ') ;
+                    start = ++i;
+                    while (rawMeshName[i++] != ' ') ;
+                    Fade = ParseFloat(rawMeshName, start, i - 1);
+                    start = i;
+                    Intensity = ParseFloat(rawMeshName, start, rawMeshName.Length);
+                } else {
+                    m_profile = default;
+                    OnTime = 0f;
+                    OffTime = 0f;
+                    Fade = 0f;
+                    Intensity = 0f;
                 }
-            } catch (Exception e) {
-                throw new FormatException($"Invalid mesh name format: {rawMeshName}", e);
             }
         }
 
@@ -177,8 +197,107 @@ namespace PropAnarchy.AdditiveShader {
         /// </summary>
         public bool IsStatic => (m_profile & Profiles.STATIC) == Profiles.STATIC;
 
-        private static bool IsDuringSunrise(float time) => SUNRISE_START < time && time < SUNRISE_END;
+        private static float ParseFloat(string s, int begin, int end) {
+            float result = 0f;
+            char c = s[begin];
+            int sign, start = begin;
 
-        private static bool IsDuringSunset(float time) => SUNSET_START < time && time < SUNSET_END;
+            if (c == '-') {
+                sign = -1;
+                start = begin + 1;
+            } else if (c > 57 || c < 48) {
+                do {
+                    ++start;
+                    c = s[start];
+                } while (start < end);
+                if (start >= end) {
+                    return float.NaN;
+                }
+                if (c == '-') {
+                    sign = -1;
+                    ++start;
+                } else {
+                    sign = 1;
+                }
+            } else {
+                start = begin + 1;
+                result = 10 * result + (c - 48);
+                sign = 1;
+            }
+
+            int i = start;
+            for (; i < end; ++i) {
+                c = s[i];
+                if (c > 57 || c < 48) {
+                    if (c == '.') {
+                        ++i;
+                        goto DecimalPoint;
+                    } else {
+                        return float.NaN;
+                    }
+                }
+
+                result = 10 * result + (c - 48);
+            }
+            return result * sign;
+
+DecimalPoint:
+            long temp = 0;
+            int length = i;
+            float exponent = 0f;
+
+            for (; i < end; ++i) {
+                c = s[i];
+                if (c > 57 || c < 48) {
+                    length = i - length;
+                    goto ProcessFraction;
+                }
+                temp = 10 * temp + (c - 48);
+            }
+            length = i - length;
+
+ProcessFraction:
+            float fraction = temp;
+            if (length < powLookup.Length) {
+                fraction /= powLookup[length];
+            } else {
+                fraction /= powLookup[powLookup.Length - 1];
+            }
+            result += fraction;
+            result *= sign;
+            if (exponent > 0) {
+                result *= exponent;
+            } else if (exponent < 0) {
+                result /= -exponent;
+            }
+            return result;
+        }
+
+        private static readonly int[] powLookup = new[] {
+            1, // 10^0
+            10, // 10^1
+            100, // 10^2
+            1000, // 10^3
+            10000 // 10^4
+        };
+
+        private static bool ParseAlwaysOn(string data, int i) => data[i] == 'A' && data[i + 1] == 'l' && data[i + 2] == 'w' &&
+                                                                 data[i + 3] == 'a' && data[i + 4] == 'y' && data[i + 5] == 's' &&
+                                                                 data[i + 6] == 'O' && data[i + 7] == 'n';
+
+        private static bool ParseModded(string data, int i) => data[i] == 'M' && data[i + 1] == 'o' && data[i + 2] == 'd' &&
+                                                               data[i + 3] == 'd' && data[i + 4] == 'e' && data[i + 5] == 'd';
+
+        private static bool ParseDayTime(string data, int i) => data[i] == 'D' && data[i + 1] == 'a' && data[i + 2] == 'y' &&
+                                                                data[i + 3] == 'T' && data[i + 4] == 'i' && data[i + 5] == 'm' &&
+                                                                data[i + 6] == 'e';
+
+        private static bool ParseNightTime(string data, int i) => data[i] == 'N' && data[i + 1] == 'i' && data[i + 2] == 'g' &&
+                                                                  data[i + 3] == 'h' && data[i + 4] == 't' && data[i + 5] == 'T' &&
+                                                                  data[i + 6] == 'i' && data[i + 7] == 'm' && data[i + 8] == 'e';
+
+        private static bool ParseContainer(string data, int i) => data[i] == 'C' && data[i + 1] == 'o' && data[i + 2] == 'n' &&
+                                                                  data[i + 3] == 't' && data[i + 4] == 'a' && data[i + 5] == 'i' &&
+                                                                  data[i + 6] == 'n' && data[i + 7] == 'e' && data[i + 8] == 'r';
     }
 }

@@ -1,19 +1,20 @@
 ﻿using ColossalFramework;
-using System;
 using System.Collections;
 using UnityEngine;
 
 namespace PropAnarchy.AdditiveShader {
     public static class AdditiveShaderManager {
-        private const string SIGNATURE = @"AdditiveShader";
         public static ManagedAsset[] m_managedAssets;
 
         /// <summary>
         /// Check if a mesh name contains the additive shader token.
         /// </summary>
-        /// <param name="meshName">The <c>m_mesh.name</c> to investigate.</param>
+        /// <param name="data">The <c>m_mesh.name</c> to investigate.</param>
         /// <returns>Returns <c>true</c> if the token is found, otherwise <c>false</c>.</returns>
-        public static bool HasValidData(string meshName) => !string.IsNullOrEmpty(meshName) && meshName.StartsWith(SIGNATURE, StringComparison.Ordinal);
+        public static bool HasValidData(string data) => !(data is null) && data[0] == 'A' && data[1] == 'd' && data[2] == 'd' && data[3] == 'i' &&
+                                                        data[4] == 't' && data[5] == 'i' && data[6] == 'v' && data[7] == 'e' &&
+                                                        data[8] == 'S' && data[9] == 'h' && data[10] == 'a' && data[11] == 'd' &&
+                                                        data[12] == 'e' && data[13] == 'r';
 
         /// <summary>
         /// Because LODs don't support additive shader, if there are any props in the building that use
@@ -25,10 +26,9 @@ namespace PropAnarchy.AdditiveShader {
         public static bool ContainsShaderProps(BuildingInfo building) {
             bool result = false;
             BuildingInfo.Prop[] props = building.m_props;
-            int len = props.Length;
-            for (int i = 0; i < len; i++) {
+            for (int i = 0; i < props.Length; i++) {
                 PropInfo prop = props[i].m_finalProp;
-                if (prop && prop.m_mesh && !prop.m_mesh.name.IsNullOrWhiteSpace() && HasValidData(prop.m_mesh.name)) {
+                if (prop && prop.m_mesh && HasValidData(prop.m_mesh.name)) {
                     building.m_maxPropDistance = 25000f;
                     result = true;
                 }
@@ -39,14 +39,13 @@ namespace PropAnarchy.AdditiveShader {
         internal static IEnumerator AdditiveShaderThread() {
             const float THREADSLEEPDURATION = 2.8f;
             ManagedAsset[] assets = m_managedAssets;
-            int prefabCount = assets.Length;
             SimulationManager smInstance = Singleton<SimulationManager>.instance;
             WaitForSeconds waitForSeconds = new WaitForSeconds(THREADSLEEPDURATION);
             while (true) {
                 yield return waitForSeconds;
                 float time = smInstance.m_currentDayTimeHour;
                 bool isNightTime = smInstance.m_isNightTime;
-                for (int i = 0; i < prefabCount; i++) {
+                for (int i = 0; i < assets.Length; i++) {
                     ShaderProfile profile = assets[i].Profile;
                     switch (profile.m_profile & ShaderProfile.Profiles.PROFILE_TYPE) {
                     case ShaderProfile.Profiles.OldRonyxProfile:
@@ -85,8 +84,7 @@ namespace PropAnarchy.AdditiveShader {
             int buildingLayer = LayerMask.NameToLayer(@"Buildings");
             int propsLayer = LayerMask.NameToLayer(@"Props");
             RenderGroup[] renderGroups = Singleton<RenderManager>.instance.m_groups;
-            int len = renderGroups.Length;
-            for (int i = 0; i < len; i++) {
+            for (int i = 0; i < renderGroups.Length; i++) {
                 RenderGroup renderGroup = renderGroups[i];
                 if (!(renderGroup is null)) {
                     renderGroup.SetLayerDataDirty(buildingLayer);

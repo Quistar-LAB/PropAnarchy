@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 
 namespace PropAnarchy.AdditiveShader {
-    public struct ManagedAsset {
+    public readonly struct ManagedAsset {
         private const string FADEPROPERTY = "_InvFade";
         private const string INTENSITYPROPERTY = "_Intensity";
         /// <summary>
@@ -17,10 +17,6 @@ namespace PropAnarchy.AdditiveShader {
             Vehicle,
             Container,
         }
-        /// <summary>
-        /// Used to force visibility update during instantiation.
-        /// </summary>
-        private const bool FORCE_UPDATE = true;
 
         /// <summary>
         /// Fake <c>m_mesh.name</c> for <see cref="AssetType.Container"/> assets.
@@ -62,7 +58,6 @@ namespace PropAnarchy.AdditiveShader {
             TypeOfAsset = AssetType.Prop;
             m_prefab = prefab;
             IsContainer = false;
-            IsVisible = true;
             CachedRenderDistance = RenderDistance(prefab.m_generatedInfo.m_size);
             Profile = new ShaderProfile(prefab.m_mesh.name);
             backup_lodHasDifferentShader = prefab.m_lodHasDifferentShader;
@@ -78,7 +73,7 @@ namespace PropAnarchy.AdditiveShader {
             prefab.m_material.SetFloat(FADEPROPERTY, Profile.Fade);
             prefab.m_lodRenderDistance = EMath.Max(prefab.m_lodRenderDistance, CachedRenderDistance);
             prefab.m_maxRenderDistance = EMath.Max(prefab.m_maxRenderDistance, CachedRenderDistance);
-            SetVisible(Profile.IsAlwaysOn, FORCE_UPDATE);
+            SetVisible(Profile.IsAlwaysOn);
         }
 
         /// <summary>
@@ -92,7 +87,6 @@ namespace PropAnarchy.AdditiveShader {
             TypeOfAsset = AssetType.Building;
             m_prefab = prefab;
             IsContainer = false;
-            IsVisible = true;
             CachedRenderDistance = RenderDistance(prefab.m_generatedInfo.m_max);
             Profile = new ShaderProfile(prefab.m_mesh.name);
             backup_lodHasDifferentShader = prefab.m_lodHasDifferentShader;
@@ -110,7 +104,7 @@ namespace PropAnarchy.AdditiveShader {
             prefab.m_mesh.colors = AssignNewColors(prefab.m_mesh.vertices.Length);
             prefab.m_maxLodDistance = EMath.Max(prefab.m_maxLodDistance, CachedRenderDistance);
             prefab.m_minLodDistance = EMath.Max(prefab.m_minLodDistance, CachedRenderDistance);
-            SetVisible(Profile.IsAlwaysOn, FORCE_UPDATE);
+            SetVisible(Profile.IsAlwaysOn);
         }
 
         /// <summary>
@@ -131,8 +125,7 @@ namespace PropAnarchy.AdditiveShader {
         public ManagedAsset(BuildingInfo prefab, bool isContainer) {
             TypeOfAsset = AssetType.Container;
             m_prefab = prefab;
-            IsContainer = true;
-            IsVisible = true;
+            IsContainer = isContainer;
             CachedRenderDistance = CONTAINER_MAX_PROP_DISTANCE;
             Profile = new ShaderProfile(CONTAINER_BUILDING);
             backup_lodHasDifferentShader = false;
@@ -159,7 +152,6 @@ namespace PropAnarchy.AdditiveShader {
             TypeOfAsset = AssetType.SubBuilding;
             m_prefab = prefab;
             IsContainer = false;
-            IsVisible = true;
             CachedRenderDistance = RenderDistance(prefab.m_generatedInfo.m_max);
             Profile = new ShaderProfile(prefab.m_mesh.name);
             backup_lodHasDifferentShader = prefab.m_lodHasDifferentShader;
@@ -176,7 +168,7 @@ namespace PropAnarchy.AdditiveShader {
             prefab.m_mesh.colors = AssignNewColors(prefab.m_mesh.vertices.Length);
             prefab.m_maxLodDistance = EMath.Max(prefab.m_maxLodDistance, CachedRenderDistance);
             prefab.m_minLodDistance = EMath.Max(prefab.m_minLodDistance, CachedRenderDistance);
-            SetVisible(Profile.IsAlwaysOn, FORCE_UPDATE);
+            SetVisible(Profile.IsAlwaysOn);
         }
 
         /// <summary>
@@ -190,7 +182,6 @@ namespace PropAnarchy.AdditiveShader {
             TypeOfAsset = AssetType.Vehicle;
             m_prefab = prefab;
             IsContainer = false;
-            IsVisible = true;
             CachedRenderDistance = RenderDistance(prefab.m_generatedInfo.m_size);
             Profile = new ShaderProfile(prefab.m_mesh.name);
             backup_lodHasDifferentShader = false;
@@ -206,7 +197,7 @@ namespace PropAnarchy.AdditiveShader {
             prefab.m_mesh.colors = AssignNewColors(prefab.m_mesh.vertices.Length);
             prefab.m_lodRenderDistance = EMath.Max(prefab.m_lodRenderDistance, CachedRenderDistance);
             prefab.m_maxRenderDistance = EMath.Max(prefab.m_maxRenderDistance, CachedRenderDistance);
-            SetVisible(Profile.IsAlwaysOn, FORCE_UPDATE);
+            SetVisible(Profile.IsAlwaysOn);
         }
 
         public ShaderProfile Profile { get; }
@@ -215,11 +206,6 @@ namespace PropAnarchy.AdditiveShader {
         /// Gets a value indicating whether this asset is just a container for another shader-using asset.
         /// </summary>
         public bool IsContainer { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether the additive shader for the asset is currently visible.
-        /// </summary>
-        public bool IsVisible { get; private set; }
 
         /// <summary>
         /// Gets a cached render distance applicable to this asset.
@@ -241,16 +227,6 @@ namespace PropAnarchy.AdditiveShader {
         public AssetType TypeOfAsset { get; }
 
         /// <summary>
-        /// Shows the additive shader for this asset.
-        /// </summary>
-        public void Show() => SetVisible(true);
-
-        /// <summary>
-        /// Hides the additive shader for this asset.
-        /// </summary>
-        public void Hide() => SetVisible(false);
-
-        /// <summary>
         /// Show or hide the additive shader for this asset based on game world time.
         /// </summary>
         /// <param name="time">The game time of day.</param>
@@ -268,29 +244,26 @@ namespace PropAnarchy.AdditiveShader {
         /// </summary>
         /// <param name="visible">If <c>true</c>, the shader will be shown, otherwise it will be hidden.</param>
         /// <param name="force">If <c>true</c>, don't check current state. Defaults to <c>false</c>.</param>
-        public void SetVisible(bool visible, bool force = false) {
-            if (!IsContainer && (force || IsVisible != visible)) {
-                IsVisible = visible;
-                switch (TypeOfAsset) {
-                case AssetType.Prop:
-                    PropInfo propInfo = m_prefab as PropInfo;
-                    propInfo.m_lodRenderDistance = propInfo.m_maxRenderDistance = CachedRenderDistance;
-                    propInfo.m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
-                    break;
-                case AssetType.Building:
-                    BuildingInfo building = m_prefab as BuildingInfo;
-                    building.m_maxLodDistance = building.m_minLodDistance = CachedRenderDistance;
-                    building.m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
-                    break;
-                case AssetType.SubBuilding:
-                    BuildingInfoSub subBuilding = m_prefab as BuildingInfoSub;
-                    subBuilding.m_maxLodDistance = subBuilding.m_minLodDistance = CachedRenderDistance;
-                    subBuilding.m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
-                    break;
-                case AssetType.Vehicle:
-                    (m_prefab as VehicleInfoSub).m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
-                    break;
-                }
+        public void SetVisible(bool visible) {
+            switch (TypeOfAsset) {
+            case AssetType.Prop:
+                PropInfo propInfo = m_prefab as PropInfo;
+                propInfo.m_lodRenderDistance = propInfo.m_maxRenderDistance = CachedRenderDistance;
+                propInfo.m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
+                break;
+            case AssetType.Building:
+                BuildingInfo building = m_prefab as BuildingInfo;
+                building.m_maxLodDistance = building.m_minLodDistance = CachedRenderDistance;
+                building.m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
+                break;
+            case AssetType.SubBuilding:
+                BuildingInfoSub subBuilding = m_prefab as BuildingInfoSub;
+                subBuilding.m_maxLodDistance = subBuilding.m_minLodDistance = CachedRenderDistance;
+                subBuilding.m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
+                break;
+            case AssetType.Vehicle:
+                (m_prefab as VehicleInfoSub).m_material.SetFloat(INTENSITYPROPERTY, visible ? Profile.Intensity : 0f);
+                break;
             }
         }
 
