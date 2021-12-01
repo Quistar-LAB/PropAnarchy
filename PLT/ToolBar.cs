@@ -94,6 +94,7 @@ namespace PropAnarchy.PLT {
                     ToolsModifierControl.SetTool<PropLineTool>();
                 }
             };
+            isVisible = false;
         }
 
         public override void Start() {
