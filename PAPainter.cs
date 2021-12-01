@@ -9,7 +9,6 @@ namespace PropAnarchy {
         private const string PAINTERBTN_NAME = @"PAPainterButton";
         private const string COLORFIELD_NAME = @"PAPainterColorField";
         private const string COLORPICKER_NAME = @"PAPaintercolorPicker";
-        private const string MTP_NAME = @"mtpContainer";
 
         internal static void AddPropPainterBtn(UIToolOptionPanel optionPanel, UIButton moreTools, UIPanel mtpBackGround, UIPanel mtpContainer) {
             UIColorField field = Object.Instantiate(UITemplateManager.Get<UIPanel>("LineTemplate").Find<UIColorField>("LineColor"));
@@ -34,10 +33,8 @@ namespace PropAnarchy {
 
             UIPanel pickerPanel = picker.component as UIPanel;
             pickerPanel.color = Color.white;
-            //pickerPanel.size = new Vector2(254f, 226f);
             pickerPanel.backgroundSprite = @"InfoPanelBack";
             pickerPanel.isVisible = false;
-            //pickerPanel.absolutePosition = optionPanel.m_viewOptions.absolutePosition - new Vector3(329, 147);
             // re-adjust moretools panel
             Vector2 containerSize = mtpContainer.size;
             containerSize.y += 40f;
@@ -78,10 +75,6 @@ namespace PropAnarchy {
                 pickerPanel.isVisible = index == 1;
             };
             pickerPanel.absolutePosition = painterBtn.absolutePosition - new Vector3(pickerPanel.width, pickerPanel.height - 50f);
-        }
-
-
-        internal static void StartPostfix(UIToolOptionPanel __instance) {
         }
     }
 }
