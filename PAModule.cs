@@ -19,7 +19,7 @@ namespace PropAnarchy {
     public class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = @"Prop Anarchy";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.5.1";
+        internal const string m_modVersion = @"0.5.2";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
@@ -85,7 +85,7 @@ namespace PropAnarchy {
         public void OnReleased() {
         }
 
-        public void UpdateCustomPrefabs(object _) {
+        public void UpdateCustomPrefabs() {
             List<ManagedAsset> assets = new List<ManagedAsset>();
             try {
                 PrefabInfo[] prefabs = Resources.FindObjectsOfTypeAll<PrefabInfo>();
@@ -133,7 +133,7 @@ namespace PropAnarchy {
                     // Adding Additive Shader thread as a coroutine into UIView. This saves valuable resources
                     // instead of creating another gameobject to do mundane work
                     UIView.GetAView().StartCoroutine(AdditiveShaderManager.AdditiveShaderThread());
-                    AdditiveShaderManager.RefreshRenderGroups();
+                    //AdditiveShaderManager.RefreshRenderGroups();
                 }
             }
         }
@@ -170,7 +170,7 @@ namespace PropAnarchy {
             PAOptionPanel.UpdateState(true);
             // The original mods created a new GameObject for running additive shader routines. I'm opting
             // to just use existing GameObject and add a coroutine so it doesn't stress Update()
-            ThreadPool.QueueUserWorkItem(UpdateCustomPrefabs); // This thread handles initialization of Additive Shader asset and Decal Prop Fix
+            UpdateCustomPrefabs(); // This thread handles initialization of Additive Shader asset and Decal Prop Fix
             PLT.PropLineTool.InitializedPLT();
         }
 
@@ -188,7 +188,9 @@ namespace PropAnarchy {
                 if (!File.Exists(SettingsFileName)) {
                     SaveSettings();
                 }
-                XmlDocument xmlConfig = new XmlDocument();
+                XmlDocument xmlConfig = new XmlDocument {
+                    XmlResolver = null
+                };
                 xmlConfig.Load(SettingsFileName);
                 PropLimitScale = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PropLimitScale"));
                 UsePropAnarchy = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UsePropAnarchy"));
@@ -205,7 +207,9 @@ namespace PropAnarchy {
         }
 
         internal static void SaveSettings(object _ = null) {
-            XmlDocument xmlConfig = new XmlDocument();
+            XmlDocument xmlConfig = new XmlDocument {
+                XmlResolver = null
+            };
             XmlElement root = xmlConfig.CreateElement(@"PropAnarchyConfig");
             _ = root.Attributes.Append(AddElement(xmlConfig, @"PropLimitScale", PropLimitScale));
             _ = root.Attributes.Append(AddElement(xmlConfig, @"UsePropAnarchy", UsePropAnarchy));
