@@ -11,7 +11,7 @@ namespace PropAnarchy.AdditiveShader {
         /// </summary>
         /// <param name="data">The <c>m_mesh.name</c> to investigate.</param>
         /// <returns>Returns <c>true</c> if the token is found, otherwise <c>false</c>.</returns>
-        public static bool HasValidData(string data) => !(data is null) && data[0] == 'A' && data[1] == 'd' && data[2] == 'd' && data[3] == 'i' &&
+        public static bool HasValidData(string data) => !(data is null) && data.Length > 14 && data[0] == 'A' && data[1] == 'd' && data[2] == 'd' && data[3] == 'i' &&
                                                         data[4] == 't' && data[5] == 'i' && data[6] == 'v' && data[7] == 'e' &&
                                                         data[8] == 'S' && data[9] == 'h' && data[10] == 'a' && data[11] == 'd' &&
                                                         data[12] == 'e' && data[13] == 'r';
