@@ -72,6 +72,11 @@
     <Compile Include="AdditiveShader\AdditiveShaderManager.cs" />
     <Compile Include="AdditiveShader\ManagedAsset.cs" />
     <Compile Include="AdditiveShader\ShaderProfile.cs" />
+    <Compile Include="Localization\DefaultLocale.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DefaultLocale.resx</DependentUpon>
+    </Compile>
     <Compile Include="PAPatcher.cs" />
     <Compile Include="PAPainter.cs" />
     <Compile Include="DecalPropFix\DecalPropFix.cs" />
@@ -170,6 +175,10 @@
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroFocused.png" />
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroHovered.png" />
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroPressed.png" />
+    <EmbeddedResource Include="Localization\DefaultLocale.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>DefaultLocale.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\ErrorProne.NET.Core.dll" />
