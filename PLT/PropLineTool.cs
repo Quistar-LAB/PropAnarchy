@@ -5,6 +5,7 @@ using EManagersLib;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
@@ -222,6 +223,8 @@ namespace PropAnarchy.PLT {
         private static AudioGroup m_defaultAudioGroup;
         internal static Vector3[] m_fenceEndPoints;
         internal static ToolBar m_toolBar = null;
+        internal static TreeTool m_treeTool;
+        internal static PropTool m_propTool;
         internal static OptionPanel m_optionPanel = null;
         internal static ItemType m_itemType = ItemType.TREE;
         internal static ControlMode m_controlMode;
@@ -288,6 +291,8 @@ namespace PropAnarchy.PLT {
             m_fenceEndPoints = new Vector3[MAX_ITEM_ARRAY_LENGTH + 1];
             m_controlMode = ControlMode.SPACING;
             m_itemCount = 0;
+            m_treeTool = ToolsModifierControl.GetTool<TreeTool>();
+            m_propTool = ToolsModifierControl.GetTool<PropTool>();
             m_randomizer = new Randomizer((int)DateTime.Now.Ticks);
             if (Settings.AnarchyPLTOnByDefault) {
                 Settings.ShowErrorGuides = false;
@@ -460,6 +465,14 @@ namespace PropAnarchy.PLT {
             if (m_mouseRayValid && EToolBase.RayCast(input, out EToolBase.RaycastOutput raycastOutput) && !raycastOutput.m_currentEditObject) {
                 m_mousePosition = raycastOutput.m_hitPos;
                 DrawMode.CurrentMode?.OnSimulationStep(raycastOutput.m_hitPos);
+                switch (m_itemType) {
+                case ItemType.TREE:
+                    ItemInfo.Prefab = m_treeTool.m_prefab;
+                    break;
+                case ItemType.PROP:
+                    ItemInfo.Prefab = m_propTool.m_prefab;
+                    break;
+                }
             }
         }
 
@@ -722,6 +735,12 @@ namespace PropAnarchy.PLT {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void SetTreePrefab(TreeInfo prefab) => ItemInfo.Prefab = prefab;
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void SetPropPrefab(PropInfo prefab) => ItemInfo.Prefab = prefab;
+
         public static void InitializedPLT() {
             ToolController toolController = ToolsModifierControl.toolController;
             try {
@@ -729,9 +748,24 @@ namespace PropAnarchy.PLT {
                 if (propLineTool is null) {
                     propLineTool = toolController.gameObject.AddComponent<PropLineTool>();
                 }
+                UIView mainView = UIView.GetAView();
+#if FALSE
+                UITabContainer tsContainer = FindTSContainer(mainView);
+                tsContainer.eventClicked += (c, p) => {
+                    object objectUserData = c.objectUserData;
+                    if(objectUserData is TreeInfo treeInfo) {
+                        ItemInfo.Prefab = treeInfo;
+                        PAModule.PALog($"{treeInfo}");
+                    } else if(objectUserData is PropInfo propInfo) {
+                        ItemInfo.Prefab = propInfo;
+                        PAModule.PALog($"{propInfo}");
+                    }
+                    PAModule.PALog($"Event clicked from {c}");
+                };
+#endif
                 // because of shared textures, make sure to initialize toolbar first before optionpanel
-                m_toolBar = UIView.GetAView().AddUIComponent(typeof(ToolBar)) as ToolBar;
-                m_optionPanel = UIView.GetAView().AddUIComponent(typeof(OptionPanel)) as OptionPanel;
+                m_toolBar = mainView.AddUIComponent(typeof(ToolBar)) as ToolBar;
+                m_optionPanel = mainView.AddUIComponent(typeof(OptionPanel)) as OptionPanel;
                 FieldInfo toolsField = typeof(ToolController).GetField("m_tools", BindingFlags.Instance | BindingFlags.NonPublic);
                 ToolBase[] tools = toolsField.GetValue(toolController) as ToolBase[];
                 int toolLength = tools.Length;

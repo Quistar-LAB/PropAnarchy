@@ -148,7 +148,7 @@ namespace PropAnarchy.PLT {
                     if (tool is TreeTool) {
                         PropLineTool.m_itemType = PropLineTool.ItemType.TREE;
                         OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.TREE);
-                    } else {
+                    } else if (tool is PropTool) {
                         PropLineTool.m_itemType = PropLineTool.ItemType.PROP;
                         OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.PROP);
                     }
