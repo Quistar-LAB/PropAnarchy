@@ -1,3 +1,8 @@
+# Extended Managers Library 
+<a href="LICENSE">
+	<img src="https://img.shields.io/badge/license-MIT-green" />
+</a>
+
 ### Prop Anarchy
 
 Prop Anarchy is a new project to extend the current prop framework in Cities Skylines, allowing for more than 65k props, and many more functionalities.
