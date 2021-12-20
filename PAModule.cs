@@ -81,6 +81,7 @@ namespace PropAnarchy {
                 if (LoadSettings()) break; // Try 2 times, and if still fails, then use default settings
             }
             HarmonyHelper.DoOnHarmonyReady(PAPatcher.EnablePatches);
+            PAPainter.initialize();
         }
         public void OnDisabled() {
             SaveSettings();

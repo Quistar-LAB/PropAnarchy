@@ -189,7 +189,9 @@
     <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\ErrorProne.Net.StructAnalyzers.dll" />
     <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\RuntimeContracts.dll" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="LICENSE" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\leftSprite.png" />
     <EmbeddedResource Include="Resources\midSprite.png" />

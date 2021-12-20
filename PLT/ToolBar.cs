@@ -3,6 +3,7 @@ using ColossalFramework.UI;
 using EManagersLib;
 using System.Threading;
 using UnityEngine;
+using System.Runtime.CompilerServices;
 
 namespace PropAnarchy.PLT {
     public sealed class ToolBar : UIPanel {
@@ -127,11 +128,7 @@ namespace PropAnarchy.PLT {
 
         public override void OnDestroy() { }
 
-        public static void ActivatePLT(object _) {
-            Thread.Sleep(1);
-            ToolsModifierControl.SetTool<PropLineTool>();
-        }
-
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool SetToolPrefix(ToolBase tool) {
             if ((tool is TreeTool || tool is PropTool) && ToolsModifierControl.toolController.CurrentTool is PropLineTool) {
                 if (PropLineTool.DrawMode.Current != PropLineTool.DrawMode.SINGLE)
@@ -140,6 +137,7 @@ namespace PropAnarchy.PLT {
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SetToolPostfix(ToolBase tool) {
             if (!(tool is null) && !(PropLineTool.m_toolBar is null) && !(m_brushPanel is null)) {
                 if (tool is TreeTool || tool is PropTool) {

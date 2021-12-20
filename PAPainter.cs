@@ -2,7 +2,11 @@
 using EManagersLib;
 using MoveIt;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
+using ColossalFramework;
+using ColossalFramework.Math;
+using System.Reflection;
 
 namespace PropAnarchy {
     internal static class PAPainter {
@@ -13,6 +17,36 @@ namespace PropAnarchy {
         internal delegate void CloneHandler(Dictionary<Instance, Instance> clonedOrigin);
         internal static ActionHandler ActionAddHandler;
         internal static CloneHandler ActionCloneHandler;
+        private static System.Action<UIColorPicker, Color> SetPickerColorField;
+
+        internal static void initialize() {
+            SetPickerColorField = PAUtils.CreateSetter<UIColorPicker, Color>(typeof(UIColorPicker).GetField("m_Color", BindingFlags.Instance | BindingFlags.NonPublic));
+        }
+
+        private static Color GetColor(float x, float y, float width, float height, Color hue) {
+            float num = x / width;
+            float num2 = y / height;
+            num = num < 0f ? 0f : (num > 1f ? 1f : num);
+            num2 = num2 < 0f ? 0f : (num2 > 1f ? 1f: num2);
+            Color result = Color.Lerp(Color.white, hue, num) * (1f - num2);
+            result.a = 1f;
+            return result;
+        }
+
+        private static void SetPickerColor(UIColorPicker picker, Color color) {
+            UISprite indicator = picker.m_Indicator;
+            UITextureSprite HSBField = picker.m_HSBField;
+            picker.hue = HSBColor.GetHue(color);
+            SetPickerColorField(picker, color);
+            HSBColor hSBColor = HSBColor.FromColor(color);
+            Vector2 a = new Vector2(hSBColor.s * HSBField.width, (1f - hSBColor.b) * HSBField.height);
+            indicator.relativePosition = a - indicator.size * 0.5f;
+            if (!(HSBField.renderMaterial is null)) {
+                HSBField.renderMaterial.color = picker.hue.gamma;
+            }
+            Vector2 vector = new Vector2(indicator.relativePosition.x + indicator.size.x * 0.5f, indicator.relativePosition.y + indicator.size.y * 0.5f);
+            SetPickerColorField(picker, GetColor(vector.x, vector.y, HSBField.width, HSBField.height, picker.hue));
+        }
 
         internal static void AddPropPainterBtn(UIToolOptionPanel optionPanel, UIButton moreTools, UIPanel mtpBackGround, UIPanel mtpContainer) {
             EPropInstance[] props = EPropManager.m_props.m_buffer;
@@ -68,10 +102,11 @@ namespace PropAnarchy {
                 pickerPanel.isVisible = index == 1;
             };
             pickerPanel.absolutePosition = painterBtn.absolutePosition - new Vector3(pickerPanel.width, pickerPanel.height - 50f);
+            SimulationManager smInstance = Singleton<SimulationManager>.instance;
 
             /* Finally attach all delegates */
-            picker.m_HSBField.eventClicked += (c, p) => {
-                HashSet<Instance> selections = MoveIt.Action.selection;
+            IEnumerator ProcessColor(HashSet<Instance> selections) {
+                yield return new WaitForSeconds(0.1f);
                 if (!(selections is null) && selections.Count > 0) {
                     foreach (var selection in selections) {
                         uint propID = selection.id.GetProp32();
@@ -80,35 +115,29 @@ namespace PropAnarchy {
                         }
                     }
                 }
-            };
+            }
 
-            picker.m_HueSlider.eventClicked += (c, p) => {
-                HashSet<Instance> selections = MoveIt.Action.selection;
-                if (!(selections is null) && selections.Count > 0) {
-                    foreach (var selection in selections) {
-                        uint propID = selection.id.GetProp32();
-                        if (selection.isValid && !selection.id.IsEmpty && propID > 0) {
-                            props[propID].m_color = picker.color;
-                        }
-                    }
-                }
-            };
+            picker.eventColorUpdated += (color) => smInstance.AddAction(ProcessColor(Action.selection));
 
             ActionAddHandler = (selections) => {
-                foreach (var selection in selections) {
-                    uint propID = selection.id.GetProp32();
-                    if (selection.isValid && !selection.id.IsEmpty && propID > 0) {
-                        picker.color = props[propID].m_color;
-                        break;
+                smInstance.AddAction(() => {
+                    foreach (var selection in selections) {
+                        uint propID = selection.id.GetProp32();
+                        if (selection.isValid && !selection.id.IsEmpty && propID > 0) {
+                            SetPickerColor(picker, props[propID].m_color);
+                            break;
+                        }
                     }
-                }
+                });
             };
 
             ActionCloneHandler = (clonedOrigin) => {
-                foreach (KeyValuePair<Instance, Instance> x in clonedOrigin) {
-                    if (x.Key.id.Type != InstanceType.Prop) return;
-                    props[x.Value.id.GetProp32()].m_color = props[x.Key.id.GetProp32()].m_color;
-                }
+                smInstance.AddAction(() => {
+                    foreach (KeyValuePair<Instance, Instance> x in clonedOrigin) {
+                        if (x.Key.id.Type != InstanceType.Prop) return;
+                        props[x.Value.id.GetProp32()].m_color = props[x.Key.id.GetProp32()].m_color;
+                    }
+                });
             };
         }
     }
