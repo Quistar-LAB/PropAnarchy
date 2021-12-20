@@ -4,7 +4,7 @@ using System.Globalization;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
-    public class OptionPanel : UIPanel {
+    public sealed class OptionPanel : UIPanel {
         private const float OPTIONPANEL_WIDTH = 374f;
         private const float OPTIONPANEL_HEIGHT = 420f;
         private const float TITLEBAR_HEIGHT = 42f;
@@ -13,8 +13,8 @@ namespace PropAnarchy.PLT {
         private const float PADDING_PANEL = 10f;
         private const int TAB_PADDING_HORIZONTAL = 10;
         private const int TAB_PADDING_VERTICAL = 8;
-        protected float localTabX = 0f;
         public delegate void EventOptionPanelHandler(PropLineTool.ItemType mode);
+        public delegate void EventPropertyChanged(bool state);
 #pragma warning disable IDE1006
         public static event EventOptionPanelHandler eventOnOptionClose;
         public static event EventOptionPanelHandler eventOnOptionOpen;
@@ -230,37 +230,38 @@ namespace PropAnarchy.PLT {
             errorGuideLinesCB.isChecked = Settings.ShowErrorGuides;
             errorGuideLinesCB.relativePosition = new Vector3(OFFSETX + CHECKBOXWIDTH, errorCheckCB.relativePosition.y + errorCheckCB.height + PADDINGY);
             errorGuideLinesCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.ShowErrorGuides = index != 0;
-            UIPLTCheckbox pltAnarchyCB = parent.AddUIComponent<UIPLTCheckbox>();
-            pltAnarchyCB.text = PALocale.GetLocale(@"PLTAnarchy");
-            pltAnarchyCB.tooltip = PALocale.GetLocale(@"PLTAnarchyTooltip");
-            pltAnarchyCB.isChecked = Settings.AnarchyPLT;
-            pltAnarchyCB.relativePosition = new Vector3(OFFSETX + CHECKBOXWIDTH, errorGuideLinesCB.relativePosition.y + errorGuideLinesCB.height + PADDINGY);
-            pltAnarchyCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.AnarchyPLT = index != 0;
-            UIPLTCheckbox placeBlockedItemCB = parent.AddUIComponent<UIPLTCheckbox>();
-            placeBlockedItemCB.text = PALocale.GetLocale(@"PLTPlaceBlockedItem");
-            placeBlockedItemCB.tooltip = PALocale.GetLocale(@"PLTPlaceBlockedItemTooltip");
-            placeBlockedItemCB.isChecked = Settings.PlaceBlockedItems;
-            placeBlockedItemCB.relativePosition = new Vector3(pltAnarchyCB.relativePosition.x + CHECKBOXWIDTH, pltAnarchyCB.relativePosition.y + pltAnarchyCB.height + PADDINGY);
-            placeBlockedItemCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.PlaceBlockedItems = index != 0;
-            errorCheckCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
-                if (index != 0) {
-                    Settings.ErrorChecking = true;
-                    errorGuideLinesCB.Enable();
-                    pltAnarchyCB.Enable();
-                    placeBlockedItemCB.Enable();
-                } else {
-                    Settings.ErrorChecking = false;
-                    errorGuideLinesCB.Disable();
-                    pltAnarchyCB.Disable();
-                    placeBlockedItemCB.Disable();
-                }
-            };
-            _ = CreateDivider(parent, new Vector3(12f, placeBlockedItemCB.relativePosition.y + placeBlockedItemCB.height + PADDINGY));
+            //UIPLTCheckbox pltAnarchyCB = parent.AddUIComponent<UIPLTCheckbox>();
+            //pltAnarchyCB.text = PALocale.GetLocale(@"PLTAnarchy");
+            //pltAnarchyCB.tooltip = PALocale.GetLocale(@"PLTAnarchyTooltip");
+            //pltAnarchyCB.isChecked = Settings.AnarchyPLT;
+            //pltAnarchyCB.relativePosition = new Vector3(OFFSETX + CHECKBOXWIDTH, errorGuideLinesCB.relativePosition.y + errorGuideLinesCB.height + PADDINGY);
+            //pltAnarchyCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.AnarchyPLT = index != 0;
+            //UIPLTCheckbox placeBlockedItemCB = parent.AddUIComponent<UIPLTCheckbox>();
+            //placeBlockedItemCB.text = PALocale.GetLocale(@"PLTPlaceBlockedItem");
+            //placeBlockedItemCB.tooltip = PALocale.GetLocale(@"PLTPlaceBlockedItemTooltip");
+            //placeBlockedItemCB.isChecked = Settings.PlaceBlockedItems;
+            //placeBlockedItemCB.relativePosition = new Vector3(pltAnarchyCB.relativePosition.x + CHECKBOXWIDTH, pltAnarchyCB.relativePosition.y + pltAnarchyCB.height + PADDINGY);
+            //placeBlockedItemCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.PlaceBlockedItems = index != 0;
+            //errorCheckCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
+            //    if (index != 0) {
+            //        Settings.ErrorChecking = true;
+            //        errorGuideLinesCB.Enable();
+            //        pltAnarchyCB.Enable();
+            //        placeBlockedItemCB.Enable();
+            //    } else {
+            //        Settings.ErrorChecking = false;
+            //        errorGuideLinesCB.Disable();
+            //        pltAnarchyCB.Disable();
+            //        placeBlockedItemCB.Disable();
+            //    }
+            //};
+            CreateDivider(parent, new Vector3(12f, errorGuideLinesCB.relativePosition.y + errorGuideLinesCB.height + PADDINGY));
+            //_ = CreateDivider(parent, new Vector3(12f, placeBlockedItemCB.relativePosition.y + placeBlockedItemCB.height + PADDINGY));
             UIPLTCheckbox meshCenterCorrectionCB = parent.AddUIComponent<UIPLTCheckbox>();
             meshCenterCorrectionCB.text = PALocale.GetLocale(@"PLTMeshCenterCorrection");
             meshCenterCorrectionCB.tooltip = PALocale.GetLocale(@"PLTMeshCenterCorrectionTooltip");
             meshCenterCorrectionCB.isChecked = Settings.UseMeshCenterCorrection;
-            meshCenterCorrectionCB.relativePosition = new Vector3(OFFSETX, placeBlockedItemCB.relativePosition.y + placeBlockedItemCB.height + DIVIDERHEIGHT * 2f + PADDINGY);
+            meshCenterCorrectionCB.relativePosition = new Vector3(OFFSETX, errorGuideLinesCB.relativePosition.y + errorGuideLinesCB.height + DIVIDERHEIGHT * 2f + PADDINGY);
             meshCenterCorrectionCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.UseMeshCenterCorrection = index != 0;
             UIPLTCheckbox perfectCircleCB = parent.AddUIComponent<UIPLTCheckbox>();
             perfectCircleCB.text = PALocale.GetLocale(@"PLTPerfectCircle");

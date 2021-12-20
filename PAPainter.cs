@@ -9,24 +9,17 @@ namespace PropAnarchy {
         private const string PAINTERBTN_NAME = @"PAPainterButton";
         private const string COLORFIELD_NAME = @"PAPainterColorField";
         private const string COLORPICKER_NAME = @"PAPaintercolorPicker";
+        internal delegate void ActionHandler(HashSet<Instance> selection);
+        internal delegate void CloneHandler(Dictionary<Instance, Instance> clonedOrigin);
+        internal static ActionHandler ActionAddHandler;
+        internal static CloneHandler ActionCloneHandler;
 
         internal static void AddPropPainterBtn(UIToolOptionPanel optionPanel, UIButton moreTools, UIPanel mtpBackGround, UIPanel mtpContainer) {
-            UIColorField field = Object.Instantiate(UITemplateManager.Get<UIPanel>("LineTemplate").Find<UIColorField>("LineColor"));
+            EPropInstance[] props = EPropManager.m_props.m_buffer;
+            UIColorField field = UnityEngine.Object.Instantiate(UITemplateManager.Get<UIPanel>("LineTemplate").Find<UIColorField>("LineColor"));
             field.isVisible = true;
             field.name = COLORFIELD_NAME;
-            UIColorPicker picker = Object.Instantiate(field.colorPicker);
-            picker.eventColorUpdated += (color) => {
-                HashSet<Instance> selections = Action.selection;
-                EPropInstance[] props = EPropManager.m_props.m_buffer;
-                if (!(selections is null) && selections.Count > 0) {
-                    foreach (var selection in selections) {
-                        uint propID = selection.id.GetProp32();
-                        if (selection.isValid && !selection.id.IsEmpty && propID > 0) {
-                            props[propID].m_color = color;
-                        }
-                    }
-                }
-            };
+            UIColorPicker picker = UnityEngine.Object.Instantiate(field.colorPicker);
             optionPanel.AttachUIComponent(picker.gameObject);
             picker.color = Color.white;
             picker.name = COLORPICKER_NAME;
@@ -75,6 +68,48 @@ namespace PropAnarchy {
                 pickerPanel.isVisible = index == 1;
             };
             pickerPanel.absolutePosition = painterBtn.absolutePosition - new Vector3(pickerPanel.width, pickerPanel.height - 50f);
+
+            /* Finally attach all delegates */
+            picker.m_HSBField.eventClicked += (c, p) => {
+                HashSet<Instance> selections = MoveIt.Action.selection;
+                if (!(selections is null) && selections.Count > 0) {
+                    foreach (var selection in selections) {
+                        uint propID = selection.id.GetProp32();
+                        if (selection.isValid && !selection.id.IsEmpty && propID > 0) {
+                            props[propID].m_color = picker.color;
+                        }
+                    }
+                }
+            };
+
+            picker.m_HueSlider.eventClicked += (c, p) => {
+                HashSet<Instance> selections = MoveIt.Action.selection;
+                if (!(selections is null) && selections.Count > 0) {
+                    foreach (var selection in selections) {
+                        uint propID = selection.id.GetProp32();
+                        if (selection.isValid && !selection.id.IsEmpty && propID > 0) {
+                            props[propID].m_color = picker.color;
+                        }
+                    }
+                }
+            };
+
+            ActionAddHandler = (selections) => {
+                foreach (var selection in selections) {
+                    uint propID = selection.id.GetProp32();
+                    if (selection.isValid && !selection.id.IsEmpty && propID > 0) {
+                        picker.color = props[propID].m_color;
+                        break;
+                    }
+                }
+            };
+
+            ActionCloneHandler = (clonedOrigin) => {
+                foreach (KeyValuePair<Instance, Instance> x in clonedOrigin) {
+                    if (x.Key.id.Type != InstanceType.Prop) return;
+                    props[x.Value.id.GetProp32()].m_color = props[x.Key.id.GetProp32()].m_color;
+                }
+            };
         }
     }
 }

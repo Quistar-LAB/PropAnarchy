@@ -72,6 +72,8 @@
     <Compile Include="AdditiveShader\AdditiveShaderManager.cs" />
     <Compile Include="AdditiveShader\ManagedAsset.cs" />
     <Compile Include="AdditiveShader\ShaderProfile.cs" />
+    <Compile Include="PAOptionPanel.cs" />
+    <Compile Include="PATerrainConformManager.cs" />
     <Compile Include="Localization\DefaultLocale.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -107,7 +109,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PAKeyBinding.cs" />
     <Compile Include="PALocale.cs" />
-    <Compile Include="PAOptionPanel.cs" />
+    <Compile Include="TransparencyLODFix\Settings.cs" />
+    <Compile Include="TransparencyLODFix\TransparencyLODFix.cs" />
+    <Compile Include="UI\UIFancySlider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Localization\PropAnarchy.en.locale" />
@@ -184,6 +188,15 @@
     <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\ErrorProne.NET.Core.dll" />
     <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\ErrorProne.Net.StructAnalyzers.dll" />
     <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\RuntimeContracts.dll" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\leftSprite.png" />
+    <EmbeddedResource Include="Resources\midSprite.png" />
+    <EmbeddedResource Include="Resources\rightSprite.png" />
+    <EmbeddedResource Include="Resources\slider.png" />
+    <EmbeddedResource Include="Resources\thumb.png" />
+    <EmbeddedResource Include="Resources\treelimitbg.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

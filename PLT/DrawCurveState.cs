@@ -4,7 +4,7 @@ using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
-    public class DrawCurveState : ActiveDrawState {
+    public sealed class DrawCurveState : ActiveDrawState {
         private void ContinueDrawingFromLockMode(bool finalizePlacement) {
             //check if in fence mode and line is too short
             if (!GetFenceMode() && m_itemCount > 0 && finalizePlacement && FinalizePlacement(true, false)) {

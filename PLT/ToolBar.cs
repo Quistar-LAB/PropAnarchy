@@ -5,7 +5,7 @@ using System.Threading;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
-    public class ToolBar : UIPanel {
+    public sealed class ToolBar : UIPanel {
         private const float PLT_TOOLBAR_WIDTH = 256f;
         private const float PLT_TOOLBAR_HEIGHT = 36f;
         private const float SIZE_INEDITOR_WIDTH = 266f;
@@ -75,8 +75,6 @@ namespace PropAnarchy.PLT {
                 if (index != 0) OptionPanel.Open(PropLineTool.m_itemType);
                 else OptionPanel.Close();
             };
-            //LandscapingGroupPanel landscapingPanel = UIView.GetAView().GetComponentInChildren<LandscapingGroupPanel>();
-            //UITabstrip landscapingStrip = AccessTools.Field(typeof(LandscapingGroupPanel), @"m_Strip").GetValue(landscapingPanel) as UITabstrip;
             controlTabStrip.eventSelectedIndexChanged += (c, index) => {
                 PropLineTool.DrawMode.Current = index;
                 if (index == PropLineTool.DrawMode.SINGLE) {

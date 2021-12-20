@@ -1,9 +1,10 @@
-﻿using System;
+﻿using EManagersLib;
+using System;
 using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
-    public class DrawCircleState : ActiveDrawState {
+    public sealed class DrawCircleState : ActiveDrawState {
         private void ContinueDrawingFromLockMode(bool finalizePlacement) {
             //check if in fence mode and line is too short
             if (!GetFenceMode() && m_itemCount > 0 && finalizePlacement && FinalizePlacement(true, false)) {
@@ -370,6 +371,7 @@ namespace PropAnarchy.PLT {
             if (pointCount >= 1) {
                 VectorXZ center = points[0].m_position;
                 VectorXZ pointOnCircle = points[1].m_position;
+                m_rawCircle = new CircleXZ(center, pointOnCircle);
                 if (Settings.PerfectCircles) {
                     switch (m_controlMode) {
                     case ControlMode.ITEMWISE:
@@ -461,14 +463,14 @@ namespace PropAnarchy.PLT {
                     m_itemCount = 0;
                     return false;
                 }
-                float initialAngle = initialOffset / mainCircle.m_radius;
+                float initialAngle = EMath.Abs(initialOffset) / mainCircle.m_radius;
                 float angleAfterFirst = SegmentState.IsMaxFillContinue ? 2f * Mathf.PI - initialAngle : 2f * Mathf.PI;
                 if (Settings.PerfectCircles) {
-                    numItemsRaw = Mathf.Clamp(Mathf.RoundToInt(angleAfterFirst / chordAngle), 0, MAX_ITEM_ARRAY_LENGTH);
-                    numItems = Math.Min(m_itemCount, numItemsRaw);
+                    numItemsRaw = EMath.RoundToInt(angleAfterFirst / chordAngle);
+                    numItems = EMath.Min(m_itemCount, EMath.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
                 } else {
-                    numItemsRaw = Mathf.Clamp(Mathf.FloorToInt(angleAfterFirst / chordAngle), 0, MAX_ITEM_ARRAY_LENGTH);
-                    numItems = Math.Min(m_itemCount, numItemsRaw);
+                    numItemsRaw = EMath.FloorToInt(angleAfterFirst / chordAngle);
+                    numItems = EMath.Min(m_itemCount, EMath.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
                 }
                 deltaT = mainCircle.ChordDeltaT(spacing);
                 t = 0f;
@@ -587,7 +589,8 @@ namespace PropAnarchy.PLT {
         }
 
         public override void UpdateMiscHoverParameters() {
-            if (m_itemCount >= (GetFenceMode() ? 1 : 2) || m_controlMode == ControlMode.ITEMWISE) {
+            bool fenceMode = GetFenceMode();
+            if (m_itemCount >= (fenceMode ? 1 : 2) || m_controlMode == ControlMode.ITEMWISE) {
                 switch (m_currentState) {
                 case ActiveState.MoveSegment:
                     ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
@@ -600,21 +603,18 @@ namespace PropAnarchy.PLT {
                     UpdatePlacement();
                     break;
                 case ActiveState.ChangeSpacing:
-                    CircleXZ circle = m_mainCircle;
-                    if (circle.IsCloseToCircle3XZ(HOVER_CURVEDISTANCE_THRESHOLD * 12f, m_cachedPosition, out float hoverCurveT)) {
-                        if (GetFenceMode()) {
-                            float curveT = Mathf.Clamp(hoverCurveT, m_items[0].m_t, 0.500f);
-                            Vector3 curveDistance = circle.Position(curveT) - circle.Position(0f);
-                            float distance = curveDistance.MagnitudeXZ();
+                    if (m_mainCircle.IsCloseToCircle3XZ(HOVER_CURVEDISTANCE_THRESHOLD * 12f, m_cachedPosition, out float hoverCurveT)) {
+                        CircleXZ circle = (Settings.PerfectCircles) ? m_rawCircle : m_mainCircle;
+                        if (fenceMode) {
+                            float distance = (circle.Position(EMath.Clamp(hoverCurveT, m_items[0].m_t, 0.500f)) - circle.Position(0f)).MagnitudeXZ();
                             if (Settings.PerfectCircles) {
-                                distance = Mathf.Clamp(distance, SPACING_MIN, circle.Diameter);
+                                distance = EMath.Clamp(distance, SPACING_MIN, m_rawCircle.Diameter);
                             }
                             ItemInfo.ItemSpacing = distance;
                         } else { //non-fence mode
-                            float curveT = Mathf.Clamp(hoverCurveT, m_items[0].m_t, 0.995f);
-                            float distance = circle.m_radius * circle.AngleBetween(0f, curveT);
+                            float distance = circle.m_radius * circle.AngleBetween(0f, EMath.Clamp(hoverCurveT, m_items[0].m_t, 0.995f));
                             if (Settings.PerfectCircles) {
-                                distance = Mathf.Clamp(distance, SPACING_MIN, 0.50f * circle.Circumference);
+                                distance = EMath.Clamp(distance, SPACING_MIN, 0.50f * m_mainCircle.Circumference);
                             }
                             ItemInfo.ItemSpacing = distance;
                         }

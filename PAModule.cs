@@ -6,6 +6,7 @@ using ColossalFramework.UI;
 using EManagersLib;
 using ICities;
 using PropAnarchy.AdditiveShader;
+using PropAnarchy.TransparencyLODFix;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,36 +20,49 @@ namespace PropAnarchy {
     public class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = @"Prop Anarchy";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.5.2";
+        internal const string m_modVersion = @"0.5.8";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
 
+        internal static bool IsInGame = false;
         public static float PropLimitScale {
             get => EPropManager.PROP_LIMIT_SCALE;
-            set => EPropManager.PROP_LIMIT_SCALE = value;
+            set {
+                if (EPropManager.PROP_LIMIT_SCALE != value) {
+                    EPropManager.PROP_LIMIT_SCALE = value;
+                    ThreadPool.QueueUserWorkItem(SaveSettings);
+                }
+            }
         }
         public static bool UsePropAnarchy {
             get => EPropManager.UsePropAnarchy;
-            set => EPropManager.UsePropAnarchy = value;
+            set {
+                if (EPropManager.UsePropAnarchy != value) {
+                    EPropManager.UsePropAnarchy = value;
+                    UIIndicator.AnarchyIndicator?.SetState(value);
+                    if (PAOptionPanel.m_propAnarchyCB) PAOptionPanel.m_propAnarchyCB.isChecked = value;
+                    ThreadPool.QueueUserWorkItem(SaveSettings);
+                }
+            }
         }
         /* Prop Snapping related */
         public static bool UsePropSnapping {
             get => EPropManager.UsePropSnapping;
-            set => EPropManager.UsePropSnapping = value;
+            set {
+                if (EPropManager.UsePropSnapping != value) {
+                    EPropManager.UsePropSnapping = value;
+                    UIIndicator.SnapIndicator?.SetState(value);
+                    if (PAOptionPanel.m_propSnappingCB) PAOptionPanel.m_propSnappingCB.isChecked = value;
+                    ThreadPool.QueueUserWorkItem(SaveSettings);
+                }
+            }
         }
-        public static bool UsePropSnapToBuilding = true;
-        public static bool UsePropSnapToNetwork = true;
-        public static bool UsePropSnapToProp = true;
-        public static bool UseDecalPropFix = true;
-        public static bool UseAdditiveShader = true;
-
-        public static bool ShowIndicators = true;
 
         public PAModule() {
             CreateDebugFile();
             try {
-                if (GameSettings.FindSettingsFileByName(KeybindingConfigFile) == null) {
+                if (GameSettings.FindSettingsFileByName(KeybindingConfigFile) is null) {
                     GameSettings.AddSettingsFile(new SettingsFile[] {
                         new SettingsFile() { fileName = KeybindingConfigFile }
                     });
@@ -62,8 +76,10 @@ namespace PropAnarchy {
         public string Name => m_modName + ' ' + m_modVersion;
         public string Description => m_modDesc;
         public void OnEnabled() {
-            LoadSettings();
             PALocale.Init();
+            for (int loadTries = 0; loadTries < 2; loadTries++) {
+                if (LoadSettings()) break; // Try 2 times, and if still fails, then use default settings
+            }
             HarmonyHelper.DoOnHarmonyReady(PAPatcher.EnablePatches);
         }
         public void OnDisabled() {
@@ -73,13 +89,14 @@ namespace PropAnarchy {
         public void OnSettingsUI(UIHelperBase helper) {
             PALocale.OnLocaleChanged();
             LocaleManager.eventLocaleChanged += PALocale.OnLocaleChanged;
-            ((helper.AddGroup(m_modName + @" -- Version " + m_modVersion) as UIHelper).self as UIPanel).AddUIComponent<PAOptionPanel>();
+            PAOptionPanel.SetupPanel((helper.AddGroup(m_modName + @" -- Version " + m_modVersion) as UIHelper).self as UIPanel);
         }
         #endregion UserMod
 
         #region LoadingExtension
         public void OnCreated(ILoading loading) {
             OutputPluginsList();
+            PAPatcher.AttachMoveItPostProcess();
         }
 
         public void OnReleased() {
@@ -93,12 +110,15 @@ namespace PropAnarchy {
                 for (int i = 0; i < prefabLen; i++) {
                     PrefabInfo prefab = prefabs[i];
                     if (prefab is PropInfo prop) {
-                        DecalPropFix.AssignFix(prop);
+                        /* Decal prop fix routine added here to prevent re-allocating new enumerator for all prefabinfo types */
+                        DecalPropFix.AssignFix(prop); /* DECAL PROP FIX ROUTINE */
+                        prop.TransparentLodFix(); /* Transparency LOD Fix Routine */
                         if (prop.m_mesh && prop.m_mesh.name is string propData && AdditiveShaderManager.HasValidData(propData)) {
                             assets.Add(new ManagedAsset(prop));
                             PALog(@"[AdditiveShader] : Loaded a prop - " + prop.name + @" marked as having the AdditiveShader");
                         }
                     } else if (prefab is BuildingInfo building) {
+                        building.TransparentLodFix(); /* Transparency LOD Fix Routine */
                         if (building.m_mesh && AdditiveShaderManager.HasValidData(building.m_mesh.name)) {
                             assets.Add(new ManagedAsset(building));
                             PALog(@"[AdditiveShader] : Loaded a building - " + building.name + @" marked as having the AdditiveShader");
@@ -133,41 +153,32 @@ namespace PropAnarchy {
                     // Adding Additive Shader thread as a coroutine into UIView. This saves valuable resources
                     // instead of creating another gameobject to do mundane work
                     UIView.GetAView().StartCoroutine(AdditiveShaderManager.AdditiveShaderThread());
-                    //AdditiveShaderManager.RefreshRenderGroups();
                 }
             }
         }
 
         public void OnLevelLoaded(LoadMode mode) {
-            PAPatcher.LateEnablePatches();
-            if (ShowIndicators) {
-                UIIndicator indicatorPanel = UIIndicator.Setup();
-                if (indicatorPanel) {
-                    UIIndicator.UIIcon propSnap = default;
-                    propSnap = indicatorPanel.AddSnappingIcon(PALocale.GetLocale(@"PropSnapIsOn"), PALocale.GetLocale(@"PropSnapIsOff"), UsePropSnapping, (_, p) => {
-                        bool state = UsePropSnapping = !UsePropSnapping;
-                        propSnap.State = state;
-                        PAOptionPanel.SetPropSnapState(state);
-                        ThreadPool.QueueUserWorkItem(SaveSettings);
-                    }, out bool finalState);
-                    if (finalState != UsePropSnapping) {
-                        UsePropSnapping = finalState;
-                        propSnap.State = finalState;
-                    }
-                    UIIndicator.UIIcon propAnarchy = default;
-                    propAnarchy = indicatorPanel.AddAnarchyIcon(PALocale.GetLocale(@"PropAnarchyIsOn"), PALocale.GetLocale(@"PropAnarchyIsOff"), UsePropAnarchy, (_, p) => {
-                        bool state = UsePropAnarchy = !UsePropAnarchy;
-                        propAnarchy.State = state;
-                        PAOptionPanel.SetPropAnarchyState(state);
-                        ThreadPool.QueueUserWorkItem(SaveSettings);
-                    }, out finalState);
-                    if (finalState != UsePropAnarchy) {
-                        UsePropAnarchy = finalState;
-                        propAnarchy.State = finalState;
-                    }
+            IsInGame = true;
+            MoveIt.UIToolOptionPanel.AddMoreButtonCallback += PAPainter.AddPropPainterBtn;
+            UIIndicator indicatorPanel = UIIndicator.Setup();
+            if (indicatorPanel) {
+                UIIndicator.UIIcon propSnap = default;
+                propSnap = indicatorPanel.AddSnappingIcon(PALocale.GetLocale(@"PropSnapIsOn"), PALocale.GetLocale(@"PropSnapIsOff"), UsePropSnapping, (_, p) => {
+                    UsePropSnapping = !UsePropSnapping;
+                }, out bool finalState);
+                if (finalState != UsePropSnapping) {
+                    UsePropSnapping = finalState;
+                    propSnap.State = finalState;
+                }
+                UIIndicator.UIIcon propAnarchy = default;
+                propAnarchy = indicatorPanel.AddAnarchyIcon(PALocale.GetLocale(@"PropAnarchyIsOn"), PALocale.GetLocale(@"PropAnarchyIsOff"), UsePropAnarchy, (_, p) => {
+                    UsePropAnarchy = !UsePropAnarchy;
+                }, out finalState);
+                if (finalState != UsePropAnarchy) {
+                    UsePropAnarchy = finalState;
+                    propAnarchy.State = finalState;
                 }
             }
-            PAOptionPanel.UpdateState(true);
             // The original mods created a new GameObject for running additive shader routines. I'm opting
             // to just use existing GameObject and add a coroutine so it doesn't stress Update()
             UpdateCustomPrefabs(); // This thread handles initialization of Additive Shader asset and Decal Prop Fix
@@ -175,7 +186,7 @@ namespace PropAnarchy {
         }
 
         public void OnLevelUnloading() {
-            PAPatcher.LateDisablePatches();
+            IsInGame = false;
             PLT.PropLineTool.UnloadPLT();
             UIView.GetAView().StopCoroutine(AdditiveShaderManager.AdditiveShaderThread());
             AdditiveShaderManager.m_managedAssets = null;
@@ -192,43 +203,77 @@ namespace PropAnarchy {
                     XmlResolver = null
                 };
                 xmlConfig.Load(SettingsFileName);
-                PropLimitScale = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PropLimitScale"));
-                UsePropAnarchy = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UsePropAnarchy"));
-                UsePropSnapping = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UsePropSnapping"));
-                UsePropSnapToBuilding = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UseTreeSnapToBuilding"));
-                UsePropSnapToNetwork = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UseTreeSnapToNetwork"));
-                UsePropSnapToProp = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UseTreeSnapToProp"));
-                UseDecalPropFix = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UseDecalPropFix"));
-            } catch {
+                EPropManager.PROP_LIMIT_SCALE = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PropLimitScale"), System.Globalization.NumberStyles.Float);
+                EPropManager.UsePropAnarchy = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UsePropAnarchy"));
+                EPropManager.UsePropSnapping = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UsePropSnapping"));
+                PLT.Settings.m_autoDefaultSpacing = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"AutoDefaultSpacing"));
+                PLT.Settings.m_angleFlip180 = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"AngleFlip180"));
+                PLT.Settings.m_showUndoPreview = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"ShowUndoPreviews"));
+                PLT.Settings.m_errorChecking = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"ErrorChecking"));
+                PLT.Settings.m_showErrorGuides = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"ShowErrorGuides"));
+                PLT.Settings.m_perfectCircles = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"PerfectCircles"));
+                PLT.Settings.m_linearFenceFill = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"LinearFenceFill"));
+                PLT.Settings.m_useMeshCenterCorrection = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UseMeshCenterCorrection"));
+                TransparencyLODFix.Settings.m_hideClouds = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"HideClouds"));
+                TransparencyLODFix.Settings.m_lodFactorMultiplierProps = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"LodFactorMultiplierProps"), System.Globalization.NumberStyles.Float);
+                TransparencyLODFix.Settings.m_distanceOffsetProps = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"DistanceOffsetProps"), System.Globalization.NumberStyles.Float);
+                TransparencyLODFix.Settings.m_lodDistanceMultiplierProps = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"LodDistanceMultiplierProps"), System.Globalization.NumberStyles.Float);
+                TransparencyLODFix.Settings.m_fallbackRenderDistanceProps = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"FallbackRenderDistanceProps"), System.Globalization.NumberStyles.Float);
+                TransparencyLODFix.Settings.m_lodFactorMultiplierBuildings = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"LodFactorMultiplierBuildings"), System.Globalization.NumberStyles.Float);
+                TransparencyLODFix.Settings.m_distanceOffsetBuildings = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"DistanceOffsetBuildings"), System.Globalization.NumberStyles.Float);
+                TransparencyLODFix.Settings.m_lodDistanceMultiplierBuildings = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"LodDistanceMultiplierBuildings"), System.Globalization.NumberStyles.Float);
+                TransparencyLODFix.Settings.m_fallbackRenderDistanceBuildings = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"FallbackRenderDistanceBuildings"), System.Globalization.NumberStyles.Float);
+            } catch (Exception e) {
+                UnityEngine.Debug.LogException(e);
                 SaveSettings(); // Most likely a corrupted file if we enter here. Recreate the file
                 return false;
             }
             return true;
         }
 
+        private static object settingsLock = new object();
         internal static void SaveSettings(object _ = null) {
-            XmlDocument xmlConfig = new XmlDocument {
-                XmlResolver = null
-            };
-            XmlElement root = xmlConfig.CreateElement(@"PropAnarchyConfig");
-            _ = root.Attributes.Append(AddElement(xmlConfig, @"PropLimitScale", PropLimitScale));
-            _ = root.Attributes.Append(AddElement(xmlConfig, @"UsePropAnarchy", UsePropAnarchy));
-            _ = root.Attributes.Append(AddElement(xmlConfig, @"UsePropSnapping", UsePropSnapping));
-            _ = root.Attributes.Append(AddElement(xmlConfig, @"UsePropSnapToBuilding", UsePropSnapToBuilding));
-            _ = root.Attributes.Append(AddElement(xmlConfig, @"UsePropSnapToNetwork", UsePropSnapToNetwork));
-            _ = root.Attributes.Append(AddElement(xmlConfig, @"UsePropSnapToProp", UsePropSnapToProp));
-            _ = root.Attributes.Append(AddElement(xmlConfig, @"UseDecalPropFix", UseDecalPropFix));
-            xmlConfig.AppendChild(root);
-            xmlConfig.Save(SettingsFileName);
+            Monitor.Enter(settingsLock);
+            try {
+                XmlDocument xmlConfig = new XmlDocument {
+                    XmlResolver = null
+                };
+                XmlElement root = xmlConfig.CreateElement(@"PropAnarchyConfig");
+                root.Attributes.Append(AddElement(xmlConfig, @"PropLimitScale", PropLimitScale));
+                root.Attributes.Append(AddElement(xmlConfig, @"UsePropAnarchy", UsePropAnarchy));
+                root.Attributes.Append(AddElement(xmlConfig, @"UsePropSnapping", UsePropSnapping));
+                root.Attributes.Append(AddElement(xmlConfig, @"AutoDefaultSpacing", PLT.Settings.m_autoDefaultSpacing));
+                root.Attributes.Append(AddElement(xmlConfig, @"AngleFlip180", PLT.Settings.m_angleFlip180));
+                root.Attributes.Append(AddElement(xmlConfig, @"ShowUndoPreviews", PLT.Settings.m_showUndoPreview));
+                root.Attributes.Append(AddElement(xmlConfig, @"ErrorChecking", PLT.Settings.m_errorChecking));
+                root.Attributes.Append(AddElement(xmlConfig, @"ShowErrorGuides", PLT.Settings.m_showErrorGuides));
+                root.Attributes.Append(AddElement(xmlConfig, @"PerfectCircles", PLT.Settings.m_perfectCircles));
+                root.Attributes.Append(AddElement(xmlConfig, @"LinearFenceFill", PLT.Settings.m_linearFenceFill));
+                root.Attributes.Append(AddElement(xmlConfig, @"UseMeshCenterCorrection", PLT.Settings.m_useMeshCenterCorrection));
+                root.Attributes.Append(AddElement(xmlConfig, @"HideClouds", TransparencyLODFix.Settings.m_hideClouds));
+                root.Attributes.Append(AddElement(xmlConfig, @"LodFactorMultiplierProps", TransparencyLODFix.Settings.m_lodFactorMultiplierProps));
+                root.Attributes.Append(AddElement(xmlConfig, @"DistanceOffsetProps", TransparencyLODFix.Settings.m_distanceOffsetProps));
+                root.Attributes.Append(AddElement(xmlConfig, @"LodDistanceMultiplierProps", TransparencyLODFix.Settings.m_lodDistanceMultiplierProps));
+                root.Attributes.Append(AddElement(xmlConfig, @"FallbackRenderDistanceProps", TransparencyLODFix.Settings.m_fallbackRenderDistanceProps));
+                root.Attributes.Append(AddElement(xmlConfig, @"LodFactorMultiplierBuildings", TransparencyLODFix.Settings.m_lodFactorMultiplierBuildings));
+                root.Attributes.Append(AddElement(xmlConfig, @"DistanceOffsetBuildings", TransparencyLODFix.Settings.m_distanceOffsetBuildings));
+                root.Attributes.Append(AddElement(xmlConfig, @"LodDistanceMultiplierBuildings", TransparencyLODFix.Settings.m_lodDistanceMultiplierBuildings));
+                root.Attributes.Append(AddElement(xmlConfig, @"FallbackRenderDistanceBuildings", TransparencyLODFix.Settings.m_fallbackRenderDistanceBuildings));
+                xmlConfig.AppendChild(root);
+                xmlConfig.Save(SettingsFileName);
+            } finally {
+                Monitor.Exit(settingsLock);
+            }
         }
 
-        private static XmlAttribute AddElement<T>(XmlDocument doc, string name, T t) {
+        internal static XmlAttribute AddElement<T>(XmlDocument doc, string name, T t) {
             XmlAttribute attr = doc.CreateAttribute(name);
             attr.Value = t.ToString();
             return attr;
         }
 
         private static readonly Stopwatch profiler = new Stopwatch();
+        private static readonly object fileLock = new object();
         private void CreateDebugFile() {
             profiler.Start();
             /* Create Debug Log File */
@@ -244,21 +289,31 @@ namespace PropAnarchy {
         }
 
         private void OutputPluginsList() {
-            using (FileStream debugFile = new FileStream(Path.Combine(Application.dataPath, m_debugLogFile), FileMode.Append, FileAccess.Write, FileShare.None))
-            using (StreamWriter sw = new StreamWriter(debugFile)) {
-                sw.WriteLine(@"Mods Installed are:");
-                foreach (PluginManager.PluginInfo info in Singleton<PluginManager>.instance.GetPluginsInfo()) {
-                    sw.WriteLine(@"=> " + info.name + '-' + (info.userModInstance as IUserMod).Name + ' ' + (info.isEnabled ? @"** Enabled **" : @"** Disabled **"));
+            Monitor.Enter(fileLock);
+            try {
+                using (FileStream debugFile = new FileStream(Path.Combine(Application.dataPath, m_debugLogFile), FileMode.Append, FileAccess.Write, FileShare.None))
+                using (StreamWriter sw = new StreamWriter(debugFile)) {
+                    sw.WriteLine(@"Mods Installed are:");
+                    foreach (PluginManager.PluginInfo info in Singleton<PluginManager>.instance.GetPluginsInfo()) {
+                        sw.WriteLine(@"=> " + info.name + '-' + (info.userModInstance as IUserMod).Name + ' ' + (info.isEnabled ? @"** Enabled **" : @"** Disabled **"));
+                    }
+                    sw.WriteLine(@"-------------------------------------");
                 }
-                sw.WriteLine(@"-------------------------------------");
+            } finally {
+                Monitor.Exit(fileLock);
             }
         }
 
         internal static void PALog(string msg) {
             var ticks = profiler.ElapsedTicks;
-            using (FileStream debugFile = new FileStream(Path.Combine(Application.dataPath, m_debugLogFile), FileMode.Append))
-            using (StreamWriter sw = new StreamWriter(debugFile)) {
-                sw.WriteLine($"{(ticks / Stopwatch.Frequency):n0}:{(ticks % Stopwatch.Frequency):D7}-{new StackFrame(1, true).GetMethod().Name} ==> {msg}");
+            Monitor.Enter(fileLock);
+            try {
+                using (FileStream debugFile = new FileStream(Path.Combine(Application.dataPath, m_debugLogFile), FileMode.Append))
+                using (StreamWriter sw = new StreamWriter(debugFile)) {
+                    sw.WriteLine($"{(ticks / Stopwatch.Frequency):n0}:{(ticks % Stopwatch.Frequency):D7}-{new StackFrame(1, true).GetMethod().Name} ==> {msg}");
+                }
+            } finally {
+                Monitor.Exit(fileLock);
             }
         }
     }

@@ -4,7 +4,7 @@ using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
-    public class DrawStraightState : ActiveDrawState {
+    public sealed class DrawStraightState : ActiveDrawState {
         private void ContinueDrawingFromLockMode(bool finalizePlacement) {
             //check if in fence mode and line is too short
             if (!GetFenceMode() && m_itemCount > 0 && finalizePlacement && FinalizePlacement(true, false)) {
@@ -571,7 +571,7 @@ namespace PropAnarchy.PLT {
 
                 //then calculate midpoints
                 for (int i = 0; i < numItems; i++) {
-                    items[i].Position = EMath.Lerp(fenceEndPoints[i], fenceEndPoints[i + 1], 0.50f);
+                    items[i].Position = Vector3.Lerp(fenceEndPoints[i], fenceEndPoints[i + 1], 0.50f);
                 }
 
                 //linear fence fill

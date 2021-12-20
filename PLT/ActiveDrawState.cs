@@ -29,6 +29,8 @@ namespace PropAnarchy.PLT {
         public static SegmentXZ m_mainArm2 = new SegmentXZ();
         public static Bezier3 m_mainBezier = new Bezier3();
         public static CircleXZ m_mainCircle = new CircleXZ();
+        public static CircleXZ m_rawCircle = new CircleXZ();
+
         public virtual void OnToolGUI(Event e, bool isInsideUI) {
             m_isCopyPlacing = m_keyboardAltDown = (e.modifiers & EventModifiers.Alt) == EventModifiers.Alt;
             m_keyboardCtrlDown = (e.modifiers & EventModifiers.Control) == EventModifiers.Control;

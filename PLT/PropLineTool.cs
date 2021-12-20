@@ -5,11 +5,10 @@ using EManagersLib;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
-    public class PropLineTool : ToolBase {
+    public sealed class PropLineTool : ToolBase {
         public delegate void DrawCircle(RenderManager.CameraInfo cameraInfo, Color color, Vector3 center, float size, float minY, float maxY, bool renderLimits, bool alphaBlend);
         public delegate void DrawBezier(RenderManager.CameraInfo cameraInfo, Color color, Bezier3 bezier, float size, float cutStart, float cutEnd, float minY, float maxY, bool renderLimits, bool alphaBlend);
         public delegate void DrawSegment(RenderManager.CameraInfo cameraInfo, Color color, Segment3 segment, float size, float dashLen, float minY, float maxY, bool renderLimits, bool alphaBlend);
@@ -89,6 +88,7 @@ namespace PropAnarchy.PLT {
             public bool m_isValidPlacement;
             public ItemCollisionType m_CollisionType;
             public uint m_itemID;
+            public static ItemType m_itemType;
             public float m_t;
             public float m_angle;
             private Vector3 m_position;
@@ -119,6 +119,7 @@ namespace PropAnarchy.PLT {
                     m_prefab = value;
                     float itemWidth, itemLength, itemMaxWidth;
                     if (value is PropInfo propInfo) {
+                        m_itemType = ItemType.PROP;
                         m_itemModelX = itemWidth = propInfo.m_mesh.bounds.extents.x * 2f;
                         m_itemModelZ = itemLength = propInfo.m_mesh.bounds.extents.z * 2f;
                         m_itemWidth = itemWidth < itemLength ? itemWidth : itemLength;
@@ -135,6 +136,7 @@ namespace PropAnarchy.PLT {
                         m_color = propInfo.GetColor(ref randomizer);
                         m_scale = propInfo.m_minScale + randomizer.Int32(10000u) * (propInfo.m_maxScale - propInfo.m_minScale) * 0.0001f;
                     } else if (value is TreeInfo treeInfo) {
+                        m_itemType = ItemType.TREE;
                         m_itemModelX = itemWidth = treeInfo.m_mesh.bounds.extents.x * 2f;
                         m_itemModelZ = itemLength = treeInfo.m_mesh.bounds.extents.z * 2f;
                         m_itemWidth = itemWidth < itemLength ? itemWidth : itemLength;
@@ -222,9 +224,9 @@ namespace PropAnarchy.PLT {
         internal static EffectInfo m_placementEffect;
         private static AudioGroup m_defaultAudioGroup;
         internal static Vector3[] m_fenceEndPoints;
-        internal static ToolBar m_toolBar = null;
         internal static TreeTool m_treeTool;
         internal static PropTool m_propTool;
+        internal static ToolBar m_toolBar = null;
         internal static OptionPanel m_optionPanel = null;
         internal static ItemType m_itemType = ItemType.TREE;
         internal static ControlMode m_controlMode;
@@ -294,18 +296,12 @@ namespace PropAnarchy.PLT {
             m_treeTool = ToolsModifierControl.GetTool<TreeTool>();
             m_propTool = ToolsModifierControl.GetTool<PropTool>();
             m_randomizer = new Randomizer((int)DateTime.Now.Ticks);
-            if (Settings.AnarchyPLTOnByDefault) {
-                Settings.ShowErrorGuides = false;
-                Settings.PlaceBlockedItems = true;
-                Settings.AnarchyPLT = true;
-                Settings.ErrorChecking = false;
-            }
             ResetPLT();
         }
 
         protected override void OnEnable() {
             base.OnEnable();
-            ResetPLT();
+            //ResetPLT();
         }
 
         protected override void OnDisable() {
@@ -313,55 +309,69 @@ namespace PropAnarchy.PLT {
             ResetPLT();
         }
 
-        protected override void OnToolGUI(Event e) => DrawMode.CurrentMode?.OnToolGUI(e, m_toolController.IsInsideUI);
+        protected override void OnDestroy() {
+            m_toolBar = null;
+            m_optionPanel = null;
+        }
 
-        private static bool IsVectorXZPositionChanging(VectorXZ oldPosition, VectorXZ newPosition) => (newPosition - oldPosition).sqrMagnitude > TOLERANCE * TOLERANCE;
+        protected override void OnToolGUI(Event e) {
+            switch (e.type) {
+            case EventType.KeyDown:
+                switch (e.keyCode) {
+                case KeyCode.Escape: return;
+                case KeyCode.Z:
+                    if ((e.modifiers & EventModifiers.Control) == EventModifiers.Control) {
+                        UndoManager.UndoLatestEntry();
+                    }
+                    break;
+                }
+                break;
+            }
+            DrawMode.CurrentMode?.OnToolGUI(e, m_toolController.IsInsideUI);
+        }
 
         public static void UpdateCachedPosition(bool ignorePosChangingCondition) {
-            m_positionChanging = ignorePosChangingCondition || IsVectorXZPositionChanging(m_cachedPosition, m_mousePosition);
+            m_positionChanging = ignorePosChangingCondition || (m_mousePosition - m_cachedPosition).sqrMagnitude > TOLERANCE * TOLERANCE;
             m_cachedPosition = m_mousePosition;
         }
 
         public static bool FinalizePlacement(bool continueDrawing, bool isCopyPlacing) {
             int itemCount = m_itemCount;
             if (itemCount > 0) {
-                DrawMode.CurrentMode.UpdatePlacement();
+                DrawMode.CurrentMode?.UpdatePlacement();
                 ItemInfo[] items = m_items;
                 if (ItemInfo.Prefab is PropInfo propInfo) {
                     for (int i = 0; i < itemCount; i++) {
                         Randomizer randomizer = new Randomizer(EPropManager.m_props.NextFreeItem());
                         PropInfo newPropInfo = m_controlMode == ControlMode.ITEMWISE && i == ITEMWISE_INDEX ? propInfo.GetVariation(ref randomizer) : propInfo;
                         Vector3 position = items[i].Position;
-                        position = Settings.RenderAndPlacePosResVanilla ? position.QuantizeToGameShortGridXYZ() : position;
                         if (Singleton<PropManager>.instance.CreateProp(out uint propID, ref randomizer, newPropInfo, position, items[i].m_angle, true)) {
                             items[i].m_itemID = propID;
-                            DispatchPlacementEffect(ref position, false);
+                            DispatchPlacementEffect(position, false);
                         }
                     }
-                    //undoManager.AddEntry(_itemCount, m_placementInfo, ObjectMode.Props, fenceMode, placementCalculator.segmentState);
                 } else if (ItemInfo.Prefab is TreeInfo treeInfo) {
                     for (int i = 0; i < itemCount; i++) {
                         Randomizer randomizer = new Randomizer(Singleton<TreeManager>.instance.m_trees.NextFreeItem());
                         TreeInfo newTreeInfo = m_controlMode == ControlMode.ITEMWISE && i == ITEMWISE_INDEX ? treeInfo.GetVariation(ref randomizer) : treeInfo;
                         Vector3 position = items[i].Position;
-                        position = Settings.RenderAndPlacePosResVanilla ? position.QuantizeToGameShortGridXYZ() : position;
                         if (Singleton<TreeManager>.instance.CreateTree(out uint treeID, ref randomizer, newTreeInfo, position, true)) {
                             items[i].m_itemID = treeID;
-                            DispatchPlacementEffect(ref position, false);
+                            DispatchPlacementEffect(position, false);
                         }
                     }
-                    //undoManager.AddEntry(_itemCount, m_placementInfo, ObjectMode.Trees, fenceMode, placementCalculator.segmentState);
                 }
                 if (!isCopyPlacing) {
                     m_itemCount = 0;
                     SegmentState.FinalizeForPlacement(continueDrawing);
                 }
+                UndoManager.AddEntry(itemCount, items, GetFenceMode());
                 return true;
             }
             return false;
         }
 
-        public static void DispatchPlacementEffect(ref Vector3 position, bool isBulldozeEffect) {
+        internal static void DispatchPlacementEffect(Vector3 position, bool isBulldozeEffect) {
             InstanceID id = default;
             EffectInfo effectInfo = isBulldozeEffect ? m_bulldozeEffect : m_placementEffect;
             EffectInfo.SpawnArea spawnArea = new EffectInfo.SpawnArea(position, m_vectorUp, 1f);
@@ -382,10 +392,10 @@ namespace PropAnarchy.PLT {
                     switch (oldState) {
                     case ActiveState.ChangeSpacing:
                     case ActiveState.MaxFillContinue:
-                        DrawMode.CurrentMode.UpdatePlacement(true, false);
+                        DrawMode.CurrentMode?.UpdatePlacement(true, false);
                         break;
                     default:
-                        DrawMode.CurrentMode.UpdatePlacement();
+                        DrawMode.CurrentMode?.UpdatePlacement();
                         break;
                     }
                     break;
@@ -420,13 +430,23 @@ namespace PropAnarchy.PLT {
                     m_lockedBackupItemwiseT = m_hoverItemwiseT;
                     break;
                 case ActiveState.MaxFillContinue:
-                    DrawMode.CurrentMode.UpdatePlacement();
+                    DrawMode.CurrentMode?.UpdatePlacement();
                     break;
                 }
             }
         }
 
         protected override void OnToolUpdate() {
+            if (DrawMode.Current != DrawMode.SINGLE) {
+                switch (m_itemType) {
+                case ItemType.TREE:
+                    ItemInfo.Prefab = m_treeTool.m_prefab;
+                    break;
+                case ItemType.PROP:
+                    ItemInfo.Prefab = m_propTool.m_prefab;
+                    break;
+                }
+            }
         }
 
         protected override void OnToolLateUpdate() {
@@ -439,7 +459,6 @@ namespace PropAnarchy.PLT {
 
         public override void RenderGeometry(RenderManager.CameraInfo cameraInfo) {
             DrawMode.CurrentMode?.OnRenderGeometry(cameraInfo);
-            base.RenderGeometry(cameraInfo);
         }
 
         public void RenderMaxFillContinueMarkers(RenderManager.CameraInfo cameraInfo) {
@@ -465,20 +484,11 @@ namespace PropAnarchy.PLT {
             if (m_mouseRayValid && EToolBase.RayCast(input, out EToolBase.RaycastOutput raycastOutput) && !raycastOutput.m_currentEditObject) {
                 m_mousePosition = raycastOutput.m_hitPos;
                 DrawMode.CurrentMode?.OnSimulationStep(raycastOutput.m_hitPos);
-                switch (m_itemType) {
-                case ItemType.TREE:
-                    ItemInfo.Prefab = m_treeTool.m_prefab;
-                    break;
-                case ItemType.PROP:
-                    ItemInfo.Prefab = m_propTool.m_prefab;
-                    break;
-                }
             }
         }
 
         public override void RenderOverlay(RenderManager.CameraInfo cameraInfo) {
             base.RenderOverlay(cameraInfo);
-            if (DrawMode.CurrentMode is null) return;
             Color mainCurveColor = Settings.m_PLTColor_locked;
             Color lockIdleColor = Settings.m_PLTColor_locked;
             Color curveWarningColor = Settings.m_PLTColor_curveWarning;
@@ -491,7 +501,7 @@ namespace PropAnarchy.PLT {
             } else if (m_keyboardCtrlDown) {
                 createPointColor = Settings.m_PLTColor_locked;
                 if (Settings.ShowUndoPreviews) {
-                    //undoManager.RenderLatestEntryCircles(cameraInfo, m_PLTColor_undoItemOverlay);
+                    UndoManager.RenderLatestEntryCircles(cameraInfo, Settings.m_PLTColor_undoItemOverlay);
                 }
             }
             switch (ActiveDrawState.m_currentState) {
@@ -502,12 +512,12 @@ namespace PropAnarchy.PLT {
                 }
                 break;
             case ActiveState.CreatePointSecond: //creating second control point
-                if (!DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.CreatePointSecond, createPointColor, curveWarningColor, copyPlaceColor)) {
+                if (!(DrawMode.CurrentMode is null) && !DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.CreatePointSecond, createPointColor, curveWarningColor, copyPlaceColor)) {
                     goto case ActiveState.CreatePointFirst;
                 }
                 break;
             case ActiveState.CreatePointThird: //creating third control point
-                if (DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.CreatePointThird, createPointColor, curveWarningColor, copyPlaceColor)) {
+                if (!(DrawMode.CurrentMode is null) && DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.CreatePointThird, createPointColor, curveWarningColor, copyPlaceColor)) {
                     goto case ActiveState.CreatePointSecond;
                 }
                 break;
@@ -555,14 +565,14 @@ namespace PropAnarchy.PLT {
                         }
                     }
                 }
-                DrawMode.CurrentMode.RenderLines(cameraInfo, mainCurveColor, curveWarningColor);
+                DrawMode.CurrentMode?.RenderLines(cameraInfo, mainCurveColor, curveWarningColor);
                 ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
                 RenderCircle(cameraInfo, controlPoints[0].m_position, DOTSIZE, lockIdleColor, false, true);
                 RenderCircle(cameraInfo, controlPoints[1].m_position, DOTSIZE, lockIdleColor, false, true);
                 RenderCircle(cameraInfo, controlPoints[2].m_position, DOTSIZE, lockIdleColor, false, true);
                 break;
             case ActiveState.MaxFillContinue:
-                DrawMode.CurrentMode.OnRenderOverlay(cameraInfo, ActiveState.MaxFillContinue, createPointColor, curveWarningColor, copyPlaceColor);
+                DrawMode.CurrentMode?.OnRenderOverlay(cameraInfo, ActiveState.MaxFillContinue, createPointColor, curveWarningColor, copyPlaceColor);
                 break;
             }
             if (Settings.ShowErrorGuides) {
@@ -595,15 +605,18 @@ namespace PropAnarchy.PLT {
             case ActiveState.LockIdle:
                 RenderCircle(cameraInfo, controlPoints[0].m_position, HOVER_POINT_DIAMETER, m_hoverState == HoverState.ControlPointFirst ? highlightColor : baseColor, false, false);
                 RenderCircle(cameraInfo, controlPoints[1].m_position, HOVER_POINT_DIAMETER, m_hoverState == HoverState.ControlPointSecond ? highlightColor : baseColor, false, false);
-                if (DrawMode.Current == DrawMode.CURVED || DrawMode.Current == DrawMode.FREEFORM) {
+                switch (DrawMode.Current) {
+                case DrawMode.CURVED:
+                case DrawMode.FREEFORM:
                     RenderCircle(cameraInfo, controlPoints[2].m_position, HOVER_POINT_DIAMETER, m_hoverState == HoverState.ControlPointThird ? highlightColor : baseColor, false, false);
+                    break;
                 }
                 RenderCircle(cameraInfo, GetFenceMode() ? m_fenceEndPoints[HoverItemPositionIndex] : m_items[HoverItemPositionIndex].Position, HOVER_POINT_DIAMETER,
                     m_hoverState == HoverState.SpacingLocus || m_hoverState == HoverState.ItemwiseItem ? highlightColor : baseColor, false, false);
 
                 //spacing fill indicator
                 if (m_hoverState == HoverState.SpacingLocus) {
-                    DrawMode.CurrentMode.RenderProgressiveSpacingFill(cameraInfo, ItemInfo.ItemSpacing, LINESIZE, 0.20f, Color.Lerp(highlightColor, lockIdleColor, 0.50f), false, true);
+                    DrawMode.CurrentMode?.RenderProgressiveSpacingFill(cameraInfo, ItemInfo.ItemSpacing, LINESIZE, 0.20f, Color.Lerp(highlightColor, lockIdleColor, 0.50f), false, true);
                 }
                 VectorXZ anglePos;
                 VectorXZ angleCenter;
@@ -638,7 +651,7 @@ namespace PropAnarchy.PLT {
                 if (GetFenceMode()) {
                     RenderLine(cameraInfo, new Segment3(m_fenceEndPoints[0], m_fenceEndPoints[1]), 0.05f, 0.50f, Color.Lerp(baseColor, highlightColor, 0.50f), false, true);
                 } else {
-                    DrawMode.CurrentMode.RenderProgressiveSpacingFill(cameraInfo, ItemInfo.ItemSpacing, LINESIZE, 0.20f, highlightColor, false, true);
+                    DrawMode.CurrentMode?.RenderProgressiveSpacingFill(cameraInfo, ItemInfo.ItemSpacing, LINESIZE, 0.20f, highlightColor, false, true);
                 }
                 break;
             case ActiveState.ChangeAngle:
@@ -659,9 +672,8 @@ namespace PropAnarchy.PLT {
         public void RenderPlacementErrorOverlays(RenderManager.CameraInfo cameraInfo) {
             int itemCount = m_itemCount;
             bool anarchy = Settings.AnarchyPLT;
-            bool @override = anarchy || (!anarchy && Settings.PlaceBlockedItems);
-            if ((!SegmentState.AllItemsValid || @override) && itemCount > 0 && DrawMode.CurrentMode.IsActiveStateAnItemRenderState()) {
-                Color32 blockedColor = @override ? new Color32(219, 192, 82, 80) : new Color32(219, 192, 82, 200);
+            if ((!SegmentState.AllItemsValid) && itemCount > 0 && !(DrawMode.CurrentMode is null) && DrawMode.CurrentMode.IsActiveStateAnItemRenderState()) {
+                Color32 blockedColor = new Color32(219, 192, 82, 200);
                 Color32 invalidPlacementColor = anarchy ? new Color32(193, 78, 72, 50) : new Color32(193, 78, 72, 200);
                 float radius;
 
@@ -676,7 +688,7 @@ namespace PropAnarchy.PLT {
                 }
                 ItemInfo[] items = m_items;
                 for (int i = 0; i < itemCount; i++) {
-                    if (!items[i].m_isValidPlacement || @override) {
+                    if (!items[i].m_isValidPlacement) {
                         Vector3 itemPos = items[i].Position;
                         if (items[i].m_CollisionType == ItemCollisionType.Blocked) {
                             RenderCircle(cameraInfo, itemPos, DOTSIZE, blockedColor, false, false);
@@ -726,21 +738,6 @@ namespace PropAnarchy.PLT {
             }
         }
 
-        internal static void BeautificationPanelOnClickPostfix(UIComponent comp) {
-            object objectUserData = comp.objectUserData;
-            if (objectUserData is TreeInfo treeInfo) {
-                ItemInfo.Prefab = treeInfo;
-            } else if (objectUserData is PropInfo propInfo) {
-                ItemInfo.Prefab = propInfo;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void SetTreePrefab(TreeInfo prefab) => ItemInfo.Prefab = prefab;
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void SetPropPrefab(PropInfo prefab) => ItemInfo.Prefab = prefab;
-
         public static void InitializedPLT() {
             ToolController toolController = ToolsModifierControl.toolController;
             try {
@@ -749,20 +746,6 @@ namespace PropAnarchy.PLT {
                     propLineTool = toolController.gameObject.AddComponent<PropLineTool>();
                 }
                 UIView mainView = UIView.GetAView();
-#if FALSE
-                UITabContainer tsContainer = FindTSContainer(mainView);
-                tsContainer.eventClicked += (c, p) => {
-                    object objectUserData = c.objectUserData;
-                    if(objectUserData is TreeInfo treeInfo) {
-                        ItemInfo.Prefab = treeInfo;
-                        PAModule.PALog($"{treeInfo}");
-                    } else if(objectUserData is PropInfo propInfo) {
-                        ItemInfo.Prefab = propInfo;
-                        PAModule.PALog($"{propInfo}");
-                    }
-                    PAModule.PALog($"Event clicked from {c}");
-                };
-#endif
                 // because of shared textures, make sure to initialize toolbar first before optionpanel
                 m_toolBar = mainView.AddUIComponent(typeof(ToolBar)) as ToolBar;
                 m_optionPanel = mainView.AddUIComponent(typeof(OptionPanel)) as OptionPanel;

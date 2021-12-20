@@ -7,7 +7,7 @@ namespace PropAnarchy.PLT {
         public const float THRESHOLD = 1E-05f;
         public float x, z;
 #pragma warning disable IDE1006
-        public float magnitude => EMath.Sqrt(x * x + z * z);
+        public float magnitude => (float)Math.Sqrt(x * x + z * z);
         public float sqrMagnitude => x * x + z * z;
         public VectorXZ normalized {
             get {

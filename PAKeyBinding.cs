@@ -1,7 +1,5 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
-using System.Threading;
-using UI;
 using UnityEngine;
 using static PropAnarchy.PAModule;
 
@@ -22,6 +20,8 @@ namespace PropAnarchy {
         private static readonly string incrementPropSize = @"incrPropVariation";
         [RebindableKey(@"PropAnarchy")]
         private static readonly string decrementPropSize = @"decrPropVariation";
+        [RebindableKey(@"PropAnarchy")]
+        private static readonly string toggleTerrainConform = @"toggleTerrainConform";
 
         private static readonly InputKey defaultTogglePropSnappingKey = SavedInputKey.Encode(KeyCode.S, false, false, true);
         private static readonly InputKey defaultTogglePropAnarchyKey = SavedInputKey.Encode(KeyCode.A, false, false, true);
@@ -29,6 +29,7 @@ namespace PropAnarchy {
         private static readonly InputKey defaultUngroupPropKey = SavedInputKey.Encode(KeyCode.U, true, false, false);
         private static readonly InputKey defaultIncrementPropSizeKey = SavedInputKey.Encode(KeyCode.Period, false, false, false);
         private static readonly InputKey defaultDecrementPropSizeKey = SavedInputKey.Encode(KeyCode.Comma, false, false, false);
+        private static readonly InputKey defaultToggleTerrainConformKey = SavedInputKey.Encode(KeyCode.T, false, false, true);
 
         private static readonly SavedInputKey m_propSnapping = new SavedInputKey(togglePropSnapping, KeybindingConfigFile, defaultTogglePropSnappingKey, true);
         private static readonly SavedInputKey m_propAnarchy = new SavedInputKey(togglePropAnarchy, KeybindingConfigFile, defaultTogglePropAnarchyKey, true);
@@ -36,6 +37,7 @@ namespace PropAnarchy {
         private static readonly SavedInputKey m_ungroupProps = new SavedInputKey(ungroupProps, KeybindingConfigFile, defaultUngroupPropKey, true);
         private static readonly SavedInputKey m_incrPropVariation = new SavedInputKey(incrementPropSize, KeybindingConfigFile, defaultIncrementPropSizeKey, true);
         private static readonly SavedInputKey m_decrPropVariation = new SavedInputKey(decrementPropSize, KeybindingConfigFile, defaultDecrementPropSizeKey, true);
+        private static readonly SavedInputKey m_terrainConform = new SavedInputKey(toggleTerrainConform, KeybindingConfigFile, defaultToggleTerrainConformKey, true);
 
         protected void Update() {
             if (!UIView.HasModalInput() && !UIView.HasInputFocus()) {
@@ -45,15 +47,11 @@ namespace PropAnarchy {
                 } else if (m_ungroupProps.IsPressed(e)) {
                     //SingletonLite<PAManager>.instance.UngroupProps();
                 } else if (m_propSnapping.IsPressed(e)) {
-                    bool state = UsePropSnapping = !UsePropSnapping;
-                    PAOptionPanel.SetPropSnapState(state);
-                    UIIndicator.SnapIndicator?.SetState(state);
-                    ThreadPool.QueueUserWorkItem(SaveSettings);
+                    UsePropSnapping = !UsePropSnapping;
                 } else if (m_propAnarchy.IsPressed(e)) {
-                    bool state = UsePropAnarchy = !UsePropAnarchy;
-                    PAOptionPanel.SetPropAnarchyState(state);
-                    UIIndicator.AnarchyIndicator?.SetState(state);
-                    ThreadPool.QueueUserWorkItem(SaveSettings);
+                    UsePropAnarchy = !UsePropAnarchy;
+                } else if (m_terrainConform.IsPressed(e)) {
+                    //PAManager.ToggleTerrainConform();
                 } else if (IsCustomPressed(m_incrPropVariation, e)) {
                     PAManager.IncrementPropSize();
                 } else if (IsCustomPressed(m_decrPropVariation, e)) {
@@ -72,10 +70,11 @@ namespace PropAnarchy {
             desc.text = PALocale.GetLocale(@"KeyBindDescription");
             AddKeymapping(@"PropSnapping", m_propSnapping);
             AddKeymapping(@"PropAnarchy", m_propAnarchy);
-            AddKeymapping(@"GroupProps", m_groupProps);
-            AddKeymapping(@"UngroupProps", m_ungroupProps);
+            //AddKeymapping(@"GroupProps", m_groupProps);
+            //AddKeymapping(@"UngroupProps", m_ungroupProps);
             AddKeymapping(@"IncreasePropSize", m_incrPropVariation);
             AddKeymapping(@"DecreasePropSize", m_decrPropVariation);
+            //AddKeymapping(@"TerrainConform", m_terrainConform);
         }
 
         private bool IsCustomPressed(SavedInputKey inputKey, Event e) {

@@ -1,5 +1,7 @@
 ﻿using ColossalFramework.UI;
+using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -43,7 +45,7 @@ namespace PropAnarchy {
             for (int i = 0; i < spriteNames.Length; i++) {
                 textures[i] = LoadTextureFromAssembly(path + spriteNames[i] + ".png");
             }
-            Rect[] rects = texture2D.PackTextures(textures, 2, maxSpriteSize);
+            Rect[] regions = texture2D.PackTextures(textures, 2, maxSpriteSize);
             UITextureAtlas uITextureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
             Material material = UnityEngine.Object.Instantiate(UIView.GetAView().defaultAtlas.material);
             material.mainTexture = texture2D;
@@ -53,7 +55,7 @@ namespace PropAnarchy {
                 UITextureAtlas.SpriteInfo item = new UITextureAtlas.SpriteInfo() {
                     name = spriteNames[j],
                     texture = textures[j],
-                    region = rects[j]
+                    region = regions[j]
                 };
                 uITextureAtlas.AddSprite(item);
             }
@@ -64,9 +66,8 @@ namespace PropAnarchy {
             UnmanagedMemoryStream s = (UnmanagedMemoryStream)Assembly.GetExecutingAssembly().GetManifestResourceStream(filename);
             byte[] array = new byte[s.Length];
             s.Read(array, 0, array.Length);
-            Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
+            Texture2D texture = new Texture2D(2, 2);
             texture.LoadImage(array);
-            texture.Compress(false);
             return texture;
         }
 
@@ -77,6 +78,15 @@ namespace PropAnarchy {
                     return atlases[i];
             }
             return UIView.GetAView().defaultAtlas;
+        }
+
+        internal static IEnumerable<CodeInstruction> DebugPatchOutput(IEnumerable<CodeInstruction> instructions, MethodBase method) {
+            PAModule.PALog("---- " + method.Name + " ----");
+            foreach (var code in instructions) {
+                PAModule.PALog(code.ToString());
+                yield return code;
+            }
+            PAModule.PALog("------------------------------------------");
         }
     }
 }

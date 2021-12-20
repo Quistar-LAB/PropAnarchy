@@ -1,90 +1,113 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<!DOCTYPE root [
-    <!ELEMENT root ANY>
-    <!ELEMENT string ANY>
-    <!ATTLIST string name ID #REQUIRED>
+<!DOCTYPE resources [
+  <!ELEMENT resources ANY>
+  <!ELEMENT string ANY>
+  <!ATTLIST string name ID #REQUIRED>
 ]>
 <!-- PropAnarchy Default Locale Template -->
 <resources>
-    <!-- Painter Translation -->
-    <string name="PainterTooltip">Prop Painter</string>
-    <!-- PLT Specific Translation -->
-    <string name="PLTToggleSnapping">PLT: Toggle Snapping</string>
-    <string name="PLTToggleFenceMode">PLT: Toggle Fence Mode</string>
-    <string name="PLTToggleControlPanel">PLT: Show/Hide Option Panel</string>
-    <string name="PLTTitleBar">PLT Settings</string>
-    <string name="PLTParameters">Parameters</string>
-    <string name="PLTOptions">Options</string>
-    <string name="PLTItemWiseTooltip">Itemwise control&#xA;Place one item at a time along the curve</string>
-    <string name="PLTSpacingTooltip">Spacingwise control&#xA;Place items at discrete intervals</string>
-    <string name="PLTDecouplePrevSegment">Decouple From Previous Segment</string>
-    <string name="PLTSpacingTitle">Spacing</string>
-    <string name="PLTAutoDefaultSpacing">Auto-Default Spacing</string>
-    <string name="PLTAutoDefaultSpacingTooltip">If enabled, automatically sets default spacing whenever a different prop/tree type is selected.&#xA;Spacing will still auto-default when toggling fence mode</string>
-    <string name="PLTAngleTitle">Angle</string>
-    <string name="PLTAngleDynamic">Angle Dynamic</string>
-    <string name="PLTAngleSingle">Angle Single</string>
-    <string name="PLTFlip180">Flip 180&#xb0;</string>
-    <string name="PLTFlip180Tooltip">Rotate props by 180&#xb0; without rotating the change-angle handle in Lock Mode (green)</string>
-    <string name="PLTRelativeAngle">Relative Angle</string>
-    <!-- PLT Calculator Specific Translation -->
-    <string name="PLTDefault">Default</string>
-    <string name="PLTLength">Length</string>
-    <string name="PLTWidth">Width</string>
-    <string name="PLTRound">Round</string>
-    <string name="PLTZero">Zero</string>
-    <!-- PLT Option Specific Translation -->
-    <string name="PLTShowUndoPreview">Show Undo Preview</string>
-    <string name="PLTShowUndoPreviewTooltip">Highlights which items will be deleted in the next Undo command when [Ctrl] key is held</string>
-    <string name="PLTErrorChecking">Error Checking</string>
-    <string name="PLTErrorCheckingTooltip">Toggles whether collision-error calculations are run. Disabling may improve performance</string>
-    <string name="PLTShowErrorGuides">Show Error Guides</string>
-    <string name="PLTShowErrorGuidesTooltip">Highlights items that are blocked by road/building (Yellow-Orange) and items that are invalid placement (Red)</string>
-    <string name="PLTAnarchy">PLT Anarchy</string>
-    <string name="PLTAnarchyTooltip">If Enabled, items are placed regardless of collision-errors</string>
-    <string name="PLTPlaceBlockedItem">Place Blocked Items</string>
-    <string name="PLTPlaceBlockedItemTooltip">If Enabled, items blocked by road/building (Yellow-Orange) will be placed, while invalid items (Red) will not</string>
-    <string name="PLTMeshCenterCorrection">Use Mesh for Center Correction</string>
-    <string name="PLTMeshCenterCorrectionTooltip">Attempt to center items within their footprint.&#xA;Good for props that are not centered within their bounds</string>
-    <string name="PLTPerfectCircle">Perfect Circle</string>
-    <string name="PLTPerfectCircleTooltip">If Enabled, circles snap to the nearest size that would perfectly fit all items on the curve.&#xA;The nearest size depends on the Spacing parameter</string>
-    <string name="PLTLinearFence">Linear Fence Fill</string>
-    <string name="PLTLinearFenceTooltip">When drawing straight fences, overlaps the final piece to end at exact mouse position</string>
-    <!-- Misc Props -->
-    <string name="GroupProps">Group Props</string>
-    <string name="UngroupProps">Ungroup Props</string>
-    <!-- Indicator Messages -->
-    <string name="PropAnarchyIsOff">Prop Anarchy is OFF</string>
-    <string name="PropAnarchyIsOn">Prop Anarchy is ON</string>
-    <!-- Prop Snapping -->
-    <string name="PropSnapping">Prop Snapping</string>
-    <string name="PropSnapIsOff">Prop Snapping is OFF</string>
-    <string name="PropSnapIsOn">Prop Snapping is ON</string>
-    <!-- Decal Prop Fix -->
-    <string name="DecalPropFix">Decal Prop Fix</string>
-    <!-- Prop Anarchy -->
-    <string name="PropAnarchy">Prop Anarchy</string>
-    <string name="PropAnarchyDesc">Allows you to place props anywhere. When you place networks or buildings, you may use the following setting to hide the prop or delete the prop</string>
-    <string name="PropAnarchyBehaviour">Behavior when overlap occurs</string>
-    <string name="AnarchyHideProp">Hide Prop</string>
-    <string name="AnarchyDeleteProp">Delete Prop</string>
-    <!-- Prop Resize -->
-    <string name="IncreasePropSize">Increase prop size</string>
-    <string name="DecreasePropSize">Decrease prop size</string>
-    <string name="PressAnyKey">Press any key</string>
-    <!-- Tab Strips -->
-    <string name="MainOptionTab">Main Options</string>
-    <string name="ExtraFunctionsTab">Extra Functions</string>
-    <string name="KeyboardShortcutTab">Key Binding</string>
-    <string name="KeyBindDescription">When binding hotkeys, please make sure to use modifiers (SHIFT | CONTROL | ALT) for Prop Anarchy. For prop size increment and decrement hotkeys, it is specially treated so you don&#x27;t have to use modifiers, but please make sure to pick a unique hotkey.</string>
-    <!-- Main options -->
-    <string name="EnableCustomLimit">Enable Custom Prop Limit</string>
-    <string name="MaxPropLimitTitle">Configure Custom Prop Limit</string>
-    <string name="MaxPropLimit">Maximum Prop Limit:  {0} props</string>
-    <string name="Important">Important! Must be set before starting/loading a game</string>
-    <!-- Tree Snapping specific -->
-    <string name="PropSnap">Prop Snapping</string>
-    <string name="PropSnapLabel">This option allows free movement of trees, and allows trees to be snapped to buildings and props</string>
-    <string name="PropSnapToBuilding">Enable this option to allow props to snap to buildings</string>
-    <string name="PropSnapToNetwork">Enable this option to allow prop to snap to networks</string>
+  <!-- Painter Translation -->
+  <string name="PropPainter">Prop Painter</string>
+  <string name="PainterTooltip">Prop Painter</string>
+  <!-- PLT Specific Translation -->
+  <string name="PropLineTool">Prop Line Tool</string>
+  <string name="PLTToggleSnapping">PLT: Toggle Snapping</string>
+  <string name="PLTToggleFenceMode">PLT: Toggle Fence Mode</string>
+  <string name="PLTToggleControlPanel">PLT: Show/Hide Option Panel</string>
+  <string name="PLTTitleBar">PLT Settings</string>
+  <string name="PLTParameters">Parameters</string>
+  <string name="PLTOptions">Options</string>
+  <string name="PLTItemWiseTooltip">Itemwise control&#xA;Place one item at a time along the curve</string>
+  <string name="PLTSpacingTooltip">Spacingwise control&#xA;Place items at discrete intervals</string>
+  <string name="PLTDecouplePrevSegment">Decouple From Previous Segment</string>
+  <string name="PLTSpacingTitle">Spacing</string>
+  <string name="PLTAutoDefaultSpacing">Auto-Default Spacing</string>
+  <string name="PLTAutoDefaultSpacingTooltip">If enabled, automatically sets default spacing whenever a different prop/tree type is selected.&#xA;Spacing will still auto-default when toggling fence mode</string>
+  <string name="PLTAngleTitle">Angle</string>
+  <string name="PLTAngleDynamic">Angle Dynamic</string>
+  <string name="PLTAngleSingle">Angle Single</string>
+  <string name="PLTFlip180">Flip 180&#xb0;</string>
+  <string name="PLTFlip180Tooltip">Rotate props by 180&#xb0; without rotating the change-angle handle in Lock Mode (green)</string>
+  <string name="PLTRelativeAngle">Relative Angle</string>
+  <!-- PLT Calculator Specific Translation -->
+  <string name="PLTDefault">Default</string>
+  <string name="PLTLength">Length</string>
+  <string name="PLTWidth">Width</string>
+  <string name="PLTRound">Round</string>
+  <string name="PLTZero">Zero</string>
+  <!-- PLT Option Specific Translation -->
+  <string name="PLTShowUndoPreview">Show Undo Preview</string>
+  <string name="PLTShowUndoPreviewTooltip">Highlights which items will be deleted in the next Undo command when [Ctrl] key is held</string>
+  <string name="PLTErrorChecking">Error Checking</string>
+  <string name="PLTErrorCheckingTooltip">Toggles whether collision-error calculations are run. Disabling may improve performance</string>
+  <string name="PLTShowErrorGuides">Show Error Guides</string>
+  <string name="PLTShowErrorGuidesTooltip">Highlights items that are blocked by road/building (Yellow-Orange) and items that are invalid placement (Red)</string>
+  <string name="PLTAnarchy">PLT Anarchy</string>
+  <string name="PLTAnarchyTooltip">If Enabled, items are placed regardless of collision-errors</string>
+  <string name="PLTPlaceBlockedItem">Place Blocked Items</string>
+  <string name="PLTPlaceBlockedItemTooltip">If Enabled, items blocked by road/building (Yellow-Orange) will be placed, while invalid items (Red) will not</string>
+  <string name="PLTMeshCenterCorrection">Use Mesh for Center Correction</string>
+  <string name="PLTMeshCenterCorrectionTooltip">Attempt to center items within their footprint.&#xA;Good for props that are not centered within their bounds</string>
+  <string name="PLTPerfectCircle">Perfect Circle</string>
+  <string name="PLTPerfectCircleTooltip">If Enabled, circles snap to the nearest size that would perfectly fit all items on the curve.&#xA;The nearest size depends on the Spacing parameter</string>
+  <string name="PLTLinearFence">Linear Fence Fill</string>
+  <string name="PLTLinearFenceTooltip">When drawing straight fences, overlaps the final piece to end at exact mouse position</string>
+  <!-- Misc Props -->
+  <string name="GroupProps">Group Props</string>
+  <string name="UngroupProps">Ungroup Props</string>
+  <!-- Indicator Messages -->
+  <string name="PropAnarchyIsOff">Prop Anarchy is OFF</string>
+  <string name="PropAnarchyIsOn">Prop Anarchy is ON</string>
+  <!-- Terrain Conform -->
+  <string name="TerrainConform">Terrain Conform</string>
+  <!-- Prop Snapping -->
+  <string name="PropSnapping">Prop Snapping</string>
+  <string name="PropSnapIsOff">Prop Snapping is OFF</string>
+  <string name="PropSnapIsOn">Prop Snapping is ON</string>
+  <!-- Decal Prop Fix -->
+  <string name="DecalPropFix">Decal Prop Fix</string>
+  <!-- Additive Shader -->
+  <string name="AdditiveShader">Additive Shader</string>
+  <!-- Transparency LOD Fix -->
+  <string name="TransparencyLODFix">Transparency LOD Fix</string>
+  <string name="HideCloud">Hide Cloud</string>
+  <string name="LODFactorMultiplier">LOD Factor Multiplier</string>
+  <string name="LODDistanceOffset">LOD Distance Offset</string>
+  <string name="LODDistanceMultiplier">LOD Distance Multiplier</string>
+  <string name="FallbackRenderDistance">Fallback Render Distance</string>
+  <string name="PropLODFixSetting">Prop LOD Fix Settings</string>
+  <string name="BuildingLODFixSetting">Building LOD Fix Settings</string>
+  <string name="DestroyAllClouds">Destroy All Clouds (Irreversible)</string>
+  <string name="Reset">Reset</string>
+  <!-- Adaptive Prop Visibility -->
+  <string name="AdaptivePropVisibility">Adaptive Prop Visibility</string>
+  <!-- Prop Anarchy -->
+  <string name="PropAnarchy">Prop Anarchy</string>
+  <string name="PropAnarchyDesc">Allows you to place props anywhere. When you place networks or buildings, you may use the following setting to hide the prop or delete the prop</string>
+  <string name="PropAnarchyBehaviour">Behavior when overlap occurs</string>
+  <string name="AnarchyHideProp">Hide Prop</string>
+  <string name="AnarchyDeleteProp">Delete Prop</string>
+  <!-- Prop Resize -->
+  <string name="IncreasePropSize">Increase prop size</string>
+  <string name="DecreasePropSize">Decrease prop size</string>
+  <string name="PressAnyKey">Press any key</string>
+  <!-- Tab Strips -->
+  <string name="MainOptionTab">Main Options</string>
+  <string name="ExtraFunctionsTab">Extra Functions</string>
+  <string name="KeyboardShortcutTab">Key Binding</string>
+  <string name="KeyBindDescription">When binding hotkeys, please make sure to use modifiers (SHIFT | CONTROL | ALT) for Prop Anarchy. For prop size increment and decrement hotkeys, it is specially treated so you don&#x27;t have to use modifiers, but please make sure to pick a unique hotkey.</string>
+  <!-- Main options -->
+  <string name="EnableCustomLimit">Enable Custom Prop Limit</string>
+  <string name="MaxPropLimitTitle">Configure Custom Prop Limit</string>
+  <string name="MaxPropLimit">Maximum Prop Limit:  {0} props</string>
+  <string name="Important">Important! Must be set before starting/loading a game&#xA;Please note that increasing prop limit can have minor performance implications. Although EML is optimized to render props faster than vanilla game, this optimization was primarily focused to leverage the cost of increased prop limit. It is best to increase it incrementally as your prop limit requirement increases in your game progression</string>
+  <!-- Tree Snapping specific -->
+  <string name="PropSnap">Prop Snapping</string>
+  <string name="PropSnapLabel">This option allows free movement of trees, and allows trees to be snapped to buildings and props</string>
+  <string name="PropSnapToBuilding">Enable this option to allow props to snap to buildings</string>
+  <string name="PropSnapToNetwork">Enable this option to allow prop to snap to networks</string>
+  <!-- Misc. -->
+  <string name="builtinFunction">Builtin function:</string>
+  <string name="isEnabled">is enabled</string>
+  <string name="isDisabled">is disabled</string>
 </resources>

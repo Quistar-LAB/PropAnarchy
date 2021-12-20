@@ -5,7 +5,7 @@ using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
-    public class DrawFreeformState : ActiveDrawState {
+    public sealed class DrawFreeformState : ActiveDrawState {
         private void ContinueDrawingFromLockMode(bool finalizePlacement) {
             //check if in fence mode and line is too short
             if (!GetFenceMode() && m_itemCount > 0 && finalizePlacement && FinalizePlacement(true, false)) {
@@ -670,7 +670,7 @@ label_endpointsFinish:
                     break;
                 case ActiveState.ChangeSpacing:
                     if (m_mainBezier.IsCloseToCurveXZ(HOVER_CURVEDISTANCE_THRESHOLD * 8f, m_cachedPosition, out float hoverCurveT)) {
-                        float curveT = Mathf.Clamp(hoverCurveT, m_items[0].m_t, 0.995f);
+                        float curveT = EMath.Clamp(hoverCurveT, m_items[0].m_t, 0.995f);
                         if (GetFenceMode()) {
                             Vector3 curveDistance = m_mainBezier.Position(curveT) - m_fenceEndPoints[0];
                             ItemInfo.ItemSpacing = curveDistance.MagnitudeXZ();
