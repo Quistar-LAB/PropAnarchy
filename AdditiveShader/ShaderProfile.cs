@@ -132,6 +132,14 @@ namespace PropAnarchy.AdditiveShader {
             }
         }
 
+        public ShaderProfile(Profiles profile = Profiles.STATIC) {
+            m_profile = profile;
+            OnTime = 0f;
+            OffTime = 0f;
+            Fade = 0f;
+            Intensity = 0f;
+        }
+
         /// <summary>
         /// <para>Gets a value defining the game time at which shader is shown.</para>
         /// <para>Note: Will be negative if <c>AlwaysOff</c> keyword was used.</para>

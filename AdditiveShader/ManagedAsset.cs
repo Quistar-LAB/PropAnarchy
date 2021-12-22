@@ -183,7 +183,13 @@ namespace PropAnarchy.AdditiveShader {
             m_prefab = prefab;
             IsContainer = false;
             CachedRenderDistance = RenderDistance(prefab.m_generatedInfo.m_size);
-            Profile = new ShaderProfile(prefab.m_mesh.name);
+            try {
+                Profile = new ShaderProfile(prefab.m_mesh.name);
+            } catch {
+                PAModule.PALog($"Failed to create Additive Shader profile for: {prefab.name}");
+                PAModule.PALog($"Additive signature is: {prefab.m_mesh.name}");
+                Profile = new ShaderProfile(ShaderProfile.Profiles.STATIC);
+            }
             backup_lodHasDifferentShader = false;
             backup_lodMissing = false;
             backup_meshColors = prefab.m_mesh.colors.Clone() as Color[];
