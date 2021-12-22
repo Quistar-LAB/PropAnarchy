@@ -3,9 +3,8 @@ using EManagersLib;
 using UnityEngine;
 
 namespace PropAnarchy.UI {
-    public class UIFancySlider : UIComponent {
+    public sealed class UIFancySlider : UIComponent {
         private const float HEIGHT = 30f;
-        private const float SLIDERWIDTH = 500f;
         private const float LEFTSPRITEWIDTH = 50f;
         private const float RIGHTSPRITEWIDTH = 50f;
         private UISlider m_slider;
