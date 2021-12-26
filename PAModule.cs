@@ -17,10 +17,10 @@ using UI;
 using UnityEngine;
 
 namespace PropAnarchy {
-    public class PAModule : ILoadingExtension, IUserMod {
+    public sealed class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = @"Prop Anarchy";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.5.8";
+        internal const string m_modVersion = @"0.6.0";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
@@ -42,7 +42,6 @@ namespace PropAnarchy {
                     EPropManager.UsePropAnarchy = value;
                     UIIndicator.AnarchyIndicator?.SetState(value);
                     if (PAOptionPanel.m_propAnarchyCB) PAOptionPanel.m_propAnarchyCB.isChecked = value;
-                    ThreadPool.QueueUserWorkItem(SaveSettings);
                 }
             }
         }
@@ -205,13 +204,12 @@ namespace PropAnarchy {
                 };
                 xmlConfig.Load(SettingsFileName);
                 EPropManager.PROP_LIMIT_SCALE = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PropLimitScale"), System.Globalization.NumberStyles.Float);
-                EPropManager.UsePropAnarchy = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UsePropAnarchy"));
+                //EPropManager.UsePropAnarchy = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UsePropAnarchy"));
                 EPropManager.UsePropSnapping = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UsePropSnapping"));
-                PLT.Settings.m_autoDefaultSpacing = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"AutoDefaultSpacing"));
+                PLT.Settings.m_controlMode = (PLT.PropLineTool.ControlMode)int.Parse(xmlConfig.DocumentElement.GetAttribute(@"ControlMode"));
+                PLT.Settings.m_angleMode = (PLT.PropLineTool.AngleMode)int.Parse(xmlConfig.DocumentElement.GetAttribute(@"AngleMode"));
                 PLT.Settings.m_angleFlip180 = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"AngleFlip180"));
                 PLT.Settings.m_showUndoPreview = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"ShowUndoPreviews"));
-                PLT.Settings.m_errorChecking = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"ErrorChecking"));
-                PLT.Settings.m_showErrorGuides = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"ShowErrorGuides"));
                 PLT.Settings.m_perfectCircles = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"PerfectCircles"));
                 PLT.Settings.m_linearFenceFill = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"LinearFenceFill"));
                 PLT.Settings.m_useMeshCenterCorrection = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UseMeshCenterCorrection"));
@@ -232,7 +230,7 @@ namespace PropAnarchy {
             return true;
         }
 
-        private static object settingsLock = new object();
+        private static readonly object settingsLock = new object();
         internal static void SaveSettings(object _ = null) {
             Monitor.Enter(settingsLock);
             try {
@@ -241,13 +239,12 @@ namespace PropAnarchy {
                 };
                 XmlElement root = xmlConfig.CreateElement(@"PropAnarchyConfig");
                 root.Attributes.Append(AddElement(xmlConfig, @"PropLimitScale", PropLimitScale));
-                root.Attributes.Append(AddElement(xmlConfig, @"UsePropAnarchy", UsePropAnarchy));
+                //root.Attributes.Append(AddElement(xmlConfig, @"UsePropAnarchy", UsePropAnarchy));
                 root.Attributes.Append(AddElement(xmlConfig, @"UsePropSnapping", UsePropSnapping));
-                root.Attributes.Append(AddElement(xmlConfig, @"AutoDefaultSpacing", PLT.Settings.m_autoDefaultSpacing));
+                root.Attributes.Append(AddElement(xmlConfig, @"ControlMode", (int)PLT.Settings.m_controlMode));
+                root.Attributes.Append(AddElement(xmlConfig, @"AngleMode", (int)PLT.Settings.m_angleMode));
                 root.Attributes.Append(AddElement(xmlConfig, @"AngleFlip180", PLT.Settings.m_angleFlip180));
                 root.Attributes.Append(AddElement(xmlConfig, @"ShowUndoPreviews", PLT.Settings.m_showUndoPreview));
-                root.Attributes.Append(AddElement(xmlConfig, @"ErrorChecking", PLT.Settings.m_errorChecking));
-                root.Attributes.Append(AddElement(xmlConfig, @"ShowErrorGuides", PLT.Settings.m_showErrorGuides));
                 root.Attributes.Append(AddElement(xmlConfig, @"PerfectCircles", PLT.Settings.m_perfectCircles));
                 root.Attributes.Append(AddElement(xmlConfig, @"LinearFenceFill", PLT.Settings.m_linearFenceFill));
                 root.Attributes.Append(AddElement(xmlConfig, @"UseMeshCenterCorrection", PLT.Settings.m_useMeshCenterCorrection));
