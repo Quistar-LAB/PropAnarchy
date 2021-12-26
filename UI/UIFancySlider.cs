@@ -14,15 +14,12 @@ namespace PropAnarchy.UI {
         private UILabel m_rightLabel;
         private static UITextureAtlas m_atlas = null;
 
-        public string text {
-            get => m_sliderLabel.text;
-            set => m_sliderLabel.text = value;
-        }
-
+#pragma warning disable IDE1006 // Naming Styles
         public float value {
             get => m_slider.value;
             set => m_slider.value = value;
         }
+#pragma warning restore IDE1006 // Naming Styles
 
         public override void Awake() {
             UITextureAtlas atlas;

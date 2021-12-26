@@ -4,7 +4,7 @@ using MoveIt;
 using UnityEngine;
 
 namespace PropAnarchy {
-    public partial class PAManager : SingletonLite<PAManager> {
+    public sealed partial class PAManager : SingletonLite<PAManager> {
         public const float minScale = 0.2f;
         public const float maxScale = 5.0f;
         public const float scaleStep = 0.2f;

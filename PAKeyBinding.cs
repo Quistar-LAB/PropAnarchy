@@ -1,10 +1,11 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
+using System;
 using UnityEngine;
 using static PropAnarchy.PAModule;
 
 namespace PropAnarchy {
-    internal class PAKeyBinding : UICustomControl {
+    internal sealed class PAKeyBinding : UICustomControl {
         private const string thisCategory = @"PropAnarchy";
         private SavedInputKey m_EditingBinding;
 
@@ -31,15 +32,34 @@ namespace PropAnarchy {
         private static readonly InputKey defaultDecrementPropSizeKey = SavedInputKey.Encode(KeyCode.Comma, false, false, false);
         private static readonly InputKey defaultToggleTerrainConformKey = SavedInputKey.Encode(KeyCode.T, false, false, true);
 
-        private static readonly SavedInputKey m_propSnapping = new SavedInputKey(togglePropSnapping, KeybindingConfigFile, defaultTogglePropSnappingKey, true);
-        private static readonly SavedInputKey m_propAnarchy = new SavedInputKey(togglePropAnarchy, KeybindingConfigFile, defaultTogglePropAnarchyKey, true);
-        private static readonly SavedInputKey m_groupProps = new SavedInputKey(groupProps, KeybindingConfigFile, defaultGroupPropKey, true);
-        private static readonly SavedInputKey m_ungroupProps = new SavedInputKey(ungroupProps, KeybindingConfigFile, defaultUngroupPropKey, true);
-        private static readonly SavedInputKey m_incrPropVariation = new SavedInputKey(incrementPropSize, KeybindingConfigFile, defaultIncrementPropSizeKey, true);
-        private static readonly SavedInputKey m_decrPropVariation = new SavedInputKey(decrementPropSize, KeybindingConfigFile, defaultDecrementPropSizeKey, true);
-        private static readonly SavedInputKey m_terrainConform = new SavedInputKey(toggleTerrainConform, KeybindingConfigFile, defaultToggleTerrainConformKey, true);
+        private static readonly SavedInputKey m_propSnapping;
+        private static readonly SavedInputKey m_propAnarchy;
+        private static readonly SavedInputKey m_groupProps;
+        private static readonly SavedInputKey m_ungroupProps;
+        private static readonly SavedInputKey m_incrPropVariation;
+        private static readonly SavedInputKey m_decrPropVariation;
+        private static readonly SavedInputKey m_terrainConform;
 
-        protected void Update() {
+        static PAKeyBinding() {
+            try {
+                if (GameSettings.FindSettingsFileByName(KeybindingConfigFile) is null) {
+                    GameSettings.AddSettingsFile(new SettingsFile[] {
+                        new SettingsFile() { fileName = KeybindingConfigFile }
+                    });
+                }
+            } catch (Exception e) {
+                Debug.LogException(e);
+            }
+            m_propSnapping = new SavedInputKey(togglePropSnapping, KeybindingConfigFile, defaultTogglePropSnappingKey, true);
+            m_propAnarchy = new SavedInputKey(togglePropAnarchy, KeybindingConfigFile, defaultTogglePropAnarchyKey, true);
+            m_groupProps = new SavedInputKey(groupProps, KeybindingConfigFile, defaultGroupPropKey, true);
+            m_ungroupProps = new SavedInputKey(ungroupProps, KeybindingConfigFile, defaultUngroupPropKey, true);
+            m_incrPropVariation = new SavedInputKey(incrementPropSize, KeybindingConfigFile, defaultIncrementPropSizeKey, true);
+            m_decrPropVariation = new SavedInputKey(decrementPropSize, KeybindingConfigFile, defaultDecrementPropSizeKey, true);
+            m_terrainConform = new SavedInputKey(toggleTerrainConform, KeybindingConfigFile, defaultToggleTerrainConformKey, true);
+        }
+
+        internal void Update() {
             if (!UIView.HasModalInput() && !UIView.HasInputFocus()) {
                 Event e = Event.current;
                 if (m_groupProps.IsPressed(e)) {
@@ -60,7 +80,7 @@ namespace PropAnarchy {
             }
         }
 
-        protected void Awake() {
+        internal void Awake() {
             UILabel desc = component.AddUIComponent<UILabel>();
             desc.padding.top = 10;
             desc.width = component.width - 50;
