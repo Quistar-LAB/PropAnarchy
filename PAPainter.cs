@@ -1,12 +1,12 @@
-﻿using ColossalFramework.UI;
+﻿using ColossalFramework;
+using ColossalFramework.Math;
+using ColossalFramework.UI;
 using EManagersLib;
 using MoveIt;
-using System.Collections.Generic;
 using System.Collections;
-using UnityEngine;
-using ColossalFramework;
-using ColossalFramework.Math;
+using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 
 namespace PropAnarchy {
     internal static class PAPainter {
@@ -27,7 +27,7 @@ namespace PropAnarchy {
             float num = x / width;
             float num2 = y / height;
             num = num < 0f ? 0f : (num > 1f ? 1f : num);
-            num2 = num2 < 0f ? 0f : (num2 > 1f ? 1f: num2);
+            num2 = num2 < 0f ? 0f : (num2 > 1f ? 1f : num2);
             Color result = Color.Lerp(Color.white, hue, num) * (1f - num2);
             result.a = 1f;
             return result;
