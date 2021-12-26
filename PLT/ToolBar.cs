@@ -1,12 +1,10 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
 using EManagersLib;
-using System.Threading;
 using UnityEngine;
-using System.Runtime.CompilerServices;
 
 namespace PropAnarchy.PLT {
-    public sealed class ToolBar : UIPanel {
+    internal sealed class ToolBar : UIPanel {
         private const float PLT_TOOLBAR_WIDTH = 256f;
         private const float PLT_TOOLBAR_HEIGHT = 36f;
         private const float SIZE_INEDITOR_WIDTH = 266f;
@@ -20,6 +18,7 @@ namespace PropAnarchy.PLT {
         private const string PLT_CIRCLE_NAME = @"Circle";
         private static UIPanel m_brushPanel;
         internal static UITextureAtlas m_sharedTextures;
+        internal static PropertyChangedEventHandler<int> SetCurrentMode;
 
         public override void Awake() {
             string[] m_spriteNamesPLT = {
@@ -45,7 +44,9 @@ namespace PropAnarchy.PLT {
             fenceModeToggleBtn.relativePosition = new Vector3(0, 0);
             fenceModeToggleBtn.tooltip = PALocale.GetLocale(@"PLTToggleFenceMode");
             fenceModeToggleBtn.isVisible = false;
-            PropLineTool.GetFenceMode = () => fenceModeToggleBtn.activeStateIndex != 0;
+            fenceModeToggleBtn.eventActiveStateIndexChanged += (c, index) => {
+                PropLineTool.ItemInfo.FenceMode = index != 0;
+            };
             UITabstrip controlTabStrip = AddUIComponent<UITabstrip>();
             controlTabStrip.relativePosition = new Vector3(PLT_TOOLBAR_BTNSIZE, 0f);
             controlTabStrip.width = 180f;
@@ -65,20 +66,22 @@ namespace PropAnarchy.PLT {
             circleBtn.textPadding.right = 1;
             circleBtn.textPadding.top = -13;
             circleBtn.textPadding.bottom = 0;
-            controlTabStrip.selectedIndex = PropLineTool.DrawMode.SINGLE;
-            controlTabStrip.startSelectedIndex = PropLineTool.DrawMode.SINGLE;
-            PropLineTool.DrawMode.SetCurrentSelected = (value) => controlTabStrip.selectedIndex = value;
+            controlTabStrip.selectedIndex = DrawMode.Single;
+            controlTabStrip.startSelectedIndex = DrawMode.Single;
+            SetCurrentMode = (c, val) => controlTabStrip.selectedIndex = val;
             UIMultiStateButton controlPanelToggleBtn = AddToggleBtn(this, @"PLTToggleControlPanel", atlas, @"PLT_ToggleCPZero", @"PLT_ToggleCPOne", @"", @"");
             controlPanelToggleBtn.relativePosition = new Vector3(PLT_TOOLBAR_BTNSIZE * 6f, 0f);
             controlPanelToggleBtn.tooltip = PALocale.GetLocale(@"PLTToggleControlPanel");
             controlPanelToggleBtn.isVisible = false;
             controlPanelToggleBtn.eventActiveStateIndexChanged += (c, index) => {
-                if (index != 0) OptionPanel.Open(PropLineTool.m_itemType);
+                if (index != 0) OptionPanel.Open(PropLineTool.ItemInfo.Type);
                 else OptionPanel.Close();
             };
+            //LandscapingGroupPanel landscapingPanel = UIView.GetAView().GetComponentInChildren<LandscapingGroupPanel>();
+            //UITabstrip landscapingStrip = AccessTools.Field(typeof(LandscapingGroupPanel), @"m_Strip").GetValue(landscapingPanel) as UITabstrip;
             controlTabStrip.eventSelectedIndexChanged += (c, index) => {
-                PropLineTool.DrawMode.Current = index;
-                if (index == PropLineTool.DrawMode.SINGLE) {
+                DrawMode.CurrentMode = index;
+                if (index == DrawMode.Single) {
                     ToolBase currentTool = ToolsModifierControl.toolController.CurrentTool;
                     if (currentTool is TreeTool || currentTool is PropTool) {
                         controlPanelToggleBtn.activeStateIndex = 0;
@@ -90,10 +93,8 @@ namespace PropAnarchy.PLT {
                     if (m_brushPanel && m_brushPanel.isVisible) m_brushPanel.Hide();
                     fenceModeToggleBtn.isVisible = true;
                     controlPanelToggleBtn.isVisible = true;
-                    ToolsModifierControl.SetTool<PropLineTool>();
                 }
             };
-            isVisible = false;
         }
 
         public override void Start() {
@@ -128,38 +129,36 @@ namespace PropAnarchy.PLT {
 
         public override void OnDestroy() { }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool SetToolPrefix(ToolBase tool) {
-            if ((tool is TreeTool || tool is PropTool) && ToolsModifierControl.toolController.CurrentTool is PropLineTool) {
-                if (PropLineTool.DrawMode.Current != PropLineTool.DrawMode.SINGLE)
-                    return false;
+            if ((tool is TreeTool || tool is PropTool) && ToolsModifierControl.toolController.CurrentTool is PropLineTool &&
+                DrawMode.CurrentMode != DrawMode.Single) {
+                return false;
             }
             return true;
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SetToolPostfix(ToolBase tool) {
-            if (!(tool is null) && !(PropLineTool.m_toolBar is null) && !(m_brushPanel is null)) {
+            if (!(tool is null) && !(PropLineTool.m_toolbar is null) && !(m_brushPanel is null)) {
                 if (tool is TreeTool || tool is PropTool) {
                     if (tool is TreeTool) {
-                        PropLineTool.m_itemType = PropLineTool.ItemType.TREE;
-                        OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.TREE);
+                        PropLineTool.ItemInfo.Type = PropLineTool.ItemType.Tree;
+                        OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.Tree);
                     } else if (tool is PropTool) {
-                        PropLineTool.m_itemType = PropLineTool.ItemType.PROP;
-                        OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.PROP);
+                        PropLineTool.ItemInfo.Type = PropLineTool.ItemType.Prop;
+                        OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.Prop);
                     }
-                    if (!PropLineTool.m_toolBar.isVisible) {
-                        PropLineTool.DrawMode.SetCurrentSelected?.Invoke(0);
-                        PropLineTool.m_toolBar.Show();
+                    if (!PropLineTool.m_toolbar.isVisible) {
+                        SetCurrentMode?.Invoke(null, 0);
+                        PropLineTool.m_toolbar.Show();
                     }
-                    if (PropLineTool.DrawMode.Current == PropLineTool.DrawMode.SINGLE) {
+                    if (DrawMode.CurrentMode == DrawMode.Single) {
                         if (!m_brushPanel.isVisible) m_brushPanel.Show();
                     }
                 } else if (tool is PropLineTool) {
-                    PropLineTool.m_toolBar.Show();
+                    PropLineTool.m_toolbar.Show();
                 } else {
-                    if (PropLineTool.m_toolBar.isVisible) {
-                        PropLineTool.m_toolBar.Hide();
+                    if (PropLineTool.m_toolbar.isVisible) {
+                        PropLineTool.m_toolbar.Hide();
                         PropLineTool.m_optionPanel.Hide();
                     }
                     if (m_brushPanel.isVisible) m_brushPanel.Hide();

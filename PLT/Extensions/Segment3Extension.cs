@@ -1,8 +1,8 @@
 ﻿using ColossalFramework.Math;
-using System;
+using EManagersLib;
 using UnityEngine;
 
-namespace PropAnarchy.PLT {
+namespace PropAnarchy.PLT.Extensions {
     public static class Segment3Extension {
         public static float LengthXZ(ref this Segment3 line) => Vector3.Distance(new Vector3(line.a.x, 0f, line.a.z), new Vector3(line.b.x, 0f, line.b.z));
 
@@ -30,9 +30,8 @@ namespace PropAnarchy.PLT {
         /// <param name="segment"></param>
         /// <returns>Returns the xz speed of the line in units of distance/(delta-t)</returns>
         public static float LinearSpeedXZ(ref this Segment3 segment) {
-            float Pow2(float x) => x * x;
             Vector3 tanVector = segment.b - segment.a;
-            return (float)Math.Sqrt(Pow2(tanVector.x) + Pow2(tanVector.z));
+            return EMath.Sqrt(tanVector.x * tanVector.x + tanVector.z * tanVector.z);
         }
 
         public static Vector3 Direction(ref this Segment3 segment) => segment.b - segment.a;

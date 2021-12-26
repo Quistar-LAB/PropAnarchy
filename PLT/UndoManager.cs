@@ -5,7 +5,7 @@ using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
-    public static class UndoManager {
+    internal static class UndoManager {
         private const int MAX_UNDO_COUNT = 64;
         private class CyclicStack<T> {
             private const int m_capacity = MAX_UNDO_COUNT;
@@ -29,21 +29,21 @@ namespace PropAnarchy.PLT {
             }
             public T Peek() => m_stack[m_curIndex];
         }
-        public readonly struct UndoEntry {
-            public readonly struct ItemSubEntry {
+        internal readonly struct UndoEntry {
+            internal readonly struct ItemSubEntry {
                 private readonly uint m_itemID;
                 private readonly ItemType m_itemType;
-                public Vector3 Position { get; }
+                internal Vector3 Position { get; }
 
-                public ItemSubEntry(uint itemID, ItemType itemType, Vector3 position) {
+                internal ItemSubEntry(uint itemID, ItemType itemType, Vector3 position) {
                     m_itemID = itemID;
                     m_itemType = itemType;
                     Position = position;
                 }
-                public IEnumerator ReleaseItem(bool dispatchPlacementEffect) {
+                internal IEnumerator ReleaseItem(bool dispatchPlacementEffect) {
                     uint itemID = m_itemID;
                     switch (m_itemType) {
-                    case ItemType.TREE:
+                    case ItemType.Tree:
                         TreeManager tmInstance = Singleton<TreeManager>.instance;
                         if (tmInstance.m_trees.m_buffer[itemID].m_flags != 0) {
                             tmInstance.ReleaseTree(itemID);
@@ -52,7 +52,7 @@ namespace PropAnarchy.PLT {
                             }
                         }
                         break;
-                    case ItemType.PROP:
+                    case ItemType.Prop:
                         if (EPropManager.m_props.m_buffer[itemID].m_flags != 0) {
                             Singleton<PropManager>.instance.ReleaseProp(itemID);
                             if (dispatchPlacementEffect) {
@@ -67,19 +67,19 @@ namespace PropAnarchy.PLT {
             public readonly bool m_fenceMode;
             public readonly int m_itemCount;
             public readonly ItemSubEntry[] m_items;
-            public UndoEntry(ItemInfo[] items, int itemCount, bool fenceMode) {
+            public UndoEntry(ItemInfo.ItemData[] items, int itemCount, bool fenceMode) {
                 m_itemCount = itemCount;
                 m_fenceMode = fenceMode;
                 ItemSubEntry[] subItems = new ItemSubEntry[itemCount];
                 for (int i = 0; i < itemCount; i++) {
-                    subItems[i] = new ItemSubEntry(items[i].m_itemID, ItemInfo.m_itemType, items[i].Position);
+                    subItems[i] = new ItemSubEntry(items[i].m_itemID, ItemInfo.Type, items[i].Position);
                 }
                 m_items = subItems;
             }
         }
         private static readonly CyclicStack<UndoEntry> m_undoStack = new CyclicStack<UndoEntry>();
 
-        public static bool AddEntry(int itemCount, ItemInfo[] items, bool fenceMode) {
+        internal static bool AddEntry(int itemCount, ItemInfo.ItemData[] items, bool fenceMode) {
             UndoEntry newUndoEntry = new UndoEntry(items, itemCount, fenceMode);
             m_undoStack.Push(newUndoEntry);
             return true;

@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 
-namespace PropAnarchy.PLT {
+namespace PropAnarchy.PLT.MathUtils {
     public struct VectorXZ {
         public const float THRESHOLD = 1E-05f;
         public float x, z;
@@ -53,8 +53,6 @@ namespace PropAnarchy.PLT {
 
         public override bool Equals(object other) => other is VectorXZ xZ && x == xZ.x && z == xZ.z;
 
-        public Vector3 ToVector3() => new Vector3(x, 0f, z);
-
         public override int GetHashCode() => x.GetHashCode() ^ z.GetHashCode() << 2;
 
         public static Vector3 Cross(VectorXZ lhs, VectorXZ rhs) => new Vector3(0f, lhs.z * rhs.x - lhs.x * rhs.z, 0f);
@@ -92,21 +90,13 @@ namespace PropAnarchy.PLT {
             return isNearCircle((pointOfInterest - this).sqrMagnitude, circleRadius - distance, circleRadius + distance);
         }
 
-        public Vector3 Cross(Vector3 rhs) {
-            return new Vector3(0f - z * rhs.y, z * rhs.x - x * rhs.z, x * rhs.y - 0f);
-        }
+        public Vector3 Cross(Vector3 rhs) => new Vector3(0f - z * rhs.y, z * rhs.x - x * rhs.z, x * rhs.y);
 
-        public Vector3 Cross(VectorXZ rhs) {
-            return new Vector3(0f, z * rhs.x - x * rhs.z, 0f);
-        }
+        public Vector3 Cross(VectorXZ rhs) => new Vector3(0f, z * rhs.x - x * rhs.z, 0f);
 
-        public float Dot(Vector3 rhs) {
-            return x * rhs.x + z * rhs.z;
-        }
+        public float Dot(Vector3 rhs) => x * rhs.x + z * rhs.z;
 
-        public float Dot(VectorXZ rhs) {
-            return x * rhs.x + z * rhs.z;
-        }
+        public float Dot(VectorXZ rhs) => x * rhs.x + z * rhs.z;
 
         public float AngleSigned(VectorXZ v2, Vector3 n) => (float)Math.Atan2(Vector3.Dot(n, Cross(v2)), Dot(v2));
         public float AngleSigned(Vector3 v2, Vector3 n) => (float)Math.Atan2(Vector3.Dot(n, Cross(v2)), Dot(v2));

@@ -1,9 +1,9 @@
 ﻿using ColossalFramework;
 using EManagersLib;
-using System;
+using PropAnarchy.PLT.MathUtils;
 using UnityEngine;
 
-namespace PropAnarchy.PLT {
+namespace PropAnarchy.PLT.Extensions {
     public static class Vector3Extensions {
         public struct ShortVector3 {
             public short x;
@@ -63,9 +63,11 @@ namespace PropAnarchy.PLT {
         public static float SqrMagnitudeXZ(this Vector3 v) => v.x * v.x + v.z * v.z;
 
         public static Vector3 NormalizeXZ(this Vector3 v) {
-            v.y = 0;
-            v.Normalize();
-            return v;
+            float num = EMath.Sqrt(v.x * v.x + v.z + v.z);
+            if (num > 1E-05f) {
+                return new Vector3(v.x / num, 0f, v.z / num);
+            }
+            return EMath.Vector3Zero;
         }
 
         /// <summary>Determines the signed angle (-pi to pi) radians between two vectors</summary>
@@ -73,11 +75,11 @@ namespace PropAnarchy.PLT {
         /// <param name="v2">second vector</param>
         /// <param name="n">rotation axis (usually plane normal of v1, v2)</param>
         /// <returns>signed angle (in Radians) between v1 and v2</returns>
-        public static float AngleSigned(Vector3 v1, Vector3 v2, Vector3 n) => (float)Math.Atan2(Vector3.Dot(n, Vector3.Cross(v1, v2)), Vector3.Dot(v1, v2));
+        public static float AngleSigned(Vector3 v1, Vector3 v2, Vector3 n) => (float)EMath.Atan2(Vector3.Dot(n, Vector3.Cross(v1, v2)), Vector3.Dot(v1, v2));
 
         public static float AngleDynamicXZ(this VectorXZ directionVector) {
-            Vector3 xAxis; xAxis.x = 1; xAxis.y = 0; xAxis.z = 0;
-            Vector3 yAxis; yAxis.x = 0; yAxis.y = 1; yAxis.z = 0;
+            Vector3 xAxis = new Vector3(1f, 0f, 0f);
+            Vector3 yAxis = new Vector3(0f, 1f, 0f);
             if (directionVector != VectorXZ.zero) {
                 directionVector.Normalize();
                 return AngleSigned(directionVector, xAxis, yAxis) + Mathf.PI;
@@ -108,6 +110,22 @@ namespace PropAnarchy.PLT {
             if (distance == 0f) return pointOfInterest == circleCenter;
             else if (distance < 0f) distance = EMath.Abs(distance);
             return isNearCircle((pointOfInterest - circleCenter).sqrMagnitude, circleRadius - distance, circleRadius + distance);
+        }
+
+        private const float CENTER_AREA_FRACTION = 0.00390625f;
+        public static bool IsCenterAreaSignificant(this Vector3 center, Vector3 size, bool constrainToXZ, out Vector3 centerCorrectionOrtho) {
+            if (constrainToXZ && center.SqrMagnitudeXZ() >= CENTER_AREA_FRACTION * size.SqrMagnitudeXZ()) {
+                //negate center vector
+                centerCorrectionOrtho = -center;
+                centerCorrectionOrtho.y = 0f;
+                return true;
+            } else if (center.sqrMagnitude >= CENTER_AREA_FRACTION * size.sqrMagnitude) {
+                //negate center vector
+                centerCorrectionOrtho = -center;
+                return true;
+            }
+            centerCorrectionOrtho = EMath.Vector3Zero;
+            return false;
         }
     }
 }

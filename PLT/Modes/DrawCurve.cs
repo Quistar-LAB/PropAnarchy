@@ -1,23 +1,25 @@
 ﻿using ColossalFramework.Math;
 using EManagersLib;
+using PropAnarchy.PLT.Extensions;
+using PropAnarchy.PLT.MathUtils;
 using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
 
-namespace PropAnarchy.PLT {
-    public sealed class DrawCurveState : ActiveDrawState {
+namespace PropAnarchy.PLT.Modes {
+    internal sealed class DrawCurve : DrawMode {
+        private static float m_mainElbowAngle;
         private void ContinueDrawingFromLockMode(bool finalizePlacement) {
             //check if in fence mode and line is too short
-            if (!GetFenceMode() && m_itemCount > 0 && finalizePlacement && FinalizePlacement(true, false)) {
+            if (!ItemInfo.FenceMode && ItemInfo.Count > 0 && finalizePlacement && ItemInfo.FinalizePlacement(true, false)) {
                 if (!PostCheckAndContinue()) {
                     ControlPoint.Reset();
-                    GoToActiveState(ActiveState.CreatePointFirst);
+                    GotoActiveState(ActiveState.CreatePointFirst);
                 }
             }
         }
 
-        public override void OnToolGUI(Event e, bool isInsideUI) {
-            base.OnToolGUI(e, isInsideUI);
-            ActiveState currentState = m_currentState;
+        internal override void OnToolGUI(Event e, bool isInsideUI) {
+            ActiveState currentState = CurActiveState;
             if (!isInsideUI && e.type == EventType.MouseDown && e.button == LEFTMOUSEBUTTON && m_keyboardAltDown) {
                 switch (currentState) {
                 case ActiveState.CreatePointThird:
@@ -31,7 +33,7 @@ namespace PropAnarchy.PLT {
                 case ActiveState.ItemwiseLock:
                 case ActiveState.MoveItemwiseItem:
                 case ActiveState.MaxFillContinue:
-                    AddAction(() => FinalizePlacement(true, true));
+                    AddAction(() => ItemInfo.FinalizePlacement(true, true));
                     return;
                 }
             }
@@ -40,7 +42,7 @@ namespace PropAnarchy.PLT {
                 if (!isInsideUI && e.type == EventType.MouseDown && e.button == LEFTMOUSEBUTTON) {
                     SegmentState.FinalizeForPlacement(false);
                     ControlPoint.Add(m_cachedPosition);
-                    GoToActiveState(ActiveState.CreatePointSecond);
+                    GotoActiveState(ActiveState.CreatePointSecond);
                     ControlPoint.Modify(m_mousePosition, 1);
                     UpdateCurve();
                     UpdatePlacement(false, false);
@@ -50,13 +52,13 @@ namespace PropAnarchy.PLT {
                 if (!isInsideUI && e.type == EventType.MouseDown) {
                     if (e.button == LEFTMOUSEBUTTON) {
                         ControlPoint.Add(m_cachedPosition);
-                        GoToActiveState(ActiveState.CreatePointThird);
+                        GotoActiveState(ActiveState.CreatePointThird);
                         ControlPoint.Modify(m_mousePosition, 2);
                         UpdateCurve();
                         UpdatePlacement(true, false);
                     } else if (e.button == RIGHTMOUSEBUTTON) {
                         ControlPoint.Cancel();
-                        GoToActiveState(ActiveState.CreatePointFirst);
+                        GotoActiveState(ActiveState.CreatePointFirst);
                         ControlPoint.Modify(m_mousePosition, 0);
                         UpdateCurve();
                     }
@@ -67,23 +69,23 @@ namespace PropAnarchy.PLT {
                     if (e.button == LEFTMOUSEBUTTON && IsLengthLongEnough()) {
                         ControlPoint.Add(m_cachedPosition);
                         if (m_keyboardCtrlDown) {
-                            m_previousLockingMode = m_lockingMode;
-                            GoToActiveState(ActiveState.LockIdle);
-                        } else if (m_controlMode == ControlMode.ITEMWISE) {
-                            m_previousLockingMode = m_lockingMode;
-                            GoToActiveState(ActiveState.ItemwiseLock);
+                            PrevLockMode = CurLockMode;
+                            GotoActiveState(ActiveState.LockIdle);
+                        } else if (Settings.ControlMode == ControlMode.ItemWise) {
+                            PrevLockMode = CurLockMode;
+                            GotoActiveState(ActiveState.ItemwiseLock);
                         } else {
                             AddAction(() => {
-                                FinalizePlacement(true, false);
+                                ItemInfo.FinalizePlacement(true, false);
                                 if (!PostCheckAndContinue()) {
                                     ControlPoint.Reset();
-                                    GoToActiveState(ActiveState.CreatePointFirst);
+                                    GotoActiveState(ActiveState.CreatePointFirst);
                                 }
                             });
                         }
                     } else if (e.button == RIGHTMOUSEBUTTON) {
                         ControlPoint.Cancel();
-                        GoToActiveState(ActiveState.CreatePointSecond);
+                        GotoActiveState(ActiveState.CreatePointSecond);
                         ControlPoint.Modify(m_mousePosition, 1);
                         UpdateCurve();
                         UpdatePlacement(false, false);
@@ -94,43 +96,43 @@ namespace PropAnarchy.PLT {
                 if (!isInsideUI && e.type == EventType.MouseDown) {
                     if (e.button == LEFTMOUSEBUTTON) {
                         if (m_keyboardCtrlDown) {
-                            if (m_controlMode == ControlMode.ITEMWISE) {
-                                GoToActiveState(ActiveState.ItemwiseLock);
+                            if (Settings.ControlMode == ControlMode.ItemWise) {
+                                GotoActiveState(ActiveState.ItemwiseLock);
                             } else {
                                 AddAction(() => ContinueDrawingFromLockMode(true));
                             }
                         }
-                        switch (m_hoverState) {
+                        switch (CurHoverState) {
                         case HoverState.SpacingLocus:
-                            GoToActiveState(ActiveState.ChangeSpacing);
+                            GotoActiveState(ActiveState.ChangeSpacing);
                             break;
                         case HoverState.AngleLocus:
-                            GoToActiveState(ActiveState.ChangeAngle);
+                            GotoActiveState(ActiveState.ChangeAngle);
                             break;
                         case HoverState.ControlPointFirst:
-                            GoToActiveState(ActiveState.MovePointFirst);
+                            GotoActiveState(ActiveState.MovePointFirst);
                             ControlPoint.Modify(m_mousePosition, 0);
                             UpdateCurve();
                             UpdatePlacement();
                             break;
                         case HoverState.ControlPointSecond:
-                            GoToActiveState(ActiveState.MovePointSecond);
+                            GotoActiveState(ActiveState.MovePointSecond);
                             ControlPoint.Modify(m_mousePosition, 1);
                             UpdateCurve();
                             UpdatePlacement();
                             break;
                         case HoverState.ControlPointThird:
-                            GoToActiveState(ActiveState.MovePointThird);
+                            GotoActiveState(ActiveState.MovePointThird);
                             ControlPoint.Modify(m_mousePosition, 2);
                             UpdateCurve();
                             UpdatePlacement();
                             break;
                         case HoverState.Curve:
-                            GoToActiveState(ActiveState.MoveSegment);
+                            GotoActiveState(ActiveState.MoveSegment);
                             break;
                         case HoverState.ItemwiseItem:
-                            if (m_controlMode == ControlMode.ITEMWISE) {
-                                GoToActiveState(ActiveState.MoveItemwiseItem);
+                            if (Settings.ControlMode == ControlMode.ItemWise) {
+                                GotoActiveState(ActiveState.MoveItemwiseItem);
                             }
                             break;
                         }
@@ -146,7 +148,7 @@ namespace PropAnarchy.PLT {
                     if (e.button == RIGHTMOUSEBUTTON) {
                         ControlPoint.Modify(ControlPoint.m_lockedControlPoints[0].m_position, 0);
                     }
-                    GoToActiveState(ActiveState.LockIdle);
+                    GotoActiveState(ActiveState.LockIdle);
                 }
                 break;
             case ActiveState.MovePointSecond:
@@ -154,7 +156,7 @@ namespace PropAnarchy.PLT {
                     if (e.button == RIGHTMOUSEBUTTON) {
                         ControlPoint.Modify(ControlPoint.m_lockedControlPoints[1].m_position, 1);
                     }
-                    GoToActiveState(ActiveState.LockIdle);
+                    GotoActiveState(ActiveState.LockIdle);
                 }
                 break;
             case ActiveState.MovePointThird:
@@ -162,7 +164,7 @@ namespace PropAnarchy.PLT {
                     if (e.button == RIGHTMOUSEBUTTON) {
                         ControlPoint.Modify(ControlPoint.m_lockedControlPoints[2].m_position, 2);
                     }
-                    GoToActiveState(ActiveState.LockIdle);
+                    GotoActiveState(ActiveState.LockIdle);
                 }
                 break;
             case ActiveState.MoveSegment:
@@ -176,35 +178,34 @@ namespace PropAnarchy.PLT {
                         UpdateCurve();
                         UpdatePlacement();
                     }
-                    GoToActiveState(ActiveState.LockIdle);
+                    GotoActiveState(ActiveState.LockIdle);
                 }
                 break;
             case ActiveState.ChangeSpacing:
                 if (!isInsideUI && e.type == EventType.MouseDown) {
                     if (e.button == RIGHTMOUSEBUTTON) {
                         //reset spacing to original value
-                        ItemInfo.ItemSpacing = m_lockedBackupSpacing;
+                        ItemInfo.Spacing = ItemInfo.LockedSpacing;
                     }
-                    GoToActiveState(ActiveState.LockIdle);
+                    GotoActiveState(ActiveState.LockIdle);
                 }
                 break;
             case ActiveState.ChangeAngle:
                 if (!isInsideUI && e.type == EventType.MouseDown) {
                     if (e.button == RIGHTMOUSEBUTTON) {
                         //reset angle to original value
-                        ItemInfo.m_itemAngleOffset = m_lockedBackupAngleOffset;
-                        ItemInfo.m_itemAngleSingle = m_lockedBackupAngleSingle;
+                        ItemInfo.Angle = ItemInfo.LockedAngle;
                     }
-                    GoToActiveState(ActiveState.LockIdle);
+                    GotoActiveState(ActiveState.LockIdle);
                 }
                 break;
             case ActiveState.ItemwiseLock:
                 if (!isInsideUI && e.type == EventType.MouseDown) {
                     if (e.button == LEFTMOUSEBUTTON) {
                         if (m_keyboardCtrlDown) {
-                            GoToActiveState(ActiveState.LockIdle);
-                        } else if (m_hoverState == HoverState.ItemwiseItem) {
-                            AddAction(() => FinalizePlacement(true, true));
+                            GotoActiveState(ActiveState.LockIdle);
+                        } else if (CurHoverState == HoverState.ItemwiseItem) {
+                            AddAction(() => ItemInfo.FinalizePlacement(true, true));
                         }
                     } else if (e.button == RIGHTMOUSEBUTTON) {
                         RevertDrawingFromLockMode();
@@ -220,22 +221,22 @@ namespace PropAnarchy.PLT {
                 if (!isInsideUI) {
                     if (e.type == EventType.MouseDown && e.button == RIGHTMOUSEBUTTON) {
                         //reset item back to original position
-                        m_hoverItemwiseT = m_lockedBackupItemwiseT;
+                        ItemInfo.HoverItemwiseT = ItemInfo.LockedItemwiseT;
                     }
-                    GoToActiveState(ActiveState.LockIdle);
+                    GotoActiveState(ActiveState.LockIdle);
                 }
                 break;
             case ActiveState.MaxFillContinue:
-                if (m_controlMode == ControlMode.ITEMWISE) {
-                    GoToActiveState(ActiveState.ItemwiseLock);
+                if (Settings.ControlMode == ControlMode.ItemWise) {
+                    GotoActiveState(ActiveState.ItemwiseLock);
                 } else if (!isInsideUI && e.type == EventType.MouseDown) {
                     if ((e.button == LEFTMOUSEBUTTON && m_keyboardCtrlDown) || e.button == RIGHTMOUSEBUTTON) {
-                        GoToActiveState(ActiveState.LockIdle);
+                        GotoActiveState(ActiveState.LockIdle);
                     } else if (e.button == LEFTMOUSEBUTTON && IsLengthLongEnough()) {
-                        AddAction(() => FinalizePlacement(true, false));
+                        AddAction(() => ItemInfo.FinalizePlacement(true, false));
                         if (!PostCheckAndContinue()) {
                             ControlPoint.Reset();
-                            GoToActiveState(ActiveState.CreatePointFirst);
+                            GotoActiveState(ActiveState.CreatePointFirst);
                         }
                     }
                 }
@@ -244,7 +245,7 @@ namespace PropAnarchy.PLT {
         }
 
         public override void OnRenderGeometry(RenderManager.CameraInfo cameraInfo) {
-            switch (m_currentState) {
+            switch (CurActiveState) {
             case ActiveState.CreatePointThird: //creating third control point
             case ActiveState.LockIdle: //in lock mode, awaiting user input
             case ActiveState.MovePointFirst: //in lock mode, moving first control point
@@ -256,8 +257,8 @@ namespace PropAnarchy.PLT {
             case ActiveState.ItemwiseLock:
             case ActiveState.MoveItemwiseItem:
             case ActiveState.MaxFillContinue: //out of bounds
-                int itemCount = m_itemCount;
-                ItemInfo[] items = m_items;
+                int itemCount = ItemInfo.Count;
+                ItemInfo.ItemData[] items = ItemInfo.Datas;
                 for (int i = 0; i < itemCount; i++) {
                     items[i].RenderItem(cameraInfo);
                 }
@@ -266,15 +267,12 @@ namespace PropAnarchy.PLT {
         }
 
         public override void RenderLines(RenderManager.CameraInfo cameraInfo, Color createPointColor, Color curveWarningColor) {
-            Color lockIdleColor = Settings.m_PLTColor_locked;
-            RenderElbow(cameraInfo, m_mainArm1, m_mainArm2, LINESIZE, 2f, lockIdleColor, false, true);
-            if (m_hoverState == HoverState.SpacingLocus) {
-                RenderBezier(cameraInfo, m_mainBezier, LINESIZE, lockIdleColor, false, true);
+            //Color lockIdleColor = Settings.m_PLTColor_locked;
+            RenderElbow(cameraInfo, m_mainArm1, m_mainArm2, LINESIZE, 2f, createPointColor, false, true);
+            if (SegmentState.AllItemsValid) {
+                RenderBezier(cameraInfo, m_mainBezier, LINESIZE, createPointColor, false, true);
             } else {
-                RenderBezier(cameraInfo, m_mainBezier, LINESIZE, createPointColor, false, false);
-            }
-            if (!SegmentState.AllItemsValid) {
-                RenderBezier(cameraInfo, m_mainBezier, 1.50f, curveWarningColor, false, true);
+                RenderBezier(cameraInfo, m_mainBezier, LINESIZE, curveWarningColor, false, true);
             }
         }
 
@@ -293,12 +291,12 @@ namespace PropAnarchy.PLT {
                 } else if (m_keyboardCtrlDown) {
                     createPointColor = Settings.m_PLTColor_locked;
                 }
-                if (!SegmentState.AllItemsValid) {
-                    RenderBezier(cameraInfo, m_mainBezier, 1.50f, curveWarningColor, false, true);
+                if (SegmentState.AllItemsValid) {
+                    RenderBezier(cameraInfo, m_mainBezier, LINESIZE, createPointColor, false, true);
+                } else {
+                    RenderBezier(cameraInfo, m_mainBezier, LINESIZE, curveWarningColor, false, true);
                 }
-                //for the size for these it should be 1/4 the size for renderline
                 RenderElbow(cameraInfo, m_mainArm1, m_mainArm2, LINESIZE, 2f, createPointColor, false, true);
-                RenderBezier(cameraInfo, m_mainBezier, LINESIZE, createPointColor, false, true);
                 //MaxFillContinue
                 if (SegmentState.IsReadyForMaxContinue || SegmentState.IsMaxFillContinue) {
                     RenderMaxFillContinueMarkers(cameraInfo);
@@ -314,22 +312,22 @@ namespace PropAnarchy.PLT {
         public override void OnSimulationStep(Vector3 mousePosition) {
             ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
             m_cachedPosition = mousePosition;
-            switch (m_currentState) {
+            switch (CurActiveState) {
             case ActiveState.CreatePointFirst:
                 UpdatePlacement(false, false);
                 break;
             case ActiveState.CreatePointSecond:
             case ActiveState.MovePointSecond:
-                ControlPoint.Modify(DrawMode.CurrentMode, mousePosition, 1, m_currentState, DrawMode.Current);
+                ControlPoint.Modify(mousePosition, 1);
                 UpdatePlacement();
                 break;
             case ActiveState.CreatePointThird:
             case ActiveState.MovePointThird:
-                ControlPoint.Modify(DrawMode.CurrentMode, mousePosition, 2, m_currentState, DrawMode.Current);
+                ControlPoint.Modify(mousePosition, 2);
                 UpdatePlacement();
                 break;
             case ActiveState.MovePointFirst:
-                ControlPoint.Modify(DrawMode.CurrentMode, mousePosition, 0, m_currentState, DrawMode.Current);
+                ControlPoint.Modify(mousePosition, 0);
                 UpdatePlacement();
                 break;
             case ActiveState.MaxFillContinue:
@@ -349,7 +347,7 @@ namespace PropAnarchy.PLT {
         }
 
         public override void OnToolLateUpdate() {
-            switch (m_currentState) {
+            switch (CurActiveState) {
             case ActiveState.CreatePointFirst:
                 if (SegmentState.IsPositionEqualToLastFenceEndpoint(ControlPoint.m_controlPoints[0].m_position)) {
                     SegmentState.ResetLastContinueParameters();
@@ -367,9 +365,7 @@ namespace PropAnarchy.PLT {
             CheckPendingPlacement();
         }
 
-        public override void OnToolUpdate() {
-            base.OnToolUpdate();
-        }
+        public override void OnToolUpdate() { }
 
         public override bool ContinueDrawing(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount) {
             ControlPoint.Reset();
@@ -380,25 +376,25 @@ namespace PropAnarchy.PLT {
         }
 
         public override bool PostCheckAndContinue(ControlPoint.PointInfo[] controlPoints, ref int controlPointCount) {
-            if (m_lockingMode == LockingMode.Off) {
+            if (CurLockMode == LockingMode.Off) {
                 if (SegmentState.IsReadyForMaxContinue) {
                     UpdatePlacement(true, false);
-                    GoToActiveState(ActiveState.MaxFillContinue);
+                    GotoActiveState(ActiveState.MaxFillContinue);
                 } else {
                     if (ContinueDrawing(controlPoints, ref controlPointCount)) {
-                        GoToActiveState(ActiveState.CreatePointSecond);
+                        GotoActiveState(ActiveState.CreatePointSecond);
                         Vector3 tempVector = controlPoints[0].m_position + 0.001f * controlPoints[0].m_direction;
                         ControlPoint.Modify(tempVector, 1);
                         UpdateCurve();
                         UpdatePlacement(true, false);
                     } else {
                         ControlPoint.Reset();
-                        GoToActiveState(ActiveState.CreatePointFirst);
+                        GotoActiveState(ActiveState.CreatePointFirst);
                     }
                 }
-            } else if (m_lockingMode == LockingMode.Lock) { //Locking is enabled
-                m_previousLockingMode = m_lockingMode;
-                GoToActiveState(ActiveState.LockIdle);
+            } else if (CurLockMode == LockingMode.Lock) { //Locking is enabled
+                PrevLockMode = CurLockMode;
+                GotoActiveState(ActiveState.LockIdle);
             }
             return true;
         }
@@ -420,14 +416,14 @@ namespace PropAnarchy.PLT {
                 dirArm1.Normalize();
                 VectorXZ dirArm2 = (m_mainArm2.b - m_mainArm2.a);
                 dirArm2.Normalize();
-                m_mainElbowAngle = EMath.Abs((-dirArm1).AngleSigned(dirArm2, m_vectorUp));
+                m_mainElbowAngle = EMath.Abs((-dirArm1).AngleSigned(dirArm2, EMath.Vector3Up));
             }
         }
 
-        public override bool IsLengthLongEnough() => (m_mainBezier.d - m_mainBezier.a).magnitude >= ItemInfo.ItemSpacing;
+        public override bool IsLengthLongEnough() => (m_mainBezier.d - m_mainBezier.a).magnitude >= ItemInfo.Spacing;
 
         public override bool IsActiveStateAnItemRenderState() {
-            switch (m_currentState) {
+            switch (CurActiveState) {
             case ActiveState.CreatePointThird:
             case ActiveState.LockIdle:
             case ActiveState.MovePointFirst:
@@ -443,17 +439,17 @@ namespace PropAnarchy.PLT {
         }
 
         public override void RevertDrawingFromLockMode() {
-            GoToActiveState(ActiveState.CreatePointThird);
-            ControlPoint.Modify(m_mousePosition, 3); //update position of second point
+            GotoActiveState(ActiveState.CreatePointThird);
+            ControlPoint.Modify(m_mousePosition, 2); //update position of second point
             UpdateCurve();
             UpdatePlacement(false, false);
         }
 
-        public override void CalculateAllDirections(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode) {
-            int itemCount = m_itemCount;
+        public override void CalculateAllDirections(ItemInfo.ItemData[] items, bool fenceMode) {
+            int itemCount = ItemInfo.Count;
             if (fenceMode) {
                 for (int i = 0; i < itemCount; i++) {
-                    items[i].SetDirectionsXZ(fenceEndPoints[i + 1] - fenceEndPoints[i]);
+                    items[i].SetDirectionsXZ(items[i + 1].m_fenceEndPoint - items[i].m_fenceEndPoint);
                 }
             } else {
                 Bezier3 mainBezier = m_mainBezier;
@@ -463,32 +459,32 @@ namespace PropAnarchy.PLT {
             }
         }
 
-        public override bool CalculateItemwisePosition(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode, float fencePieceLength, float initialOffset, VectorXZ lastFenceEndpoint) {
-            float hoverItemwiseT = m_hoverItemwiseT;
+        public override bool CalculateItemwisePosition(ItemInfo.ItemData[] items, bool fenceMode, float fencePieceLength, float initialOffset, VectorXZ lastFenceEndpoint) {
+            float hoverItemwiseT = ItemInfo.HoverItemwiseT;
             if (fenceMode) {
                 VectorXZ positionStart, positionEnd;
                 if (fencePieceLength > m_mainBezier.CubicBezierArcLengthXZGauss12(0f, 1f)) {
-                    m_itemCount = 0;
+                    ItemInfo.Count = 0;
                     return false;
                 }
-                m_mainBezier.CircleCurveFenceIntersectXZ(hoverItemwiseT, fencePieceLength, TOLERANCE, out float itemTEnd, false);
+                m_mainBezier.CircleCurveFenceIntersectXZ(hoverItemwiseT, fencePieceLength, BEZIERTOLERANCE, out float itemTEnd, false);
                 //check if out of bounds
                 if (itemTEnd > 1f) {
                     //out of bounds? -> attempt to snap to d-end of curve
                     //invert the curve to go "backwards"
                     itemTEnd = 0f;
                     Bezier3 inverseBezier = m_mainBezier.Invert();
-                    if (!inverseBezier.CircleCurveFenceIntersectXZ(itemTEnd, fencePieceLength, TOLERANCE, out hoverItemwiseT, false)) {
+                    if (!inverseBezier.CircleCurveFenceIntersectXZ(itemTEnd, fencePieceLength, BEZIERTOLERANCE, out hoverItemwiseT, false)) {
                         //failed to snap to d-end of curve
-                        m_itemCount = 0;
+                        ItemInfo.Count = 0;
                         return false;
                     } else {
                         hoverItemwiseT = 1f - hoverItemwiseT;
                         itemTEnd = 1f - itemTEnd;
                     }
                 }
-                fenceEndPoints[0] = positionStart = m_mainBezier.Position(hoverItemwiseT);
-                fenceEndPoints[1] = positionEnd = m_mainBezier.Position(itemTEnd);
+                items[0].m_fenceEndPoint = positionStart = m_mainBezier.Position(hoverItemwiseT);
+                items[1].m_fenceEndPoint = positionEnd = m_mainBezier.Position(itemTEnd);
                 items[0].Position = Vector3.Lerp(positionStart, positionEnd, 0.50f);
                 return true;
             }
@@ -497,25 +493,25 @@ namespace PropAnarchy.PLT {
             return true;
         }
 
-        public override bool CalculateAllPositionsBySpacing(ItemInfo[] items, Vector3[] fenceEndPoints, bool fenceMode, float spacing, float initialOffset, VectorXZ lastFenceEndpoint) {
+        public override bool CalculateAllPositionsBySpacing(ItemInfo.ItemData[] items, bool fenceMode, float spacing, float initialOffset, VectorXZ lastFenceEndpoint) {
             int numItems, numItemsRaw;
             float finalT;
             ref Bezier3 mainBezier = ref m_mainBezier;
             initialOffset = EMath.Abs(initialOffset);
 
             if (spacing == 0 || !IsLengthLongEnough() || (fenceMode && m_mainElbowAngle * Mathf.Rad2Deg < 5f)) {
-                m_itemCount = 0;
+                ItemInfo.Count = 0;
                 return false;
             }
             if (fenceMode) {
                 float lengthFull = mainBezier.CubicBezierArcLengthXZGauss12(0f, 1f);
                 float lengthAfterFirst = SegmentState.IsMaxFillContinue ? lengthFull - initialOffset : lengthFull;
                 if (spacing > lengthFull) {
-                    m_itemCount = 0;
+                    ItemInfo.Count = 0;
                     return false;
                 }
                 numItemsRaw = EMath.CeilToInt(lengthAfterFirst / spacing);
-                numItems = EMath.Min(m_itemCount, EMath.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
+                numItems = EMath.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH);
 
                 float t = 0f;
                 float penultimateT = 0f;
@@ -523,20 +519,20 @@ namespace PropAnarchy.PLT {
                 //max fill continue
                 if (SegmentState.IsMaxFillContinue && initialOffset > 0f) {
                     forLoopStart = 0;
-                    mainBezier.StepDistanceCurve(0f, initialOffset, TOLERANCE, out t);
+                    mainBezier.StepDistanceCurve(0f, initialOffset, BEZIERTOLERANCE, out t);
                     goto label_endpointsForLoop;
                 } else if (initialOffset > 0f) {
                     //first continueDrawing if (1/4)
-                    fenceEndPoints[0] = lastFenceEndpoint;
-                    if (!mainBezier.LinkCircleCurveFenceIntersectXZ(lastFenceEndpoint, spacing, TOLERANCE, out t, false)) {
+                    items[0].m_fenceEndPoint = lastFenceEndpoint;
+                    if (!mainBezier.LinkCircleCurveFenceIntersectXZ(lastFenceEndpoint, spacing, BEZIERTOLERANCE, out t, false)) {
                         forLoopStart = 0;
                         t = 0f;
                         goto label_endpointsForLoop;
                     }
                     //third continueDrawing if (3/4)
-                    fenceEndPoints[1] = mainBezier.Position(t);
+                    items[1].m_fenceEndPoint = mainBezier.Position(t);
                     //fourth continueDrawing if (4/4)
-                    if (!mainBezier.CircleCurveFenceIntersectXZ(t, spacing, TOLERANCE, out t, false)) {
+                    if (!mainBezier.CircleCurveFenceIntersectXZ(t, spacing, BEZIERTOLERANCE, out t, false)) {
                         numItems = 1;
                         goto label_endpointsFinish;
                     }
@@ -551,10 +547,10 @@ label_endpointsForLoop:
                         goto label_endpointsFinish;
                     }
                     //second if (2/3)
-                    fenceEndPoints[i] = mainBezier.Position(t);
+                    items[i].m_fenceEndPoint = mainBezier.Position(t);
                     penultimateT = t;
                     //third if (3/3)
-                    if (!mainBezier.CircleCurveFenceIntersectXZ(t, spacing, TOLERANCE, out t, false)) {
+                    if (!mainBezier.CircleCurveFenceIntersectXZ(t, spacing, BEZIERTOLERANCE, out t, false)) {
                         numItems = i - 1;
                         goto label_endpointsFinish;
                     }
@@ -563,7 +559,7 @@ label_endpointsFinish:
                 numItems = EMath.Clamp(numItems, 0, MAX_ITEM_ARRAY_LENGTH);
                 //then calculate midpoints
                 for (int i = 0; i < numItems; i++) {
-                    items[i].Position = EMath.Lerp(fenceEndPoints[i], fenceEndPoints[i + 1], 0.50f);
+                    items[i].Position = EMath.Lerp(items[i].m_fenceEndPoint, items[i + 1].m_fenceEndPoint, 0.50f);
                 }
                 //prep for MaxFillContinue
                 if (SegmentState.IsReadyForMaxContinue) {
@@ -571,6 +567,7 @@ label_endpointsFinish:
                 } else {
                     SegmentState.NewFinalOffset = m_mainBezier.CubicBezierArcLengthXZGauss04(t, 1f);
                 }
+                SegmentState.NewFenceEndPoint = ItemInfo.Datas[numItems].m_fenceEndPoint;
             } else {
                 if (m_mainArm1.Length() + m_mainArm2.Length() <= 0.01f) {
                     return false;
@@ -579,15 +576,15 @@ label_endpointsFinish:
                 float lengthAfterFirst = lengthFull - initialOffset;
                 //use ceiling for non-fence, because the point at the beginning is an extra point
                 numItemsRaw = EMath.CeilToInt(lengthAfterFirst / spacing);
-                numItems = EMath.Min(m_itemCount, EMath.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH));
+                numItems = EMath.Clamp(numItemsRaw, 0, MAX_ITEM_ARRAY_LENGTH);
                 float t = 0f;
                 if (initialOffset > 0f) {
-                    mainBezier.StepDistanceCurve(0f, initialOffset, TOLERANCE, out t);
+                    mainBezier.StepDistanceCurve(0f, initialOffset, BEZIERTOLERANCE, out t);
                 }
                 for (int i = 0; i < numItems; i++) {
                     items[i].m_t = t;
                     items[i].Position = mainBezier.Position(t);
-                    mainBezier.StepDistanceCurve(t, spacing, TOLERANCE, out t);
+                    mainBezier.StepDistanceCurve(t, spacing, BEZIERTOLERANCE, out t);
                 }
                 if (numItems - 1 >= 0) {
                     finalT = items[numItems - 1].m_t;
@@ -602,7 +599,7 @@ label_endpointsFinish:
                     //UpdatePlacement();
                 }
             }
-            m_itemCount = numItems;
+            ItemInfo.Count = numItems;
             if (EMath.FloorToInt(numItemsRaw) > MAX_ITEM_ARRAY_LENGTH) {
                 SegmentState.MaxItemCountExceeded = true;
             } else {
@@ -618,51 +615,51 @@ label_endpointsFinish:
             const float angleLocusDistanceThreshold = 0.40f;
             Bezier3 mainBezier = m_mainBezier;
             //check for itemwise first before classic lock mode
-            switch (m_currentState) {
+            switch (CurActiveState) {
             case ActiveState.ItemwiseLock:
             case ActiveState.MoveItemwiseItem:
-                if (m_controlMode == ControlMode.ITEMWISE && mainBezier.IsCloseToCurveXZ(HOVER_ITEMWISE_CURVEDISTANCE_THRESHOLD, position, out float hoverItemT)) {
-                    m_hoverItemwiseT = hoverItemT;
-                    m_hoverState = HoverState.ItemwiseItem;
+                if (Settings.ControlMode == ControlMode.ItemWise && mainBezier.IsCloseToCurveXZ(HOVER_ITEMWISE_CURVEDISTANCE_THRESHOLD, position, out float hoverItemT)) {
+                    ItemInfo.HoverItemwiseT = hoverItemT;
+                    CurHoverState = HoverState.ItemwiseItem;
                 }
                 break;
             case ActiveState.LockIdle:
-                if (m_itemCount >= (GetFenceMode() ? 1 : 2) || m_controlMode == ControlMode.ITEMWISE) {
-                    bool angleObjectMode = m_itemType == ItemType.PROP;
-                    VectorXZ angleCenter = m_items[HoverItemAngleCenterIndex].Position;
-                    VectorXZ anglePos = CircleXZ.Position3FromAngleXZ(angleCenter, angleLocusRadius, m_hoverAngle);
-                    VectorXZ spacingPos = GetFenceMode() ? m_fenceEndPoints[HoverItemPositionIndex] : m_items[HoverItemPositionIndex].Position;
+                if (ItemInfo.Count >= (ItemInfo.FenceMode ? 1 : 2) || Settings.ControlMode == ControlMode.ItemWise) {
+                    bool angleObjectMode = ItemInfo.Type == ItemType.Prop;
+                    VectorXZ angleCenter = ItemInfo.Datas[HoverItemAngleCenterIndex].Position;
+                    VectorXZ anglePos = CircleXZ.Position3FromAngleXZ(angleCenter, angleLocusRadius, ItemInfo.HoverAngle);
+                    VectorXZ spacingPos = ItemInfo.FenceMode ? ItemInfo.Datas[HoverItemPositionIndex].m_fenceEndPoint : ItemInfo.Datas[HoverItemPositionIndex].Position;
                     if (VectorXZ.IsInsideCircleXZ(spacingPos, pointRadius, position)) {
-                        m_hoverState = m_controlMode == ControlMode.ITEMWISE ? HoverState.ItemwiseItem : HoverState.SpacingLocus;
+                        CurHoverState = Settings.ControlMode == ControlMode.ItemWise ? HoverState.ItemwiseItem : HoverState.SpacingLocus;
                     } else if (angleObjectMode && VectorXZ.IsInsideCircleXZ(anglePos, anglePointRadius, position)) {
-                        m_hoverState = HoverState.AngleLocus;
+                        CurHoverState = HoverState.AngleLocus;
                     } else if (angleObjectMode && VectorXZ.IsNearCircleOutlineXZ(angleCenter, HOVER_ANGLELOCUS_DIAMETER, position, angleLocusDistanceThreshold)) {
-                        m_hoverState = HoverState.AngleLocus;
+                        CurHoverState = HoverState.AngleLocus;
                     } else if (VectorXZ.IsInsideCircleXZ(ControlPoint.m_controlPoints[0].m_position, pointRadius, position)) {
-                        m_hoverState = HoverState.ControlPointFirst;
+                        CurHoverState = HoverState.ControlPointFirst;
                     } else if (VectorXZ.IsInsideCircleXZ(ControlPoint.m_controlPoints[1].m_position, pointRadius, position)) {
-                        m_hoverState = HoverState.ControlPointSecond;
+                        CurHoverState = HoverState.ControlPointSecond;
                     } else if (VectorXZ.IsInsideCircleXZ(ControlPoint.m_controlPoints[2].m_position, pointRadius, position)) {
-                        m_hoverState = HoverState.ControlPointThird;
+                        CurHoverState = HoverState.ControlPointThird;
                     } else if (mainBezier.IsCloseToCurveXZ(HOVER_CURVEDISTANCE_THRESHOLD, position, out float _)) {
-                        m_hoverState = HoverState.Curve;
+                        CurHoverState = HoverState.Curve;
                     } else {
-                        m_hoverState = HoverState.Unbound;
+                        CurHoverState = HoverState.Unbound;
 
                     }
                 } else {
-                    m_hoverState = HoverState.Unbound;
+                    CurHoverState = HoverState.Unbound;
                 }
                 break;
             default:
-                m_hoverState = HoverState.Unbound;
+                CurHoverState = HoverState.Unbound;
                 break;
             }
         }
 
         public override void UpdateMiscHoverParameters() {
-            if (m_itemCount >= (GetFenceMode() ? 1 : 2) || m_controlMode == ControlMode.ITEMWISE) {
-                switch (m_currentState) {
+            if (ItemInfo.Count >= (ItemInfo.FenceMode ? 1 : 2) || Settings.ControlMode == ControlMode.ItemWise) {
+                switch (CurActiveState) {
                 case ActiveState.MoveSegment:
                     ControlPoint.PointInfo[] controlPoints = ControlPoint.m_controlPoints;
                     ControlPoint.PointInfo[] lockedControlPoints = ControlPoint.m_lockedControlPoints;
@@ -675,30 +672,24 @@ label_endpointsFinish:
                     break;
                 case ActiveState.ChangeSpacing:
                     if (m_mainBezier.IsCloseToCurveXZ(HOVER_CURVEDISTANCE_THRESHOLD * 8f, m_cachedPosition, out float hoverCurveT)) {
-                        float curveT = Mathf.Clamp(hoverCurveT, m_items[0].m_t, 0.995f);
-                        if (GetFenceMode()) {
-                            Vector3 curveDistance = m_mainBezier.Position(curveT) - m_fenceEndPoints[0];
-                            ItemInfo.ItemSpacing = curveDistance.MagnitudeXZ();
+                        float curveT = EMath.Clamp(hoverCurveT, ItemInfo.Datas[0].m_t, 0.995f);
+                        if (ItemInfo.FenceMode) {
+                            Vector3 curveDistance = m_mainBezier.Position(curveT) - ItemInfo.Datas[0].m_fenceEndPoint;
+                            ItemInfo.Spacing = curveDistance.MagnitudeXZ();
                         } else { //non-fence mode
-                            ItemInfo.ItemSpacing = m_mainBezier.CubicBezierArcLengthXZGauss12(m_items[0].m_t, curveT);
+                            ItemInfo.Spacing = m_mainBezier.CubicBezierArcLengthXZGauss12(ItemInfo.Datas[0].m_t, curveT);
                         }
                     }
                     UpdateCurve();
                     UpdatePlacement(true, true);
                     break;
                 case ActiveState.ChangeAngle:
-                    Vector3 yAxis = m_vectorUp;
-                    if (m_angleMode == AngleMode.DYNAMIC) {
-                        VectorXZ angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
-                        angleVector.Normalize();
-                        m_hoverAngle = angleVector.AngleSigned(m_vectorRight, yAxis);
-                        ItemInfo.m_itemAngleOffset = angleVector.AngleSigned(m_lockedBackupItemDirection, yAxis);
-                    } else if (m_angleMode == AngleMode.SINGLE) {
-                        VectorXZ angleVector = m_cachedPosition - m_items[HoverItemAngleCenterIndex].Position;
-                        angleVector.Normalize();
-                        float angle = angleVector.AngleSigned(m_vectorRight, yAxis);
-                        m_hoverAngle = angle;
-                        ItemInfo.m_itemAngleSingle = angle + Mathf.PI;
+                    VectorXZ angleVector = m_cachedPosition - ItemInfo.Datas[HoverItemAngleCenterIndex].Position;
+                    angleVector.Normalize();
+                    if (Settings.AngleMode == AngleMode.Dynamic) {
+                        ItemInfo.Angle = angleVector.AngleSigned(ItemInfo.LockedDirection, EMath.Vector3Up);
+                    } else {
+                        ItemInfo.Angle = angleVector.AngleSigned(EMath.Vector3Right, EMath.Vector3Up) + Mathf.PI;
                     }
                     UpdateCurve();
                     UpdatePlacement();
@@ -712,16 +703,16 @@ label_endpointsFinish:
         }
 
         public override void RenderProgressiveSpacingFill(RenderManager.CameraInfo cameraInfo, float fillLength, float interval, float size, Color color, bool renderLimits, bool alphaBlend) {
-            if (!GetFenceMode()) {
-                float firstItemT = m_items[0].m_t;
-                m_mainBezier.StepDistanceCurve(firstItemT, fillLength, TOLERANCE * TOLERANCE, out float tFill);
+            if (!ItemInfo.FenceMode) {
+                float firstItemT = ItemInfo.Datas[0].m_t;
+                m_mainBezier.StepDistanceCurve(firstItemT, fillLength, BEZIERTOLERANCE * BEZIERTOLERANCE, out float tFill);
                 RenderBezier(cameraInfo, m_mainBezier.Cut(firstItemT, tFill), size, new Color(color.r, color.g, color.b, 0.75f * color.a), renderLimits, true);
             }
         }
 
         public override void Update() {
             //continuously update control points to follow mouse
-            switch (m_currentState) {
+            switch (CurActiveState) {
             case ActiveState.CreatePointFirst:
                 UpdatePlacement(false, false);
                 break;

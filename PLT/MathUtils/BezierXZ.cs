@@ -1,7 +1,8 @@
-﻿using System;
+﻿using EManagersLib;
+using System;
 using UnityEngine;
 
-namespace PropAnarchy.PLT {
+namespace PropAnarchy.PLT.MathUtils {
     public struct BezierXZ {
         public VectorXZ a;
         public VectorXZ b;
@@ -170,17 +171,17 @@ namespace PropAnarchy.PLT {
             }
             threshold = 0.03125f;
             for (i = 0; i < 4; i++) {
-                VectorXZ vectorMax = Position(Math.Max(0f, u - threshold));
+                VectorXZ vectorMax = Position(EMath.Max(0f, u - threshold));
                 VectorXZ vectorMid = Position(u);
-                VectorXZ vectorMin = Position(Math.Min(1f, u + threshold));
+                VectorXZ vectorMin = Position(EMath.Min(1f, u + threshold));
                 float maxDistance = new SegmentXZ(vectorMax, vectorMid).DistanceSqr(segment, out float uMax, out float vMax);
                 float minDistance = new SegmentXZ(vectorMid, vectorMin).DistanceSqr(segment, out float uMin, out float vMin);
                 if (maxDistance < minDistance) {
-                    u = Math.Max(0f, u - threshold * (1f - uMax));
+                    u = EMath.Max(0f, u - threshold * (1f - uMax));
                     v = vMax;
                     result = maxDistance;
                 } else {
-                    u = Math.Min(1f, u + threshold * uMin);
+                    u = EMath.Min(1f, u + threshold * uMin);
                     v = vMin;
                     result = minDistance;
                 }
@@ -206,16 +207,16 @@ namespace PropAnarchy.PLT {
             }
             threshold = 0.03125f;
             for (i = 0; i < 4; i++) {
-                Vector3 vectorMax = Position(Math.Max(0f, u - threshold));
+                Vector3 vectorMax = Position(EMath.Max(0f, u - threshold));
                 Vector3 vectorMid = Position(u);
-                Vector3 vectorMin = Position(Math.Min(1f, u + threshold));
+                Vector3 vectorMin = Position(EMath.Min(1f, u + threshold));
                 float highSegment = new SegmentXZ(vectorMax, vectorMid).DistanceSqr(p, out float uMax);
                 float lowSegment = new SegmentXZ(vectorMid, vectorMin).DistanceSqr(p, out float uMin);
                 if (highSegment < lowSegment) {
-                    u = Math.Max(0f, u - threshold * (1f - uMax));
+                    u = EMath.Max(0f, u - threshold * (1f - uMax));
                     result = highSegment;
                 } else {
-                    u = Math.Min(1f, u + threshold * uMin);
+                    u = EMath.Min(1f, u + threshold * uMin);
                     result = lowSegment;
                 }
                 threshold *= 0.5f;

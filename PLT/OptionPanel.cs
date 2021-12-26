@@ -4,7 +4,7 @@ using System.Globalization;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
-    public sealed class OptionPanel : UIPanel {
+    internal sealed class OptionPanel : UIPanel {
         private const float OPTIONPANEL_WIDTH = 374f;
         private const float OPTIONPANEL_HEIGHT = 420f;
         private const float TITLEBAR_HEIGHT = 42f;
@@ -13,13 +13,11 @@ namespace PropAnarchy.PLT {
         private const float PADDING_PANEL = 10f;
         private const int TAB_PADDING_HORIZONTAL = 10;
         private const int TAB_PADDING_VERTICAL = 8;
-        public delegate void EventOptionPanelHandler(PropLineTool.ItemType mode);
-        public delegate void EventPropertyChanged(bool state);
+        internal delegate void EventOptionPanelHandler(PropLineTool.ItemType mode);
 #pragma warning disable IDE1006
-        public static event EventOptionPanelHandler eventOnOptionClose;
-        public static event EventOptionPanelHandler eventOnOptionOpen;
-        public static event EventOptionPanelHandler eventOnAnglePanelToggle;
-        public static event PropertyChangedEventHandler<float> eventOnAngleValueChange;
+        internal static event EventOptionPanelHandler eventOnOptionClose;
+        internal static event EventOptionPanelHandler eventOnOptionOpen;
+        internal static event EventOptionPanelHandler eventOnAnglePanelToggle;
 #pragma warning restore IDE1006
 
         public override void Awake() {
@@ -69,7 +67,7 @@ namespace PropAnarchy.PLT {
 
         public static void Open(PropLineTool.ItemType mode) => eventOnOptionOpen?.Invoke(mode);
 
-        public static void Close() => eventOnOptionClose?.Invoke(PropLineTool.ItemType.UNDEFINED);
+        public static void Close() => eventOnOptionClose?.Invoke(PropLineTool.ItemType.Undefined);
 
         public static void ToggleAnglePanel(PropLineTool.ItemType mode) => eventOnAnglePanelToggle?.Invoke(mode);
 
@@ -102,9 +100,9 @@ namespace PropAnarchy.PLT {
             itemwiseBtn.tooltip = PALocale.GetLocale(@"PLTItemWiseTooltip");
             spacingBtn.focusedBgSprite = @"PLT_SpacingwiseOneFocused";
             spacingBtn.tooltip = PALocale.GetLocale(@"PLTSpacingTooltip");
-            controlMode.selectedIndex = controlMode.startSelectedIndex = (int)PropLineTool.m_controlMode;
+            controlMode.selectedIndex = controlMode.startSelectedIndex = (int)Settings.ControlMode;
             controlMode.eventSelectedIndexChanged += (c, index) => {
-                PropLineTool.m_controlMode = (PropLineTool.ControlMode)index;
+                Settings.ControlMode = (PropLineTool.ControlMode)index;
             };
             CreateBlueBtn(parent, PALocale.GetLocale(@"PLTDecouplePrevSegment"), 0.8f, new Vector2(250f, 24f), new Vector3(62f, 45f)).eventClick += (c, p) => {
                 SegmentState.ResetLastContinueParameters();
@@ -120,16 +118,16 @@ namespace PropAnarchy.PLT {
             autoDefaultCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
                 if (index != 0) {
                     Settings.AutoDefaultSpacing = true;
-                    PropLineTool.DrawMode.CurrentMode.UpdatePlacement();
                     PropLineTool.ItemInfo.SetDefaultSpacing();
                 } else {
                     Settings.AutoDefaultSpacing = false;
-                    PropLineTool.DrawMode.CurrentMode.UpdatePlacement();
                 }
+                DrawMode.CurActiveMode.UpdatePlacement();
             };
+            PropLineTool.SetAutoSpacing = (state) => autoDefaultCB.isChecked = state;
             UINumEditbox spacingField = CreateNumboxField(parent, PALocale.GetLocale(@"PLTSpacingTitle"), @"m", out _);
             spacingField.parent.relativePosition = new Vector2(parent.width - spacingField.parent.width - 20f, SPACING_OFFSETY + spacingLabel.height + 5f);
-            spacingField.Value = PropLineTool.ItemInfo.ItemDefaultSpacing;
+            spacingField.Value = 1f;// PropLineTool.ItemInfo.Spacing;
             spacingField.eventValueChanged += (c, value) => SegmentState.m_pendingPlacementUpdate = true;
             PropLineTool.SetSpacingValue = (value) => spacingField.Value = value;
             PropLineTool.GetSpacingValue = () => spacingField.Value;
@@ -166,8 +164,14 @@ namespace PropAnarchy.PLT {
             angleSingleBtn.focusedBgSprite = @"SubBarButtonBaseFocused";
             angleSingleBtn.hoveredBgSprite = @"SubBarButtonBaseHovered";
             angleSingleBtn.pressedBgSprite = @"SubBarButtonBasePressed";
+            angleMode.startSelectedIndex = (int)Settings.AngleMode;
+            angleMode.selectedIndex = (int)Settings.AngleMode;
             angleMode.size = new Vector2(angleDynamicBtn.width + angleSingleBtn.width, angleDynamicBtn.height);
             angleMode.relativePosition = new Vector2(anglePanel.width - angleMode.width - 20f, angleLabel.relativePosition.y + (angleLabel.height - angleMode.height) / 2f);
+            PropLineTool.SetAngleModeState = (state) => {
+                if (state) angleMode.Enable();
+                else angleMode.Disable();
+            };
             angleDynamicBtn.relativePosition = Vector2.zero;
             angleSingleBtn.relativePosition = new Vector2(angleDynamicBtn.width, 0f);
             UIPLTCheckbox flip180CB = anglePanel.AddUIComponent<UIPLTCheckbox>();
@@ -177,29 +181,26 @@ namespace PropAnarchy.PLT {
             flip180CB.relativePosition = new Vector2(angleLabel.relativePosition.x + 5f, angleLabel.height + 10f);
             flip180CB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
                 Settings.AngleFlip180 = index != 0;
-                PropLineTool.DrawMode.CurrentMode.UpdatePlacement();
+                DrawMode.CurActiveMode.UpdatePlacement();
             };
             UINumEditbox angleField = CreateNumboxField(anglePanel, PALocale.GetLocale(@"PLTRelativeAngle"), angleMode.selectedIndex == 0 ? @"Δ°" : @"°", out UILabel angleUnit);
             angleField.parent.relativePosition = new Vector2(anglePanel.width - angleField.parent.width - 20f, angleLabel.height + 5f);
-            angleField.Value = angleMode.selectedIndex == 0 ? PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg : PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg;
-            angleField.eventValueChanged += (c, value) => {
-                if (angleMode.selectedIndex == 0) {
-                    PropLineTool.ItemInfo.m_itemAngleOffset = value * Mathf.Deg2Rad;
-                } else {
-                    PropLineTool.ItemInfo.m_itemAngleSingle = value * Mathf.Deg2Rad;
-                }
-            };
-            eventOnAngleValueChange += (c, value) => angleField.Value = value;
+            angleField.Value = 0f;
+            angleField.eventValueChanged += (c, value) => SegmentState.m_pendingPlacementUpdate = true;
+            PropLineTool.SetAngleMode = (val) => angleMode.selectedIndex = val;
+            PropLineTool.GetAngleValue = () => angleField.Value;
+            PropLineTool.SetAngleValue = (val) => angleField.Value = val;
             angleMode.eventSelectedIndexChanged += (c, index) => {
-                PropLineTool.m_angleMode = index == 0 ? PropLineTool.AngleMode.DYNAMIC : PropLineTool.AngleMode.SINGLE;
+                Settings.AngleMode = (PropLineTool.AngleMode)index;
                 angleUnit.text = index == 0 ? @"Δ°" : @"°";
+                SegmentState.m_pendingPlacementUpdate = true;
             };
             UIBasicAngleCalculator angleCalculator = anglePanel.AddUIComponent<UIBasicAngleCalculator>();
             angleCalculator.relativePosition = new Vector2(26f, angleLabel.height + angleField.height + VERTICAL_PADDING);
             eventOnAnglePanelToggle += (mode) => {
                 switch (mode) {
-                case PropLineTool.ItemType.PROP: anglePanel.isVisible = true; break;
-                case PropLineTool.ItemType.TREE: anglePanel.isVisible = false; break;
+                case PropLineTool.ItemType.Prop: anglePanel.isVisible = true; break;
+                case PropLineTool.ItemType.Tree: anglePanel.isVisible = false; break;
                 }
             };
             eventOnOptionOpen += eventOnAnglePanelToggle;
@@ -210,7 +211,6 @@ namespace PropAnarchy.PLT {
             const float STARTY = 15f;
             const float PADDINGY = 10f;
             const float DIVIDERHEIGHT = 5f;
-            const float CHECKBOXWIDTH = 24f;
             parent.autoLayout = false;
             UIPLTCheckbox showUndoPreviewCB = parent.AddUIComponent<UIPLTCheckbox>();
             showUndoPreviewCB.text = PALocale.GetLocale(@"PLTShowUndoPreview");
@@ -218,50 +218,12 @@ namespace PropAnarchy.PLT {
             showUndoPreviewCB.isChecked = Settings.ShowUndoPreviews;
             showUndoPreviewCB.relativePosition = new Vector3(OFFSETX, STARTY);
             showUndoPreviewCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.ShowUndoPreviews = index != 0;
-            _ = CreateDivider(parent, new Vector3(12f, STARTY + PADDINGY + showUndoPreviewCB.height));
-            UIPLTCheckbox errorCheckCB = parent.AddUIComponent<UIPLTCheckbox>();
-            errorCheckCB.text = PALocale.GetLocale(@"PLTErrorChecking");
-            errorCheckCB.tooltip = PALocale.GetLocale(@"PLTErrorCheckingTooltip");
-            errorCheckCB.isChecked = Settings.ErrorChecking;
-            errorCheckCB.relativePosition = new Vector3(OFFSETX, showUndoPreviewCB.relativePosition.y + showUndoPreviewCB.height + DIVIDERHEIGHT * 2f + PADDINGY);
-            UIPLTCheckbox errorGuideLinesCB = parent.AddUIComponent<UIPLTCheckbox>();
-            errorGuideLinesCB.text = PALocale.GetLocale(@"PLTShowErrorGuides");
-            errorGuideLinesCB.tooltip = PALocale.GetLocale(@"PLTShowErrorGuidesTooltip");
-            errorGuideLinesCB.isChecked = Settings.ShowErrorGuides;
-            errorGuideLinesCB.relativePosition = new Vector3(OFFSETX + CHECKBOXWIDTH, errorCheckCB.relativePosition.y + errorCheckCB.height + PADDINGY);
-            errorGuideLinesCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.ShowErrorGuides = index != 0;
-            //UIPLTCheckbox pltAnarchyCB = parent.AddUIComponent<UIPLTCheckbox>();
-            //pltAnarchyCB.text = PALocale.GetLocale(@"PLTAnarchy");
-            //pltAnarchyCB.tooltip = PALocale.GetLocale(@"PLTAnarchyTooltip");
-            //pltAnarchyCB.isChecked = Settings.AnarchyPLT;
-            //pltAnarchyCB.relativePosition = new Vector3(OFFSETX + CHECKBOXWIDTH, errorGuideLinesCB.relativePosition.y + errorGuideLinesCB.height + PADDINGY);
-            //pltAnarchyCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.AnarchyPLT = index != 0;
-            //UIPLTCheckbox placeBlockedItemCB = parent.AddUIComponent<UIPLTCheckbox>();
-            //placeBlockedItemCB.text = PALocale.GetLocale(@"PLTPlaceBlockedItem");
-            //placeBlockedItemCB.tooltip = PALocale.GetLocale(@"PLTPlaceBlockedItemTooltip");
-            //placeBlockedItemCB.isChecked = Settings.PlaceBlockedItems;
-            //placeBlockedItemCB.relativePosition = new Vector3(pltAnarchyCB.relativePosition.x + CHECKBOXWIDTH, pltAnarchyCB.relativePosition.y + pltAnarchyCB.height + PADDINGY);
-            //placeBlockedItemCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.PlaceBlockedItems = index != 0;
-            //errorCheckCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
-            //    if (index != 0) {
-            //        Settings.ErrorChecking = true;
-            //        errorGuideLinesCB.Enable();
-            //        pltAnarchyCB.Enable();
-            //        placeBlockedItemCB.Enable();
-            //    } else {
-            //        Settings.ErrorChecking = false;
-            //        errorGuideLinesCB.Disable();
-            //        pltAnarchyCB.Disable();
-            //        placeBlockedItemCB.Disable();
-            //    }
-            //};
-            CreateDivider(parent, new Vector3(12f, errorGuideLinesCB.relativePosition.y + errorGuideLinesCB.height + PADDINGY));
-            //_ = CreateDivider(parent, new Vector3(12f, placeBlockedItemCB.relativePosition.y + placeBlockedItemCB.height + PADDINGY));
+            _ = CreateDivider(parent, new Vector3(12f, showUndoPreviewCB.relativePosition.y + showUndoPreviewCB.height + PADDINGY));
             UIPLTCheckbox meshCenterCorrectionCB = parent.AddUIComponent<UIPLTCheckbox>();
             meshCenterCorrectionCB.text = PALocale.GetLocale(@"PLTMeshCenterCorrection");
             meshCenterCorrectionCB.tooltip = PALocale.GetLocale(@"PLTMeshCenterCorrectionTooltip");
             meshCenterCorrectionCB.isChecked = Settings.UseMeshCenterCorrection;
-            meshCenterCorrectionCB.relativePosition = new Vector3(OFFSETX, errorGuideLinesCB.relativePosition.y + errorGuideLinesCB.height + DIVIDERHEIGHT * 2f + PADDINGY);
+            meshCenterCorrectionCB.relativePosition = new Vector3(OFFSETX, showUndoPreviewCB.relativePosition.y + showUndoPreviewCB.height + DIVIDERHEIGHT * 2f + PADDINGY);
             meshCenterCorrectionCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.UseMeshCenterCorrection = index != 0;
             UIPLTCheckbox perfectCircleCB = parent.AddUIComponent<UIPLTCheckbox>();
             perfectCircleCB.text = PALocale.GetLocale(@"PLTPerfectCircle");
@@ -517,62 +479,62 @@ namespace PropAnarchy.PLT {
 
                 AddButton(m_setPanel, PALocale.GetLocale(@"PLTDefault"), TEXTSCALE, new Vector2(50f, 32f), new Vector3(4f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.SetSpacingValue(PropLineTool.ItemInfo.ItemDefaultSpacing);
+                        PropLineTool.ItemInfo.SetDefaultSpacing();
                     }
                 };
                 AddButton(m_setPanel, PALocale.GetLocale(@"PLTLength"), TEXTSCALE, longsize, new Vector3(58f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.SetSpacingValue(PropLineTool.ItemInfo.ItemLength);
+                        PropLineTool.SetSpacingValue(PropLineTool.ItemInfo.Height);
                     }
                 };
                 AddButton(m_setPanel, PALocale.GetLocale(@"PLTWidth"), TEXTSCALE, longsize, new Vector3(58f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.SetSpacingValue(PropLineTool.ItemInfo.ItemWidth);
+                        PropLineTool.SetSpacingValue(PropLineTool.ItemInfo.Width);
                     }
                 };
                 AddButton(m_adjustPanel, "+0.1", 0.625f, shortSize, new Vector3(4f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.ItemSpacing += 0.1f;
+                        PropLineTool.ItemInfo.Spacing += 0.1f;
                     }
                 };
                 AddButton(m_adjustPanel, "-0.1", 0.625f, shortSize, new Vector3(4f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.ItemSpacing -= 0.1f;
+                        PropLineTool.ItemInfo.Spacing -= 0.1f;
                     }
                 };
                 AddButton(m_adjustPanel, "+ 1", TEXTSCALE, shortSize, new Vector3(33f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.ItemSpacing += 1f;
+                        PropLineTool.ItemInfo.Spacing += 1f;
                     }
                 };
                 AddButton(m_adjustPanel, "- 1", TEXTSCALE, shortSize, new Vector3(33f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.ItemSpacing -= 1f;
+                        PropLineTool.ItemInfo.Spacing -= 1f;
                     }
                 };
                 AddButton(m_adjustPanel, "+10", TEXTSCALE, shortSize, new Vector3(62f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.ItemSpacing += 10f;
+                        PropLineTool.ItemInfo.Spacing += 10f;
                     }
                 };
                 AddButton(m_adjustPanel, "-10", TEXTSCALE, shortSize, new Vector3(62f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.ItemSpacing -= 10f;
+                        PropLineTool.ItemInfo.Spacing -= 10f;
                     }
                 };
                 AddButton(m_adjustPanel, "+100", TEXTSCALE, new Vector2(31f, 14f), new Vector3(91f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.ItemSpacing += 100f;
+                        PropLineTool.ItemInfo.Spacing += 100f;
                     }
                 };
                 AddButton(m_adjustPanel, "-100", TEXTSCALE, new Vector2(31f, 14f), new Vector3(91f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.ItemSpacing -= 100f;
+                        PropLineTool.ItemInfo.Spacing -= 100f;
                     }
                 };
                 AddButton(m_adjustPanel, PALocale.GetLocale(@"PLTRound"), TEXTSCALE, new Vector2(73f, 32f), new Vector3(126f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.ItemSpacing = Mathf.Round(PropLineTool.ItemInfo.ItemSpacing);
+                        PropLineTool.ItemInfo.Spacing = (int)(PropLineTool.ItemInfo.Spacing);
                     }
                 };
             }
@@ -591,163 +553,72 @@ namespace PropAnarchy.PLT {
                 adjustPanel.relativePosition = new Vector3(68f, 0f);
                 AddButton(setPanel, PALocale.GetLocale(@"PLTZero"), TEXTSCALE, new Vector2(50f, 32f), new Vector3(4f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        eventOnAngleValueChange?.Invoke(c, 0f);
+                        PropLineTool.ItemInfo.Angle = 0f;
                     }
                 };
                 AddButton(adjustPanel, "+0.1", 0.625f, shortSize, new Vector3(4f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg + 0.1f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg + 0.1f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle += (0.1f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "-0.1", 0.625f, shortSize, new Vector3(4f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg - 0.1f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg - 0.1f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle -= (0.1f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "+ 1", TEXTSCALE, shortSize, new Vector3(33f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg + 1f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg + 1f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle += (1f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "- 1", TEXTSCALE, shortSize, new Vector3(33f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg - 1f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg - 1f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle -= (1f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "+10", TEXTSCALE, shortSize, new Vector3(62f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg + 10f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg + 10f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle += (10f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "-10", TEXTSCALE, shortSize, new Vector3(62f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg - 10f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg - 10f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle -= (10f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "+30", TEXTSCALE, shortSize, new Vector3(91f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg + 30f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg + 30f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle += (30f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "-30", TEXTSCALE, shortSize, new Vector3(91f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg - 30f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg - 30f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle -= (30f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "+45", TEXTSCALE, shortSize, new Vector3(120f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg + 45f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg + 45f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle += (45f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "-45", TEXTSCALE, shortSize, new Vector3(120f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg - 45f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg - 45f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle -= (45f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "+90", TEXTSCALE, shortSize, new Vector3(149f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg + 90f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg + 90f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle += (90f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, "-90", TEXTSCALE, shortSize, new Vector3(149f, 22f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg - 90f);
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg - 90f);
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle -= (90f * Mathf.Deg2Rad);
                     }
                 };
                 AddButton(adjustPanel, PALocale.GetLocale(@"PLTRound"), TEXTSCALE, new Vector2(73f, 32f), new Vector3(178f, 4f)).eventClick += (c, p) => {
                     if (p.buttons == UIMouseButton.Left) {
-                        switch (PropLineTool.m_angleMode) {
-                        case PropLineTool.AngleMode.DYNAMIC:
-                            eventOnAngleValueChange?.Invoke(c, Mathf.Round(PropLineTool.ItemInfo.m_itemAngleOffset * Mathf.Rad2Deg));
-                            break;
-                        case PropLineTool.AngleMode.SINGLE:
-                            eventOnAngleValueChange?.Invoke(c, Mathf.Round(PropLineTool.ItemInfo.m_itemAngleSingle * Mathf.Rad2Deg));
-                            break;
-                        }
+                        PropLineTool.ItemInfo.Angle = Mathf.Round(PropLineTool.ItemInfo.Angle * Mathf.Rad2Deg) * Mathf.Deg2Rad;
                     }
                 };
             }

@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 
-namespace PropAnarchy.PLT {
+namespace PropAnarchy.PLT.MathUtils {
     public struct SegmentXZ {
         public VectorXZ a;
         public VectorXZ b;
@@ -203,7 +203,7 @@ namespace PropAnarchy.PLT {
                 b += vector * (num / vector.z);
                 vector = a - b;
             }
-            num = bounds.max.x - this.b.x;
+            num = bounds.max.x - b.x;
             if (num <= -1E-06f) {
                 if (vector.x > num) {
                     return false;
@@ -231,9 +231,8 @@ namespace PropAnarchy.PLT {
         }
 
         public float LinearSpeedXZ() {
-            float Pow2(float x) => x * x;
             VectorXZ tanVector = b - a;
-            return (float)Math.Sqrt(Pow2(tanVector.x) + Pow2(tanVector.z));
+            return (float)Math.Sqrt(tanVector.x * tanVector.x + tanVector.z * tanVector.z);
         }
 
         public VectorXZ Direction() => b - a;

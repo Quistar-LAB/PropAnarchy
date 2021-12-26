@@ -1,13 +1,14 @@
 ﻿using ColossalFramework.Math;
-using System;
+using EManagersLib;
+using PropAnarchy.PLT.MathUtils;
 using UnityEngine;
 
-namespace PropAnarchy.PLT {
+namespace PropAnarchy.PLT.Extensions {
     public static class Bezier3Extension {
         /// <summary>Normalizes an angle (in degrees) between 0 and 360 degrees</summary>
         /// <param name="inputAngle">angle in Degrees</param>
         /// <returns></returns>
-        public static float NormalizeAngle360(float inputAngle) => (inputAngle < 0f) ? -1f * Math.Abs(inputAngle) % 360f : Math.Abs(inputAngle) % 360f;
+        public static float NormalizeAngle360(float inputAngle) => (inputAngle < 0f) ? -1f * EMath.Abs(inputAngle) % 360f : EMath.Abs(inputAngle) % 360f;
 
         /// <summary>Constrains input Bezier to XZ plane</summary>
         /// <param name="bezier"></param>
@@ -66,7 +67,7 @@ namespace PropAnarchy.PLT {
             const float adjustmentScalar = 1.0f;  //if using multiplicity, _adjustmentScalar = 2
             bezier.BezierXZ();
             float toleranceSqr = tolerance * tolerance;
-            if (!allowBackwards) lengthOfSegment = Mathf.Abs(lengthOfSegment);
+            if (!allowBackwards) lengthOfSegment = EMath.Abs(lengthOfSegment);
             if (lengthOfSegment == 0f) {
                 tEnd = tStart;
                 return false;
@@ -110,7 +111,7 @@ namespace PropAnarchy.PLT {
             if (lengthOfSegment == 0f) {
                 tEnd = 0f;
                 return false;
-            } else if (lengthOfSegment < 0f) lengthOfSegment = Mathf.Abs(lengthOfSegment);
+            } else if (lengthOfSegment < 0f) lengthOfSegment = EMath.Abs(lengthOfSegment);
             bezier.StepDistanceCurve(0f, lengthOfSegment - Vector3.Distance(startPos, bezier.a), toleranceSqr, out float t0);
             do {
                 t0 -= adjustmentScalar * (bezier.PLTLinkErrorFunctionXZ(t0, startPos, lengthOfSegment) / bezier.PLTLinkErrorFunctionPrimeXZ(t0, startPos));
@@ -171,7 +172,7 @@ namespace PropAnarchy.PLT {
         //at a specific t
         private static float CubicSpeedXZ(ref this Bezier3 bezier, float t) {
             float sqrSpeed(in Vector3 tangent) => tangent.x * tangent.x + tangent.z * tangent.z;
-            return (float)Math.Sqrt(sqrSpeed(bezier.Tangent(t)));
+            return (float)EMath.Sqrt(sqrSpeed(bezier.Tangent(t)));
         }
 
 
@@ -230,7 +231,6 @@ namespace PropAnarchy.PLT {
             float distanceSqr = 0f, num = 1E+11f;
             Bezier3 bezier = curve;
             bezier.BezierXZ();
-#if TRUE
             t = 0f;
             Vector3 vector = bezier.a;
             vector.y = 0f;
@@ -245,25 +245,20 @@ namespace PropAnarchy.PLT {
             }
             float num4 = 0.03125f;
             for (int i = 0; i < 4; i++) {
-                Vector3 vector3 = bezier.Position(Math.Max(0f, t - num4));
+                Vector3 vector3 = bezier.Position(EMath.Max(0f, t - num4));
                 Vector3 vector4 = bezier.Position(t);
-                Vector3 vector5 = bezier.Position(Math.Min(1f, t + num4));
+                Vector3 vector5 = bezier.Position(EMath.Min(1f, t + num4));
                 float num5 = new Segment3(vector3, vector4).DistanceSqr(pointOfInterest, out float num6);
                 float num7 = new Segment3(vector4, vector5).DistanceSqr(pointOfInterest, out float num8);
                 if (num5 < num7) {
-                    t = Math.Max(0f, t - num4 * (1f - num6));
+                    t = EMath.Max(0f, t - num4 * (1f - num6));
                     distanceSqr = num5;
                 } else {
-                    t = Math.Min(1f, t + num4 * num8);
+                    t = EMath.Min(1f, t + num4 * num8);
                     distanceSqr = num7;
                 }
                 num4 *= 0.5f;
             }
-#endif
-            //float distanceSqr = bezier.DistanceSqr(pointOfInterest, out t);
-            PAModule.PALog($"Result={distanceSqr} DistanceThreshold={distanceThreshold * distanceThreshold}");
-            //constrain to XZ plane
-            //curve.BezierXZ();
             return distanceSqr <= distanceThreshold * distanceThreshold;
         }
     }

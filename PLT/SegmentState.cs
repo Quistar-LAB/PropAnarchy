@@ -1,4 +1,5 @@
 ﻿using EManagersLib;
+using PropAnarchy.PLT.MathUtils;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
@@ -58,6 +59,16 @@ namespace PropAnarchy.PLT {
         }
 
         // === fence === 
+        public static Vector3 NewFenceEndPoint {
+            get => m_segmentInfo.m_newFenceEndpoint;
+            set {
+                if (m_segmentInfo.m_newFenceEndpoint != value) {
+                    m_segmentInfo.m_newFenceEndpoint = value;
+                    EventLastContinueParameterChanged?.Invoke();
+                }
+            }
+        }
+
         public static Vector3 LastFenceEndpoint {
             get => m_segmentInfo.m_lastFenceEndpoint;
             set {
