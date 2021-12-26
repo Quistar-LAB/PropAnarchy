@@ -62,7 +62,6 @@ namespace PropAnarchy {
             try {
                 CreateDebugFile();
             } catch (Exception e) {
-                PALog($"Failed to create debug output file");
                 UnityEngine.Debug.LogException(e);
             }
         }
