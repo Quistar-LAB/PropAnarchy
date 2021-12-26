@@ -70,6 +70,9 @@ namespace PropAnarchy {
         public string Name => m_modName + ' ' + m_modVersion;
         public string Description => m_modDesc;
         public void OnEnabled() {
+            GameSettings.AddSettingsFile(new SettingsFile[] {
+                        new SettingsFile() { fileName = KeybindingConfigFile }
+                    });
             PALocale.Init();
             for (int loadTries = 0; loadTries < 2; loadTries++) {
                 if (LoadSettings()) break; // Try 2 times, and if still fails, then use default settings
