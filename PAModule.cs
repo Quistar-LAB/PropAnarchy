@@ -59,14 +59,10 @@ namespace PropAnarchy {
         }
 
         public PAModule() {
-            CreateDebugFile();
             try {
-                if (GameSettings.FindSettingsFileByName(KeybindingConfigFile) is null) {
-                    GameSettings.AddSettingsFile(new SettingsFile[] {
-                        new SettingsFile() { fileName = KeybindingConfigFile }
-                    });
-                }
+                CreateDebugFile();
             } catch (Exception e) {
+                PALog($"Failed to create debug output file");
                 UnityEngine.Debug.LogException(e);
             }
         }
