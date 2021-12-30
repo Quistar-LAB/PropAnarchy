@@ -70,7 +70,6 @@ namespace PropAnarchy.PLT {
             DrawMode currentMode = DrawMode.CurActiveMode;
             ActiveState currentState = DrawMode.CurActiveState;
             int drawMode = DrawMode.CurrentMode;
-            m_validPoints = index;
             int validPoints = m_validPoints;
             PointInfo[] controlPoints = m_controlPoints;
             switch (index) {

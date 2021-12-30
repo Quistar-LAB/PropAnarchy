@@ -164,6 +164,7 @@ namespace PropAnarchy.PLT.Modes {
                     }
                     GotoActiveState(ActiveState.LockIdle);
                 }
+                if (Settings.AutoDefaultSpacing) SetAutoSpacing(false);
                 break;
             case ActiveState.ChangeAngle:
                 if (!isInsideUI && e.type == EventType.MouseDown) {

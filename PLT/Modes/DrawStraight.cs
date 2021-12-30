@@ -103,12 +103,14 @@ namespace PropAnarchy.PLT.Modes {
                             UpdateCurve();
                             UpdatePlacement();
                             break;
+                            /*
                         case HoverState.ControlPointThird:
                             GotoActiveState(ActiveState.MovePointThird);
                             ControlPoint.Modify(m_mousePosition, 2);
                             UpdateCurve();
                             UpdatePlacement();
                             break;
+                            */
                         case HoverState.Curve:
                             GotoActiveState(ActiveState.MoveSegment);
                             break;
@@ -131,7 +133,9 @@ namespace PropAnarchy.PLT.Modes {
                         //reset first CP to original position
                         ControlPoint.Modify(ControlPoint.m_lockedControlPoints[0].m_position, 0);
                     }
-                    GotoActiveState(ActiveState.LockIdle);
+                    if(IsLengthLongEnough()) {
+                        GotoActiveState(ActiveState.LockIdle);
+                    }
                 }
                 break;
             case ActiveState.MovePointSecond:
@@ -165,6 +169,7 @@ namespace PropAnarchy.PLT.Modes {
                     }
                     GotoActiveState(ActiveState.LockIdle);
                 }
+                if (Settings.AutoDefaultSpacing) SetAutoSpacing(false);
                 break;
             case ActiveState.ChangeAngle:
                 if (!isInsideUI && e.type == EventType.MouseDown) {
@@ -277,6 +282,10 @@ namespace PropAnarchy.PLT.Modes {
             case ActiveState.CreatePointFirst:
                 UpdatePlacement(false, false);
                 break;
+            case ActiveState.MovePointFirst:
+                ControlPoint.Modify(mousePosition, 0);
+                UpdatePlacement();
+                break;
             case ActiveState.CreatePointSecond:
             case ActiveState.MovePointSecond:
                 ControlPoint.Modify(mousePosition, 1);
@@ -285,10 +294,6 @@ namespace PropAnarchy.PLT.Modes {
             case ActiveState.CreatePointThird:
             case ActiveState.MovePointThird:
                 ControlPoint.Modify(mousePosition, 2);
-                UpdatePlacement();
-                break;
-            case ActiveState.MovePointFirst:
-                ControlPoint.Modify(mousePosition, 0);
                 UpdatePlacement();
                 break;
             case ActiveState.MaxFillContinue:
