@@ -2,6 +2,7 @@
 using ColossalFramework.UI;
 using EManagersLib;
 using UnityEngine;
+using System.Runtime.CompilerServices;
 
 namespace PropAnarchy.PLT {
     internal sealed class ToolBar : UIPanel {
@@ -77,8 +78,6 @@ namespace PropAnarchy.PLT {
                 if (index != 0) OptionPanel.Open(PropLineTool.ItemInfo.Type);
                 else OptionPanel.Close();
             };
-            //LandscapingGroupPanel landscapingPanel = UIView.GetAView().GetComponentInChildren<LandscapingGroupPanel>();
-            //UITabstrip landscapingStrip = AccessTools.Field(typeof(LandscapingGroupPanel), @"m_Strip").GetValue(landscapingPanel) as UITabstrip;
             controlTabStrip.eventSelectedIndexChanged += (c, index) => {
                 DrawMode.CurrentMode = index;
                 if (index == DrawMode.Single) {
@@ -95,6 +94,7 @@ namespace PropAnarchy.PLT {
                     controlPanelToggleBtn.isVisible = true;
                 }
             };
+            isVisible = false;
         }
 
         public override void Start() {
@@ -129,6 +129,7 @@ namespace PropAnarchy.PLT {
 
         public override void OnDestroy() { }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool SetToolPrefix(ToolBase tool) {
             if ((tool is TreeTool || tool is PropTool) && ToolsModifierControl.toolController.CurrentTool is PropLineTool &&
                 DrawMode.CurrentMode != DrawMode.Single) {
@@ -137,6 +138,7 @@ namespace PropAnarchy.PLT {
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SetToolPostfix(ToolBase tool) {
             if (!(tool is null) && !(PropLineTool.m_toolbar is null) && !(m_brushPanel is null)) {
                 if (tool is TreeTool || tool is PropTool) {
