@@ -19,10 +19,6 @@ namespace PropAnarchy {
         internal static CloneHandler ActionCloneHandler;
         private static System.Action<UIColorPicker, Color> SetPickerColorField;
 
-        internal static void initialize() {
-            SetPickerColorField = PAUtils.CreateSetter<UIColorPicker, Color>(typeof(UIColorPicker).GetField("m_Color", BindingFlags.Instance | BindingFlags.NonPublic));
-        }
-
         private static Color GetColor(float x, float y, float width, float height, Color hue) {
             float num = x / width;
             float num2 = y / height;
@@ -49,6 +45,7 @@ namespace PropAnarchy {
         }
 
         internal static void AddPropPainterBtn(UIToolOptionPanel optionPanel, UIButton moreTools, UIPanel mtpBackGround, UIPanel mtpContainer) {
+            SetPickerColorField = PAUtils.CreateSetter<UIColorPicker, Color>(typeof(UIColorPicker).GetField("m_Color", BindingFlags.Instance | BindingFlags.NonPublic));
             EPropInstance[] props = EPropManager.m_props.m_buffer;
             UIColorField field = UnityEngine.Object.Instantiate(UITemplateManager.Get<UIPanel>("LineTemplate").Find<UIColorField>("LineColor"));
             field.isVisible = true;

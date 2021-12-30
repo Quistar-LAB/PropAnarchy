@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 
 namespace PropAnarchy {
     internal static class PAPatcher {
@@ -33,8 +34,10 @@ namespace PropAnarchy {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ActionAddPostfix(HashSet<Instance> selection) => PAPainter.ActionAddHandler?.Invoke(selection);
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ActionClonePostfix(Dictionary<Instance, Instance> ___m_origToCloneUpdate) => PAPainter.ActionCloneHandler?.Invoke(___m_origToCloneUpdate);
 
         internal static void EnablePatches() {
@@ -53,10 +56,20 @@ namespace PropAnarchy {
 
         internal static void AttachMoveItPostProcess() {
             Harmony harmony = new Harmony(HARMONYID);
-            harmony.Patch(AccessTools.Method(typeof(MyExtensions), nameof(MyExtensions.AddObject)),
-                postfix: new HarmonyMethod(typeof(PAPatcher), nameof(ActionAddPostfix)));
-            harmony.Patch(AccessTools.Method(typeof(CloneActionBase), nameof(CloneActionBase.Do)),
-                postfix: new HarmonyMethod(typeof(PAPatcher), nameof(ActionClonePostfix)));
+            try {
+                harmony.Patch(AccessTools.Method(typeof(MyExtensions), nameof(MyExtensions.AddObject)),
+                    postfix: new HarmonyMethod(typeof(PAPatcher), nameof(ActionAddPostfix)));
+            } catch (Exception e) {
+                PAModule.PALog("Failed to patch MoveIt::MyExtensions::AddObject()");
+                PAModule.PALog(e.Message);
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(CloneActionBase), nameof(CloneActionBase.Do)),
+                    postfix: new HarmonyMethod(typeof(PAPatcher), nameof(ActionClonePostfix)));
+            } catch(Exception e) {
+                PAModule.PALog("Failed to patch MoveIt::CloneActionBase::Do()");
+                PAModule.PALog(e.Message);
+            }
         }
 
         internal static void DisablePatches() {

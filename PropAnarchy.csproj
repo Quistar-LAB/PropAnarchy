@@ -113,6 +113,15 @@
     <Compile Include="UI\UIFancySlider.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Localization\PropAnarchy.de.locale" />
+    <None Include="Localization\PropAnarchy.fr.locale" />
+    <None Include="Localization\PropAnarchy.es.locale" />
+    <None Include="Localization\PropAnarchy.ko.locale" />
+    <None Include="Localization\PropAnarchy.pt-BR.locale" />
+    <None Include="Localization\PropAnarchy.ja.locale" />
+    <None Include="Localization\PropAnarchy.zh-TW.locale" />
+    <None Include="Localization\PropAnarchy.zh-CN.locale" />
+    <None Include="Localization\PropAnarchy.it.locale" />
     <None Include="Localization\PropAnarchy.en.locale" />
     <None Include="packages.config" />
   </ItemGroup>
