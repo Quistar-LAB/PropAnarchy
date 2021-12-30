@@ -38,6 +38,14 @@
   <!-- PLT Option Specific Translation -->
   <string name="PLTShowUndoPreview">Show Undo Preview</string>
   <string name="PLTShowUndoPreviewTooltip">Highlights which items will be deleted in the next Undo command when [Ctrl] key is held</string>
+  <string name="PLTErrorChecking">Error Checking</string>
+  <string name="PLTErrorCheckingTooltip">Toggles whether collision-error calculations are run. Disabling may improve performance</string>
+  <string name="PLTShowErrorGuides">Show Error Guides</string>
+  <string name="PLTShowErrorGuidesTooltip">Highlights items that are blocked by road/building (Yellow-Orange) and items that are invalid placement (Red)</string>
+  <string name="PLTAnarchy">PLT Anarchy</string>
+  <string name="PLTAnarchyTooltip">If Enabled, items are placed regardless of collision-errors</string>
+  <string name="PLTPlaceBlockedItem">Place Blocked Items</string>
+  <string name="PLTPlaceBlockedItemTooltip">If Enabled, items blocked by road/building (Yellow-Orange) will be placed, while invalid items (Red) will not</string>
   <string name="PLTMeshCenterCorrection">Use Mesh for Center Correction</string>
   <string name="PLTMeshCenterCorrectionTooltip">Attempt to center items within their footprint.&#xA;Good for props that are not centered within their bounds</string>
   <string name="PLTPerfectCircle">Perfect Circle</string>
@@ -95,7 +103,7 @@
   <string name="Important">Important! Must be set before starting/loading a game&#xA;Please note that increasing prop limit can have minor performance implications. Although EML is optimized to render props faster than vanilla game, this optimization was primarily focused to leverage the cost of increased prop limit. It is best to increase it incrementally as your prop limit requirement increases in your game progression</string>
   <!-- Tree Snapping specific -->
   <string name="PropSnap">Prop Snapping</string>
-  <string name="PropSnapLabel">This option allows free movement of props, and allows props to be snapped to buildings</string>
+  <string name="PropSnapLabel">This option allows free movement of trees, and allows trees to be snapped to buildings and props</string>
   <string name="PropSnapToBuilding">Enable this option to allow props to snap to buildings</string>
   <string name="PropSnapToNetwork">Enable this option to allow prop to snap to networks</string>
   <!-- Misc. -->

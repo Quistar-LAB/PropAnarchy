@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE resources [
+  <!ELEMENT resources ANY>
+  <!ELEMENT string ANY>
+  <!ATTLIST string name ID #REQUIRED>
+]>
+<!-- PropAnarchy Default Locale Template -->
+<resources>
+  <!-- Painter Translation -->
+  <string name="PropPainter">Pintor de Objetos</string>
+  <string name="PainterTooltip">Permite pintar Objetos</string>
+  <!-- PLT Specific Translation -->
+  <string name="PropLineTool">Ferramenta de Objetos em Linha (PLT)</string>
+  <string name="PLTToggleSnapping">Objetos em Linha (PLT): Ligar Ajuste (Snapping)</string>
+  <string name="PLTToggleFenceMode">Objetos em Linha (PLT): Modo cerca</string>
+  <string name="PLTToggleControlPanel">Objetos em Linha (PLT): Mostrar/Ocultar painel de opções</string>
+  <string name="PLTTitleBar">Configurações de Objetos em Linha (PLT)</string>
+  <string name="PLTParameters">Parâmetros</string>
+  <string name="PLTOptions">Opções</string>
+  <string name="PLTItemWiseTooltip">Controle de itens&#xA;Colocar um item de cada vez ao longo da curva</string>
+  <string name="PLTSpacingTooltip">Controle de espaçamento&#xA;Colocar itens em intervalos curtos</string>
+  <string name="PLTDecouplePrevSegment">Retirar do segmento anterior</string>
+  <string name="PLTSpacingTitle">Espaçamento</string>
+  <string name="PLTAutoDefaultSpacing">Espaçamento automático padrão</string>
+  <string name="PLTAutoDefaultSpacingTooltip">Se ligado, define automaticamente o espaçamento padrão sempre que um tipo diferente de Objeto/Árvore é selecionado.&#xA;O espaçamento ainda será automático quando mudar para o modo de cerca.</string>
+  <string name="PLTAngleTitle">Ângulo</string>
+  <string name="PLTAngleDynamic">Ângulo Dinâmico</string>
+  <string name="PLTAngleSingle">Ângulo Individual</string>
+  <string name="PLTFlip180">Virar 180&#xb0;</string>
+  <string name="PLTFlip180Tooltip">Gira objetos em 180&#xb0; sem girar o controle do \'ângulo de mudança\' no \'Modo de Bloqueio\' (verde)</string>
+  <string name="PLTRelativeAngle">Ângulo relativo</string>
+  <!-- PLT Calculator Specific Translation -->
+  <string name="PLTDefault">Padrão</string>
+  <string name="PLTLength">Comprimento</string>
+  <string name="PLTWidth">Largura</string>
+  <string name="PLTRound">Arredondar</string>
+  <string name="PLTZero">Zero</string>
+  <!-- PLT Option Specific Translation -->
+  <string name="PLTShowUndoPreview">Mostrar prévia do \'Desfazer\'</string>
+  <string name="PLTShowUndoPreviewTooltip">Destacar quais itens serão deletados no próximo comando de Desfazer quando a tecla [Ctrl] estiver pressionada</string>
+  <string name="PLTMeshCenterCorrection">Usar Grade para Correção Central</string>
+  <string name="PLTMeshCenterCorrectionTooltip">Tenta centralizar itens dentro do espaçamento deles.&#xA;Bom para Props que não estão centralizados dentro do seu espaço.</string>
+  <string name="PLTPerfectCircle">Círculo perfeito</string>
+  <string name="PLTPerfectCircleTooltip">Se ativado, faz o círculo do tamanho mais próximo para caber perfeitamente todos os itens.&#xA;O tamanho mais próximo depende do parâmetro de espaçamento.</string>
+  <string name="PLTLinearFence">Preencher a linha da Cerca</string>
+  <string name="PLTLinearFenceTooltip">Ao desenhar cercas em linha reta, sobrepõe a última peça para terminar exatamente na posição do mouse</string>
+  <!-- Misc Props -->
+  <string name="GroupProps">Agrupar Objetos</string>
+  <string name="UngroupProps">Desagrupar Objetos</string>
+  <!-- Indicator Messages -->
+  <string name="PropAnarchyIsOff">O modo Anarquia de Objetos está DESLIGADO</string>
+  <string name="PropAnarchyIsOn">O modo Anarquia de Objetos está LIGADO</string>
+  <!-- Terrain Conform -->
+  <string name="TerrainConform">Segue o nível do terreno</string>
+  <!-- Prop Snapping -->
+  <string name="PropSnapping">Ajuste de Objetos (Snapping)</string>
+  <string name="PropSnapIsOff">Ajuste de Objetos (Snapping) está DESLIGADO</string>
+  <string name="PropSnapIsOn">Ajuste de Objetos (Snapping) está LIGADO</string>
+  <!-- Decal Prop Fix -->
+  <string name="DecalPropFix">Correção de Decalques (DecalPropFix)</string>
+  <!-- Additive Shader -->
+  <string name="AdditiveShader">Aditivo de Sombreamento (AdditiveShader)</string>
+  <!-- Transparency LOD Fix -->
+  <string name="TransparencyLODFix">Correção do Nível de Detalhe de Transparências (LOD Fix)</string>
+  <string name="HideCloud">Ocultar nuvens</string>
+  <string name="LODFactorMultiplier">Fator Multiplicador do Nível de Detalhe (LOD)</string>
+  <string name="LODDistanceOffset">Compensar Distância do Nível de Detalhe (LOD)</string>
+  <string name="LODDistanceMultiplier">Multiplicador de Distância do Nível de Detalhe (LOD)</string>
+  <string name="FallbackRenderDistance">Distância da Queda de Renderização</string>
+  <string name="PropLODFixSetting">Configurações de Correção do Nível de Detalhe (LOD) para Objetos</string>
+  <string name="BuildingLODFixSetting">Configurações de Correção do Nível de Detalhe (LOD) para Construções</string>
+  <string name="DestroyAllClouds">Destruir todas as nuvens (Irreversível)</string>
+  <string name="Reset">Restaurar</string>
+  <!-- Adaptive Prop Visibility -->
+  <string name="AdaptivePropVisibility">Visibilidade de Objetos Adaptável</string>
+  <!-- Prop Anarchy -->
+  <string name="PropAnarchy">Anarquia de Objetos (PropAnarchy)</string>
+  <string name="PropAnarchyDesc">Permite colocar objetos em qualquer lugar. Quando você colocar estradas ou construções, use as configurações a seguir para esconder ou deletar o objeto.</string>
+  <string name="PropAnarchyBehaviour">Comportamento quando ocorrer sobreposições</string>
+  <string name="AnarchyHideProp">Esconder o Objeto</string>
+  <string name="AnarchyDeleteProp">Deletar o Objeto</string>
+  <!-- Prop Resize -->
+  <string name="IncreasePropSize">Aumentar tamanho do Objeto</string>
+  <string name="DecreasePropSize">Diminuir tamanho do Objeto</string>
+  <string name="PressAnyKey">Pressione qualquer tecla</string>
+  <!-- Tab Strips -->
+  <string name="MainOptionTab">Opções principais</string>
+  <string name="ExtraFunctionsTab">Funções adicionais</string>
+  <string name="KeyboardShortcutTab">Atalhos do teclado</string>
+  <string name="KeyBindDescription">Ao criar atalhos, use tecla modificadoras (Shift, Ctrl, Alt) para o modo Anarquia de Objetos. Já atalhos para aumentar e diminuir o tamanho de objetos não é necessário as teclas modificadoras, mas tenha certeza de utilizar teclas que não estão sendo usadas em outro atalho ou mod.</string>
+  <!-- Main options -->
+  <string name="EnableCustomLimit">Ativar o limite de Objetos personalizado</string>
+  <string name="MaxPropLimitTitle">Configurar o número limite de Objetos</string>
+  <string name="MaxPropLimit">Limite Máximo de Objetos: {0}</string>
+  <string name="Important">Importante! Deve ser definido antes de iniciar/carregar um jogo.&#xA;Saiba que aumentar o limite de objetos pode ter um pequeno impacto na performance. Mesmo que o mod EML seja otimizado para renderizar objetos mais rápido que o jogo original, essa otimização foi focada em potencializar o impacto causado pelo aumento do limite de objetos. É melhor aumentar aos poucos de acordo com a sua necessidade durante a progressão do jogo.</string>
+  <!-- Tree Snapping specific -->
+  <string name="PropSnap">Ajuste de Objetos (Snapping)</string>
+  <string name="PropSnapLabel">Esta opção permite o movimento livre de objetos e permite que eles sejam ajustados sobre construções</string>
+  <string name="PropSnapToBuilding">Ative esta opção para permitir que objetos se ajustem a construções</string>
+  <string name="PropSnapToNetwork">Ative esta opção para permitir que objetos se ajustem as vias (estradas, cercas, etc)</string>
+  <!-- Misc. -->
+  <string name="builtinFunction">Função integrada:</string>
+  <string name="isEnabled">está ativado</string>
+  <string name="isDisabled">está desativado</string>
+</resources>

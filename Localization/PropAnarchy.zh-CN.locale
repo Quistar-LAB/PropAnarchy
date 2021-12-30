@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE resources [
+  <!ELEMENT resources ANY>
+  <!ELEMENT string ANY>
+  <!ATTLIST string name ID #REQUIRED>
+]>
+<!-- PropAnarchy Default Locale Template -->
+<resources>
+  <!-- Painter Translation -->
+  <string name="PropPainter">道具上色器</string>
+  <string name="PainterTooltip">道具上色器</string>
+  <!-- PLT Specific Translation -->
+  <string name="PropLineTool">道具线性摆放工具</string>
+  <string name="PLTToggleSnapping">PLT: 切换至自动间距模式</string>
+  <string name="PLTToggleFenceMode">PLT: 切换至无间距模式</string>
+  <string name="PLTToggleControlPanel">PLT: 显示/隐藏选项面板Show/Hide Option Panel</string>
+  <string name="PLTTitleBar">PLT设置</string>
+  <string name="PLTParameters">参数</string>
+  <string name="PLTOptions">选项</string>
+  <string name="PLTItemWiseTooltip">摆放控制&#xA;沿曲线一次摆放一个道具</string>
+  <string name="PLTSpacingTooltip">摆放控制&#xA;离散间距摆放道具</string>
+  <string name="PLTDecouplePrevSegment">与前摆放段解耦</string>
+  <string name="PLTSpacingTitle">间距</string>
+  <string name="PLTAutoDefaultSpacing">自动初始化间距</string>
+  <string name="PLTAutoDefaultSpacingTooltip">一旦启用，选择不同道具/树木时自动初始化间距。&#xA;当切换至无间距模式时间距仍然会自动初始化。</string>
+  <string name="PLTAngleTitle">角度</string>
+  <string name="PLTAngleDynamic">动态角度</string>
+  <string name="PLTAngleSingle">单一角度</string>
+  <string name="PLTFlip180">翻转180度;</string>
+  <string name="PLTFlip180Tooltip">在无锁定模式下翻转道具180度</string>
+  <string name="PLTRelativeAngle">相对角度</string>
+  <!-- PLT Calculator Specific Translation -->
+  <string name="PLTDefault">默认</string>
+  <string name="PLTLength">长度</string>
+  <string name="PLTWidth">宽度</string>
+  <string name="PLTRound">圆</string>
+  <string name="PLTZero">零</string>
+  <!-- PLT Option Specific Translation -->
+  <string name="PLTShowUndoPreview">显示撤销预览</string>
+  <string name="PLTShowUndoPreviewTooltip">当按住[Ctrl]键时，突出显示下一个撤销命令中将删除的物品</string>
+  <string name="PLTMeshCenterCorrection">使用网格进行中心校正</string>
+  <string name="PLTMeshCenterCorrectionTooltip">尝试将物品置于其中心轴上。&#xA;对于道具来说不在其边界居中会更合适</string>
+  <string name="PLTPerfectCircle">圆滑的圆</string>
+  <string name="PLTPerfectCircleTooltip">一旦启用，圆将自动调整到最接近的大小，以完美地适合曲线上的所有物品。&#xA;最接近的大小取决于间距参数</string>
+  <string name="PLTLinearFence">线性无间距填补</string>
+  <string name="PLTLinearFenceTooltip">当使用无间距摆放时，将在精准的鼠标位置上结束重叠的物品</string>
+  <!-- Misc Props -->
+  <string name="GroupProps">组合选中的道具</string>
+  <string name="UngroupProps">解散组合的道具</string>
+  <!-- Indicator Messages -->
+  <string name="PropAnarchyIsOff">摆件无碰撞已关闭</string>
+  <string name="PropAnarchyIsOn">摆件无碰撞已开启</string>
+  <!-- Terrain Conform -->
+  <string name="TerrainConform">跟随地形</string>
+  <!-- Prop Snapping -->
+  <string name="PropSnapping">摆件吸附</string>
+  <string name="PropSnapIsOff">摆件吸附已关闭</string>
+  <string name="PropSnapIsOn">摆件吸附已开启</string>
+  <!-- Decal Prop Fix -->
+  <string name="DecalPropFix">贴花摆件修复</string>
+  <!-- Additive Shader -->
+  <string name="AdditiveShader">添加着色器</string>
+  <!-- Transparency LOD Fix -->
+  <string name="TransparencyLODFix">透明度LOD修复</string>
+  <string name="HideCloud">隐藏云状物</string>
+  <string name="LODFactorMultiplier">LOD倍乘因子</string>
+  <string name="LODDistanceOffset">LOD距离补偿</string>
+  <string name="LODDistanceMultiplier">LOD距离倍数</string>
+  <string name="FallbackRenderDistance">渲染距离可变</string>
+  <string name="PropLODFixSetting">摆件LOD修复选项</string>
+  <string name="BuildingLODFixSetting">建筑LOD修复选项</string>
+  <string name="DestroyAllClouds">摧毁所有云状物（不可逆）</string>
+  <string name="Reset">重置</string>
+  <!-- Adaptive Prop Visibility -->
+  <string name="AdaptivePropVisibility">摆件可见度调节</string>
+  <!-- Prop Anarchy -->
+  <string name="PropAnarchy">摆件无碰撞</string>
+  <string name="PropAnarchyDesc">允许随意摆放道具。当放置道路或建筑时，可使用以下设置来隐藏或删除道具</string>
+  <string name="PropAnarchyBehaviour">发生重叠时</string>
+  <string name="AnarchyHideProp">隐藏摆件</string>
+  <string name="AnarchyDeleteProp">删除摆件</string>
+  <!-- Prop Resize -->
+  <string name="IncreasePropSize">增大摆件大小</string>
+  <string name="DecreasePropSize">减小摆件大小</string>
+  <string name="PressAnyKey">请按任意键</string>
+  <!-- Tab Strips -->
+  <string name="MainOptionTab">主选项</string>
+  <string name="ExtraFunctionsTab">额外功能</string>
+  <string name="KeyboardShortcutTab">快捷键</string>
+  <string name="KeyBindDescription">当绑定热键时，道具无碰撞请确保使用特殊快捷键(SHIFT | CONTROL | ALT)组合。调节道具大小快捷键，已经过特殊处理，所以无需使用特殊快捷键组合，但确保选择一个唯一的热键。</string>
+  <!-- Main options -->
+  <string name="EnableCustomLimit">启用自定义道具限制</string>
+  <string name="MaxPropLimitTitle">配置自定义道具限制</string>
+  <string name="MaxPropLimit">道具最大上限:  {0} 道具</string>
+  <string name="Important">重要!必须在开始/加载游戏前设置&#xA;注意，增加道具上限会对性能产生轻微影响。即便EML优化了游戏本身渲染道具的速度，但该优化主要是为了提高道具上限所带来的影响。最好是根据游戏内道具需求在游戏后期逐渐增加</string>
+  <!-- Tree Snapping specific -->
+  <string name="PropSnap">道具吸附</string>
+  <string name="PropSnapLabel">此选项可解除树木移动限制，进行上下左右调整，同时也可沿着大楼、道路、等表面自动调整高低</string>
+  <string name="PropSnapToBuilding">启用该选项允许道具吸附到建筑上</string>
+  <string name="PropSnapToNetwork">启用该选项以允许道具吸附道道路上</string>
+  <!-- Misc. -->
+  <string name="builtinFunction">内部功能：</string>
+  <string name="isEnabled">已启用</string>
+  <string name="isDisabled">已关闭</string>
+</resources>

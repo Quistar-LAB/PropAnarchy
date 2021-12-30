@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE resources [
+  <!ELEMENT resources ANY>
+  <!ELEMENT string ANY>
+  <!ATTLIST string name ID #REQUIRED>
+]>
+<!-- PropAnarchy Default Locale Template -->
+<resources>
+  <!-- Painter Translation -->
+  <string name="PropPainter">Pintor de Props</string>
+  <string name="PainterTooltip">Pintor de Props</string>
+  <!-- PLT Specific Translation -->
+  <string name="PropLineTool">Alineador de Props (PLT)</string>
+  <string name="PLTToggleSnapping">PLT: Activar Acople</string>
+  <string name="PLTToggleFenceMode">PLT: Activar Modo de Vallado</string>
+  <string name="PLTToggleControlPanel">PLT: Mostrar/Ocultar Panel de Ajustes</string>
+  <string name="PLTTitleBar">Ajustes de PLT</string>
+  <string name="PLTParameters">Parámetros</string>
+  <string name="PLTOptions">Opciones</string>
+  <string name="PLTItemWiseTooltip">Control de Objetos&#xA;Coloca un objeto a la vez en la curva</string>
+  <string name="PLTSpacingTooltip">Control de Espaciamiento&#xA;Colocar objetos en intervalos discretos</string>
+  <string name="PLTDecouplePrevSegment">Desacoplar del segmento anterior</string>
+  <string name="PLTSpacingTitle">Espaciado</string>
+  <string name="PLTAutoDefaultSpacing">Espaciado automático por Defecto</string>
+  <string name="PLTAutoDefaultSpacingTooltip">Si activado, automáticamente establece el espaciado por defecto cada vez que se selecciona un tipo diferente de prop/árbol.&#xA;El espaciado seguirá siendo auto-predeterminado al usar el modo de vallado</string>
+  <string name="PLTAngleTitle">Ángulo</string>
+  <string name="PLTAngleDynamic">Ángulo Dinámico</string>
+  <string name="PLTAngleSingle">Ángulo único</string>
+  <string name="PLTFlip180">Voltear a 180</string>
+  <string name="PLTFlip180Tooltip">Rotar props a 180 grados sin rotar el ajustador de angulo en el modo de bloqueo (verde)</string>
+  <string name="PLTRelativeAngle">Ángulo relativo</string>
+  <!-- PLT Calculator Specific Translation -->
+  <string name="PLTDefault">Por Defecto</string>
+  <string name="PLTLength">Longitud</string>
+  <string name="PLTWidth">Ancho</string>
+  <string name="PLTRound">Redondo</string>
+  <string name="PLTZero">Cero</string>
+  <!-- PLT Option Specific Translation -->
+  <string name="PLTShowUndoPreview">Mostrar vista previa al Deshacer</string>
+  <string name="PLTShowUndoPreviewTooltip">Resalta qué objetos serán eliminados en el siguiente comando de deshacer cuando se oprima [Ctrl]</string>
+  <string name="PLTMeshCenterCorrection">Usar Malla para Corrección del Centro</string>
+  <string name="PLTMeshCenterCorrectionTooltip">Intentar centrar objetos dentro de su área.&#xA;Recomendado para Props no centrados en si mismos</string>
+  <string name="PLTPerfectCircle">Círculo perfecto</string>
+  <string name="PLTPerfectCircleTooltip">Si activado, los círculos se acoplan al tamaño más cercano al que se ajustarían perfectamente todos los objetos en la curva.&#xA;El tamaño más cercano depende del parámetro de espaciado</string>
+  <string name="PLTLinearFence">Relleno de valla lineal</string>
+  <string name="PLTLinearFenceTooltip">Al colocar vallas rectas, se superpone la pieza final a la posición exacta del ratón</string>
+  <!-- Misc Props -->
+  <string name="GroupProps">Agrupar Props</string>
+  <string name="UngroupProps">Desagrupar Props</string>
+  <!-- Indicator Messages -->
+  <string name="PropAnarchyIsOff">Anarquía de Props está desactivada</string>
+  <string name="PropAnarchyIsOn">Anarquía de Props está activada</string>
+  <!-- Terrain Conform -->
+  <string name="TerrainConform">Seguir el Terreno</string>
+  <!-- Prop Snapping -->
+  <string name="PropSnapping">Acople de Props</string>
+  <string name="PropSnapIsOff">Acople de Props está desactivado</string>
+  <string name="PropSnapIsOn">Acople de Props está activado</string>
+  <!-- Decal Prop Fix -->
+  <string name="DecalPropFix">Decal Prop Fix</string>
+  <!-- Additive Shader -->
+  <string name="AdditiveShader">Shader Aditivo</string>
+  <!-- Transparency LOD Fix -->
+  <string name="TransparencyLODFix">Transparencia del LOD (Fix)</string>
+  <string name="HideCloud">Ocultar nube</string>
+  <string name="LODFactorMultiplier">Multiplicador del factor LOD</string>
+  <string name="LODDistanceOffset">Desplazamiento de Distancia del LOD</string>
+  <string name="LODDistanceMultiplier">Multiplicador de distancia del LOD</string>
+  <string name="FallbackRenderDistance">Distancia de Renderizado Fallback</string>
+  <string name="PropLODFixSetting">Ajustes del LOD (Fix) de Props</string>
+  <string name="BuildingLODFixSetting">Ajustes del LOD (Fix) de Edifcios</string>
+  <string name="DestroyAllClouds">Destruir todas las nubes (irreversible)</string>
+  <string name="Reset">Reiniciar</string>
+  <!-- Adaptive Prop Visibility -->
+  <string name="AdaptivePropVisibility">Visibilidad de Prop Adaptiva</string>
+  <!-- Prop Anarchy -->
+  <string name="PropAnarchy">Anarquía de Props</string>
+  <string name="PropAnarchyDesc">Te permite colocar props en cualquier lugar. Cuando colocas redes o edificios, puedes usar esta configuración para ocultar o eliminar el prop</string>
+  <string name="PropAnarchyBehaviour">Comportamiento cuando se superpone</string>
+  <string name="AnarchyHideProp">Ocultar Prop</string>
+  <string name="AnarchyDeleteProp">Eliminar Prop</string>
+  <!-- Prop Resize -->
+  <string name="IncreasePropSize">Aumentar tamaño del prop</string>
+  <string name="DecreasePropSize">Reducir tamaño del prop</string>
+  <string name="PressAnyKey">Presiona cualquier tecla</string>
+  <!-- Tab Strips -->
+  <string name="MainOptionTab">Opciones principales</string>
+  <string name="ExtraFunctionsTab">Funciones extra</string>
+  <string name="KeyboardShortcutTab">Atajos de teclado</string>
+  <string name="KeyBindDescription">Al vincular Atajos, por favor asegúrese de usar modificadores (SHIFT | CONTROL | ALT) para Anarquía de Props. Para los Atajos de aumentar y reducir props, se trata especialmente para que no necesites usar modificadores, pero asegúrese de elegir un Atajo único.</string>
+  <!-- Main options -->
+  <string name="EnableCustomLimit">Activar límite de props personalizado</string>
+  <string name="MaxPropLimitTitle">Configurar límite de props personalizado</string>
+  <string name="MaxPropLimit">Límite máximo de props:  {0} props</string>
+  <string name="Important">¡Importante! Establezca antes de iniciar/cargar un juego&#xA;Nótese que aumentar el límite de props puede tener pequeños efectos en el rendimiento. Aunque EML está optimizado para renderizar los props más rápido que el juego base, esta optimización se enfocó principalmente para aprovechar el costo del límite de props aumentado. Es mejor aumentarlo a medida que tu necesidad del límite de props aumenta en la progresión de tu juego</string>
+  <!-- Tree Snapping specific -->
+  <string name="PropSnap">Acople de Props</string>
+  <string name="PropSnapLabel">Esta opción permite el libre movimiento de props y permite que estos se puedan acoplar a edificios</string>
+  <string name="PropSnapToBuilding">Activa esta opción para permitir que props se acoplen a edificios</string>
+  <string name="PropSnapToNetwork">Activa esta opción para permitir que los props se acoplen a las redes</string>
+  <!-- Misc. -->
+  <string name="builtinFunction">Función integrada:</string>
+  <string name="isEnabled">Activado</string>
+  <string name="isDisabled">Desactivado</string>
+</resources>
