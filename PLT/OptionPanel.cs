@@ -127,7 +127,7 @@ namespace PropAnarchy.PLT {
             PropLineTool.SetAutoSpacing = (state) => autoDefaultCB.isChecked = state;
             UINumEditbox spacingField = CreateNumboxField(parent, PALocale.GetLocale(@"PLTSpacingTitle"), @"m", out _);
             spacingField.parent.relativePosition = new Vector2(parent.width - spacingField.parent.width - 20f, SPACING_OFFSETY + spacingLabel.height + 5f);
-            spacingField.Value = 1f;// PropLineTool.ItemInfo.Spacing;
+            spacingField.Value = 1f;
             spacingField.eventValueChanged += (c, value) => SegmentState.m_pendingPlacementUpdate = true;
             PropLineTool.SetSpacingValue = (value) => spacingField.Value = value;
             PropLineTool.GetSpacingValue = () => spacingField.Value;
