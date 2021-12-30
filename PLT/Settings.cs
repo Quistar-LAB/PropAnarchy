@@ -5,11 +5,11 @@ namespace PropAnarchy.PLT {
     internal static class Settings {
         internal static PropLineTool.AngleMode m_angleMode = PropLineTool.AngleMode.Single;
         internal static PropLineTool.ControlMode m_controlMode = PropLineTool.ControlMode.Spacing;
-        internal static bool m_useMeshCenterCorrection = true;
+        internal static bool m_useMeshCenterCorrection = false;
         internal static bool m_perfectCircles = false;
         internal static bool m_linearFenceFill = false;
         internal static bool m_angleFlip180 = false;
-        internal static bool m_showUndoPreview = false;
+        internal static bool m_showUndoPreview = true;
 
         internal static Color m_PLTColor_default = new Color32(39, 130, 204, 128);
         internal static Color m_PLTColor_defaultSnapZones = new Color32(39, 130, 204, 255);
