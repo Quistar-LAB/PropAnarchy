@@ -20,7 +20,7 @@ namespace PropAnarchy {
     public sealed class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = @"Prop Anarchy";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.6.1";
+        internal const string m_modVersion = @"0.6.4";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
@@ -64,21 +64,26 @@ namespace PropAnarchy {
             } catch (Exception e) {
                 UnityEngine.Debug.LogException(e);
             }
+            try {
+                if (GameSettings.FindSettingsFileByName(KeybindingConfigFile) is null) {
+                    GameSettings.AddSettingsFile(new SettingsFile[] {
+                        new SettingsFile() { fileName = KeybindingConfigFile }
+                    });
+                }
+            } catch (Exception e) {
+                UnityEngine.Debug.LogException(e);
+            }
         }
 
         #region UserMod
         public string Name => m_modName + ' ' + m_modVersion;
         public string Description => m_modDesc;
         public void OnEnabled() {
-            GameSettings.AddSettingsFile(new SettingsFile[] {
-                        new SettingsFile() { fileName = KeybindingConfigFile }
-                    });
             PALocale.Init();
             for (int loadTries = 0; loadTries < 2; loadTries++) {
                 if (LoadSettings()) break; // Try 2 times, and if still fails, then use default settings
             }
             HarmonyHelper.DoOnHarmonyReady(PAPatcher.EnablePatches);
-            PAPainter.initialize();
         }
         public void OnDisabled() {
             SaveSettings();
@@ -95,6 +100,7 @@ namespace PropAnarchy {
         public void OnCreated(ILoading loading) {
             OutputPluginsList();
             PAPatcher.AttachMoveItPostProcess();
+            MoveIt.UIToolOptionPanel.AddMoreButtonCallback += PAPainter.AddPropPainterBtn;
         }
 
         public void OnReleased() {
@@ -157,24 +163,25 @@ namespace PropAnarchy {
 
         public void OnLevelLoaded(LoadMode mode) {
             IsInGame = true;
-            MoveIt.UIToolOptionPanel.AddMoreButtonCallback += PAPainter.AddPropPainterBtn;
-            UIIndicator indicatorPanel = UIIndicator.Setup();
-            if (indicatorPanel) {
-                UIIndicator.UIIcon propSnap = default;
-                propSnap = indicatorPanel.AddSnappingIcon(PALocale.GetLocale(@"PropSnapIsOn"), PALocale.GetLocale(@"PropSnapIsOff"), UsePropSnapping, (_, p) => {
-                    UsePropSnapping = !UsePropSnapping;
-                }, out bool finalState);
-                if (finalState != UsePropSnapping) {
-                    UsePropSnapping = finalState;
-                    propSnap.State = finalState;
-                }
-                UIIndicator.UIIcon propAnarchy = default;
-                propAnarchy = indicatorPanel.AddAnarchyIcon(PALocale.GetLocale(@"PropAnarchyIsOn"), PALocale.GetLocale(@"PropAnarchyIsOff"), UsePropAnarchy, (_, p) => {
-                    UsePropAnarchy = !UsePropAnarchy;
-                }, out finalState);
-                if (finalState != UsePropAnarchy) {
-                    UsePropAnarchy = finalState;
-                    propAnarchy.State = finalState;
+            if(Singleton<ToolManager>.instance.m_properties.m_mode != ItemClass.Availability.AssetEditor) {
+                UIIndicator indicatorPanel = UIIndicator.Setup();
+                if (indicatorPanel) {
+                    UIIndicator.UIIcon propSnap = default;
+                    propSnap = indicatorPanel.AddSnappingIcon(PALocale.GetLocale(@"PropSnapIsOn"), PALocale.GetLocale(@"PropSnapIsOff"), UsePropSnapping, (_, p) => {
+                        UsePropSnapping = !UsePropSnapping;
+                    }, out bool finalState);
+                    if (finalState != UsePropSnapping) {
+                        UsePropSnapping = finalState;
+                        propSnap.State = finalState;
+                    }
+                    UIIndicator.UIIcon propAnarchy = default;
+                    propAnarchy = indicatorPanel.AddAnarchyIcon(PALocale.GetLocale(@"PropAnarchyIsOn"), PALocale.GetLocale(@"PropAnarchyIsOff"), UsePropAnarchy, (_, p) => {
+                        UsePropAnarchy = !UsePropAnarchy;
+                    }, out finalState);
+                    if (finalState != UsePropAnarchy) {
+                        UsePropAnarchy = finalState;
+                        propAnarchy.State = finalState;
+                    }
                 }
             }
             // The original mods created a new GameObject for running additive shader routines. I'm opting
@@ -202,7 +209,6 @@ namespace PropAnarchy {
                 };
                 xmlConfig.Load(SettingsFileName);
                 EPropManager.PROP_LIMIT_SCALE = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PropLimitScale"), System.Globalization.NumberStyles.Float);
-                //EPropManager.UsePropAnarchy = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UsePropAnarchy"));
                 EPropManager.UsePropSnapping = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UsePropSnapping"));
                 PLT.Settings.m_controlMode = (PLT.PropLineTool.ControlMode)int.Parse(xmlConfig.DocumentElement.GetAttribute(@"ControlMode"));
                 PLT.Settings.m_angleMode = (PLT.PropLineTool.AngleMode)int.Parse(xmlConfig.DocumentElement.GetAttribute(@"AngleMode"));
