@@ -111,22 +111,20 @@ namespace PropAnarchy.PLT {
                 }
                 private Vector3 CenterCorrection {
                     get {
-                        if (Settings.UseMeshCenterCorrection) {
-                            if (m_prefab is PropInfo propInfo && propInfo.m_mesh is Mesh propMesh &&
-                                propMesh.bounds.center.IsCenterAreaSignificant(propMesh.bounds.size, true, out Vector3 centerCorrectionOrtho)) {
-                                if (centerCorrectionOrtho.magnitude != 0f) {
-                                    //use negative angle since Unity is left-handed / CW rotation
-                                    return Quaternion.AngleAxis(-m_angle * Mathf.Rad2Deg, EMath.Vector3Up) * centerCorrectionOrtho;
-                                }
-                            } else if (m_prefab is TreeInfo treeInfo && treeInfo.m_mesh is Mesh treeMesh &&
-                                treeMesh.bounds.center.IsCenterAreaSignificant(treeMesh.bounds.size, true, out centerCorrectionOrtho)) {
-                                if (centerCorrectionOrtho.magnitude != 0f) {
-                                    //use negative angle since Unity is left-handed / CW rotation
-                                    return Quaternion.AngleAxis(-m_angle * Mathf.Rad2Deg, EMath.Vector3Up) * centerCorrectionOrtho;
-                                }
+                        if (m_prefab is PropInfo propInfo && propInfo.m_mesh is Mesh propMesh &&
+                            propMesh.bounds.center.IsCenterAreaSignificant(propMesh.bounds.size, out VectorXZ centerCorrectionOrtho)) {
+                            if (centerCorrectionOrtho.magnitude != 0f) {
+                                //use negative angle since Unity is left-handed / CW rotation
+                                return Quaternion.AngleAxis(-m_angle * Mathf.Rad2Deg, EMath.Vector3Up) * centerCorrectionOrtho;
+                            }
+                        } else if (m_prefab is TreeInfo treeInfo && treeInfo.m_mesh is Mesh treeMesh &&
+                            treeMesh.bounds.center.IsCenterAreaSignificant(treeMesh.bounds.size, out centerCorrectionOrtho)) {
+                            if (centerCorrectionOrtho.magnitude != 0f) {
+                                //use negative angle since Unity is left-handed / CW rotation
+                                return Quaternion.AngleAxis(-m_angle * Mathf.Rad2Deg, EMath.Vector3Up) * centerCorrectionOrtho;
                             }
                         }
-                        return EMath.Vector3Zero;
+                        return default;
                     }
                 }
                 internal bool UpdatePlacementError() {
@@ -766,7 +764,7 @@ namespace PropAnarchy.PLT {
         }
 
         internal static void InitializedPLT() {
-            ToolController toolController = ToolsModifierControl.toolController;
+            ToolController toolController = FindObjectOfType<ToolController>();
             try {
                 PropLineTool propLineTool = toolController.gameObject.GetComponent<PropLineTool>();
                 if (propLineTool is null) {
@@ -788,6 +786,7 @@ namespace PropAnarchy.PLT {
                     toolsDict.Add(typeof(PropLineTool), propLineTool);
                 }
             } catch (Exception e) {
+                PAModule.PALog("Failed to initialize the PLT Tool");
                 Debug.LogException(e);
             }
         }
