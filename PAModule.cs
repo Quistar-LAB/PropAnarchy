@@ -20,7 +20,7 @@ namespace PropAnarchy {
     public sealed class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = @"Prop Anarchy";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.6.4";
+        internal const string m_modVersion = @"0.6.7";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
@@ -100,7 +100,7 @@ namespace PropAnarchy {
         public void OnCreated(ILoading loading) {
             OutputPluginsList();
             PAPatcher.AttachMoveItPostProcess();
-            MoveIt.UIToolOptionPanel.AddMoreButtonCallback += PAPainter.AddPropPainterBtn;
+            PAPainter.Initialize();
         }
 
         public void OnReleased() {
@@ -108,6 +108,7 @@ namespace PropAnarchy {
 
         public void UpdateCustomPrefabs() {
             List<ManagedAsset> assets = new List<ManagedAsset>();
+            List<PrefabInfo> rotorShaderPrefabs = new List<PrefabInfo>();
             try {
                 PrefabInfo[] prefabs = Resources.FindObjectsOfTypeAll<PrefabInfo>();
                 int prefabLen = prefabs.Length;
@@ -116,13 +117,12 @@ namespace PropAnarchy {
                     if (prefab is PropInfo prop) {
                         /* Decal prop fix routine added here to prevent re-allocating new enumerator for all prefabinfo types */
                         DecalPropFix.AssignFix(prop); /* DECAL PROP FIX ROUTINE */
-                        prop.TransparentLodFix(); /* Transparency LOD Fix Routine */
                         if (prop.m_mesh && prop.m_mesh.name is string propData && AdditiveShaderManager.HasValidData(propData)) {
                             assets.Add(new ManagedAsset(prop));
                             PALog(@"[AdditiveShader] : Loaded a prop - " + prop.name + @" marked as having the AdditiveShader");
                         }
+                        prop.CheckRotorSignature(rotorShaderPrefabs); // Transparency LOD Fix Routine
                     } else if (prefab is BuildingInfo building) {
-                        building.TransparentLodFix(); /* Transparency LOD Fix Routine */
                         if (building.m_mesh && AdditiveShaderManager.HasValidData(building.m_mesh.name)) {
                             assets.Add(new ManagedAsset(building));
                             PALog(@"[AdditiveShader] : Loaded a building - " + building.name + @" marked as having the AdditiveShader");
@@ -130,6 +130,7 @@ namespace PropAnarchy {
                         if (!(building.m_props is null) && AdditiveShaderManager.ContainsShaderProps(building)) {
                             assets.Add(new ManagedAsset(building, true));
                         }
+                        building.CheckRotorSignature(rotorShaderPrefabs); // Transparency LOD Fix Routine
                     } else if (prefab is BuildingInfoSub buildingSub && buildingSub.m_mesh &&
                                buildingSub.m_mesh.name is string buildingSubData && AdditiveShaderManager.HasValidData(buildingSubData)) {
                         assets.Add(new ManagedAsset(buildingSub));
@@ -157,13 +158,15 @@ namespace PropAnarchy {
                     // Adding Additive Shader thread as a coroutine into UIView. This saves valuable resources
                     // instead of creating another gameobject to do mundane work
                     UIView.GetAView().StartCoroutine(AdditiveShaderManager.AdditiveShaderThread());
+                    // Now process Transparency LOD fix
+                    TransparencyLODFix.TransparencyLODFix.m_rotorShaderPrefabs = rotorShaderPrefabs.ToArray();
                 }
             }
         }
 
         public void OnLevelLoaded(LoadMode mode) {
             IsInGame = true;
-            if(Singleton<ToolManager>.instance.m_properties.m_mode != ItemClass.Availability.AssetEditor) {
+            if (Singleton<ToolManager>.instance.m_properties.m_mode != ItemClass.Availability.AssetEditor) {
                 UIIndicator indicatorPanel = UIIndicator.Setup();
                 if (indicatorPanel) {
                     UIIndicator.UIIcon propSnap = default;
@@ -187,6 +190,10 @@ namespace PropAnarchy {
             // The original mods created a new GameObject for running additive shader routines. I'm opting
             // to just use existing GameObject and add a coroutine so it doesn't stress Update()
             UpdateCustomPrefabs(); // This thread handles initialization of Additive Shader asset and Decal Prop Fix
+            UIDropDown levelOfDetail = UIView.GetAView().FindUIComponent<UIDropDown>("LevelOfDetail");
+            levelOfDetail.eventSelectedIndexChanged += (c, val) => TransparencyLODFix.TransparencyLODFix.Update();
+            UIComponent optionsPanel = UIView.library.Get<UIPanel>("OptionsPanel");
+            optionsPanel.eventVisibilityChanged += (c, isVisible) => TransparencyLODFix.TransparencyLODFix.Update();
             PLT.PropLineTool.InitializedPLT();
         }
 
