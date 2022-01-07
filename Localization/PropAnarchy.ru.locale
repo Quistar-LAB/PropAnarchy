@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE resources [
+  <!ELEMENT resources ANY>
+  <!ELEMENT string ANY>
+  <!ATTLIST string name ID #REQUIRED>
+]>
+<!-- PropAnarchy Default Locale Template -->
+<resources>
+  <!-- Painter Translation -->
+  <string name="PropPainter">Prop Painter</string>
+  <string name="PainterTooltip">Перекрашивает ваши реквизиты</string>
+  <!-- PLT Specific Translation -->
+  <string name="PropLineTool">Prop Line Tool</string>
+  <string name="PLTToggleSnapping">Включить привязку</string>
+  <string name="PLTToggleFenceMode">Режим забора</string>
+  <string name="PLTToggleControlPanel">PLT: Показать/скрыть панель настроек</string>
+  <string name="PLTTitleBar">Настройки PLT</string>
+  <string name="PLTParameters">Настройки</string>
+  <string name="PLTOptions">Опции</string>
+  <string name="PLTItemWiseTooltip">Поэлементный контроль&#xA;Размещайте по одному элементу вдоль кривой</string>
+  <string name="PLTSpacingTooltip">Интервальный контроль&#xA;Размещайте предметы с дискретными интервалами</string>
+  <string name="PLTDecouplePrevSegment">Отделить от предыдущего сегмента</string>
+  <string name="PLTSpacingTitle">Отступ</string>
+  <string name="PLTAutoDefaultSpacing">Интервал по умолчанию</string>
+  <string name="PLTAutoDefaultSpacingTooltip">Автоматическая установка интервала</string>
+  <string name="PLTAngleTitle">Угол</string>
+  <string name="PLTAngleDynamic">Динамический угол</string>
+  <string name="PLTAngleSingle">Простой угол</string>
+  <string name="PLTFlip180">Отразить 180°</string>
+  <string name="PLTFlip180Tooltip">Повернуть реквизиты на 180°; без поворота рукоятки измененного угла в режиме блокировки (зеленый)</string>
+  <string name="PLTRelativeAngle">Относительный угол</string>
+  <!-- PLT Calculator Specific Translation -->
+  <string name="PLTDefault">По-умолчанию</string>
+  <string name="PLTLength">Длина</string>
+  <string name="PLTWidth">Ширина</string>
+  <string name="PLTRound">Круг</string>
+  <string name="PLTZero">Обнулить</string>
+  <!-- PLT Option Specific Translation -->
+  <string name="PLTShowUndoPreview">Предварительный просмотр</string>
+  <string name="PLTShowUndoPreviewTooltip">Выделяет, какие элементы будут удалены в следующей команде \"Отменить\" при удерживании клавиши [Ctrl]</string>
+  <string name="PLTMeshCenterCorrection">Центровать объект</string>
+  <string name="PLTMeshCenterCorrectionTooltip">Попытка центровать реквизит</string>
+  <string name="PLTPerfectCircle">Идеальный круг</string>
+  <string name="PLTPerfectCircleTooltip">Если включено, круги привязываются к ближайшему размеру, который идеально подойдёт для всех элементов кривой.&#xA;Ближайший размер зависит от параметра интервала</string>
+  <string name="PLTLinearFence">Линейное заполнение забора</string>
+  <string name="PLTLinearFenceTooltip">При рисовании прямых заборов, перекрывает финальную часть до конца в точном положении мыши</string>
+  <!-- Misc Props -->
+  <string name="GroupProps">Сгруппировать реквизиты</string>
+  <string name="UngroupProps">Разгруппировать реквизиты</string>
+  <!-- Indicator Messages -->
+  <string name="PropAnarchyIsOff">Анархия ВЫКЛ</string>
+  <string name="PropAnarchyIsOn">Анархия ВКЛ</string>
+  <!-- Terrain Conform -->
+  <string name="TerrainConform">Соответствие ландшафту</string>
+  <!-- Prop Snapping -->
+  <string name="PropSnapping">Prop Snapping</string>
+  <string name="PropSnapIsOff">Привязка ВыКЛ</string>
+  <string name="PropSnapIsOn">Привязка ВКЛ</string>
+  <!-- Decal Prop Fix -->
+  <string name="DecalPropFix">Decal Prop Fix</string>
+  <!-- Additive Shader -->
+  <string name="AdditiveShader">Additive Shader</string>
+  <!-- Transparency LOD Fix -->
+  <string name="TransparencyLODFix">Transparency LOD Fix</string>
+  <string name="HideCloud">Hide Cloud</string>
+  <string name="LODFactorMultiplier">Коэффициент LOD фактора</string>
+  <string name="LODDistanceOffset">Смещение расстояния LOD</string>
+  <string name="LODDistanceMultiplier">Множитель расстояния LOD</string>
+  <string name="FallbackRenderDistance">Дистанция отображения частиц</string>
+  <string name="PropLODFixSetting">Настройка LOD реквизитов</string>
+  <string name="BuildingLODFixSetting">Настройка LOD зданий</string>
+  <string name="DestroyAllClouds">Уничтожить все облака (необратимо)</string>
+  <string name="Reset">Сбросить</string>
+  <!-- Adaptive Prop Visibility -->
+  <string name="AdaptivePropVisibility">Adaptive Prop Visibility</string>
+  <!-- Prop Anarchy -->
+  <string name="PropAnarchy">Prop Anarchy</string>
+  <string name="PropAnarchyDesc">Позволяет вам размещать реквизиты в любом месте. Когда вы размещаете дороги или здания, вы можете использовать настройки, чтобы скрыть или удалить реквизит</string>
+  <string name="PropAnarchyBehaviour">Поведение при перекрытии</string>
+  <string name="AnarchyHideProp">Скрыть</string>
+  <string name="AnarchyDeleteProp">Удалить</string>
+  <!-- Prop Resize -->
+  <string name="IncreasePropSize">Увеличить размер</string>
+  <string name="DecreasePropSize">Уменьшить размер</string>
+  <string name="PressAnyKey">Нажмите клавишу</string>
+  <!-- Tab Strips -->
+  <string name="MainOptionTab">Основные параметры</string>
+  <string name="ExtraFunctionsTab">Дополнительные функции</string>
+  <string name="KeyboardShortcutTab">Привязка клавиш</string>
+  <string name="KeyBindDescription">При привязке горячих клавиш обязательно используйте клавиши (SHIFT | CONTROL | ALT) для Prop Anarchy. Убедитесь, что вы выбрали уникальные клавиши для изменения размера реквизитов.</string>
+  <!-- Main options -->
+  <string name="EnableCustomLimit">Включить настройку лимита реквизитов</string>
+  <string name="MaxPropLimitTitle">Настройка лимита реквизитов</string>
+  <string name="MaxPropLimit">Максимум лимит реквизитов:  {0} реквизитов</string>
+  <string name="Important">Важно! Перед загрузкой игры/загрузки игры необходимо установить.&#xA;Обратите внимание, что увеличение лимита prop может привести к незначительным последствиям для производительности. Хотя EML оптимизирован для того, чтобы сделать реквизиты быстрее, чем ванильная игра, эта оптимизация была сосредоточена главным образом на увеличении стоимости повышенного лимита. Лучше всего увеличить его постепенно, так как требования вашего предела в игре возрастают</string>
+  <!-- Tree Snapping specific -->
+  <string name="PropSnap">Prop Snapping</string>
+  <string name="PropSnapLabel">Эта опция позволяет деревьям свободно перемещаться и позволяет привязывать деревья к зданиям и объектам</string>
+  <string name="PropSnapToBuilding">Включить привязку к зданиям</string>
+  <string name="PropSnapToNetwork">Включить привязку к дорогам</string>
+  <!-- Misc. -->
+  <string name="builtinFunction">Встроенная функция:</string>
+  <string name="isEnabled">включено</string>
+  <string name="isDisabled">отключено</string>
+</resources>
