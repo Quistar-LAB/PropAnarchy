@@ -104,23 +104,24 @@ namespace PropAnarchy.UI {
             slider.eventValueChanged += (_, value) => {
                 label.text = text + ": " + value;
             };
-            UIFontRenderer fontRenderer = label.ObtainRenderer();
-            Vector2 size = fontRenderer.MeasureString(text);
-            UIPanel sliderPanel = m_sliderPanel;
-            size = new Vector2(EMath.Max(size.x + 20f, this.size.x - 10f), HEIGHT);
-            sliderPanel.size = size;
-            label.size = size;
-            slider.size = size;
-            UILabel leftLabel = m_leftLabel;
-            UILabel rightLabel = m_rightLabel;
-            leftLabel.text = min.ToString();
-            rightLabel.text = max.ToString();
-            leftLabel.relativePosition = new Vector3(0f, 0f);
-            sliderPanel.relativePosition = new Vector3(leftLabel.size.x - 1f, 0f);
-            slider.relativePosition = new Vector3(0f, 0f);
-            label.relativePosition = new Vector3((slider.size.x - label.size.x) / 2f, (slider.size.y - label.size.y) / 2f);
-            rightLabel.relativePosition = new Vector3(sliderPanel.relativePosition.x + sliderPanel.size.x - 1f, 0f);
-            this.size = new Vector2(leftLabel.size.x + sliderPanel.size.x + rightLabel.size.x, HEIGHT);
+            using (UIFontRenderer fontRenderer = label.ObtainRenderer()) {
+                Vector2 size = fontRenderer.MeasureString(text);
+                UIPanel sliderPanel = m_sliderPanel;
+                size = new Vector2(EMath.Max(size.x + 20f, this.size.x - 10f), HEIGHT);
+                sliderPanel.size = size;
+                label.size = size;
+                slider.size = size;
+                UILabel leftLabel = m_leftLabel;
+                UILabel rightLabel = m_rightLabel;
+                leftLabel.text = min.ToString();
+                rightLabel.text = max.ToString();
+                leftLabel.relativePosition = new Vector3(0f, 0f);
+                sliderPanel.relativePosition = new Vector3(leftLabel.size.x - 1f, 0f);
+                slider.relativePosition = new Vector3(0f, 0f);
+                label.relativePosition = new Vector3((slider.size.x - label.size.x) / 2f, (slider.size.y - label.size.y) / 2f);
+                rightLabel.relativePosition = new Vector3(sliderPanel.relativePosition.x + sliderPanel.size.x - 1f, 0f);
+                this.size = new Vector2(leftLabel.size.x + sliderPanel.size.x + rightLabel.size.x, HEIGHT);
+            }
         }
 
         public override void OnDestroy() {
