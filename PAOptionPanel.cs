@@ -7,7 +7,7 @@ using static PropAnarchy.PAModule;
 
 namespace PropAnarchy {
     internal static class PAOptionPanel {
-        internal const float TabFontScale = 0.9f;
+        internal const float TabFontScale = 0.87f;
         internal const float DefaultFontScale = 0.95f;
         internal const float SmallFontScale = 0.85f;
         private const float MIN_SCALE_FACTOR = 1.0f;
@@ -208,6 +208,7 @@ namespace PropAnarchy {
         }
 
         private static UIPanel AddTab(UITabstrip tabStrip, string tabName, int tabIndex, bool autoLayout) {
+            const float minWidth = 175f;
             UIButton tabButton = tabStrip.AddTab(tabName);
 
             tabButton.normalBgSprite = @"SubBarButtonBase";
@@ -216,8 +217,12 @@ namespace PropAnarchy {
             tabButton.hoveredBgSprite = @"SubBarButtonBaseHovered";
             tabButton.pressedBgSprite = @"SubBarButtonBasePressed";
             tabButton.tooltip = tabName;
-            tabButton.width = 175;
-            tabButton.textScale = TabFontScale;
+            using (UIFontRenderer fontRenderer = tabButton.font.ObtainRenderer()) {
+                Vector2 strSize = fontRenderer.MeasureString(tabName);
+                tabButton.width = EMath.Max(minWidth, strSize.x + 10f);
+                tabButton.textPadding = new RectOffset(0, 0, 1, 0);
+                tabButton.textScale = TabFontScale;
+            }
 
             tabStrip.selectedIndex = tabIndex;
 
