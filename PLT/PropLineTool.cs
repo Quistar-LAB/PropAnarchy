@@ -363,6 +363,7 @@ namespace PropAnarchy.PLT {
         internal static void ResetPLT() {
             m_positionChanging = false;
             m_mouseRayValid = false;
+            ControlPoint.Reset();
         }
 
         protected override void Awake() {

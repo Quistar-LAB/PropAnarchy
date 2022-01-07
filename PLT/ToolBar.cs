@@ -1,8 +1,8 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
 using EManagersLib;
-using UnityEngine;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace PropAnarchy.PLT {
     internal sealed class ToolBar : UIPanel {
@@ -162,6 +162,7 @@ namespace PropAnarchy.PLT {
                     if (PropLineTool.m_toolbar.isVisible) {
                         PropLineTool.m_toolbar.Hide();
                         PropLineTool.m_optionPanel.Hide();
+                        PropLineTool.ResetPLT();
                     }
                     if (m_brushPanel.isVisible) m_brushPanel.Hide();
                 }
