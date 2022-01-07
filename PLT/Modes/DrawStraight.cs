@@ -103,14 +103,14 @@ namespace PropAnarchy.PLT.Modes {
                             UpdateCurve();
                             UpdatePlacement();
                             break;
-                            /*
-                        case HoverState.ControlPointThird:
-                            GotoActiveState(ActiveState.MovePointThird);
-                            ControlPoint.Modify(m_mousePosition, 2);
-                            UpdateCurve();
-                            UpdatePlacement();
-                            break;
-                            */
+                        /*
+                    case HoverState.ControlPointThird:
+                        GotoActiveState(ActiveState.MovePointThird);
+                        ControlPoint.Modify(m_mousePosition, 2);
+                        UpdateCurve();
+                        UpdatePlacement();
+                        break;
+                        */
                         case HoverState.Curve:
                             GotoActiveState(ActiveState.MoveSegment);
                             break;
@@ -133,7 +133,7 @@ namespace PropAnarchy.PLT.Modes {
                         //reset first CP to original position
                         ControlPoint.Modify(ControlPoint.m_lockedControlPoints[0].m_position, 0);
                     }
-                    if(IsLengthLongEnough()) {
+                    if (IsLengthLongEnough()) {
                         GotoActiveState(ActiveState.LockIdle);
                     }
                 }
