@@ -10,7 +10,8 @@ using System.Xml;
 
 namespace PropAnarchy {
     internal static class PALocale {
-        private const ulong m_thisModID = 2611824446uL;
+        private const ulong m_betaModID = 2611824446uL;
+        private const ulong m_thisModID = 2696146766uL;
         private const string m_fileNameTemplate = @"PropAnarchy.";
         private const string m_defaultFile = @"PropAnarchy.en.locale";
         private static XmlDocument m_xmlLocale;
@@ -65,7 +66,7 @@ namespace PropAnarchy {
             if (!isInitialized) {
                 try {
                     foreach (PublishedFileId fileID in PlatformService.workshop.GetSubscribedItems()) {
-                        if (fileID.AsUInt64 == m_thisModID) {
+                        if (fileID.AsUInt64 == m_thisModID || fileID.AsUInt64 == m_betaModID) {
                             string dir = PlatformService.workshop.GetSubscribedItemPath(fileID) + Path.DirectorySeparatorChar + @"Locale" + Path.DirectorySeparatorChar;
                             if (Directory.Exists(dir) && File.Exists(dir + m_defaultFile)) {
                                 m_directory = dir;
