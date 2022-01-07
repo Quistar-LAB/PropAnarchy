@@ -66,7 +66,7 @@ namespace PropAnarchy {
             try {
                 harmony.Patch(AccessTools.Method(typeof(CloneActionBase), nameof(CloneActionBase.Do)),
                     postfix: new HarmonyMethod(typeof(PAPatcher), nameof(ActionClonePostfix)));
-            } catch(Exception e) {
+            } catch (Exception e) {
                 PAModule.PALog("Failed to patch MoveIt::CloneActionBase::Do()");
                 PAModule.PALog(e.Message);
             }

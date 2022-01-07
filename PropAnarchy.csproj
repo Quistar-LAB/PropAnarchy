@@ -114,6 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Localization\PropAnarchy.de.locale" />
+    <None Include="Localization\PropAnarchy.ru.locale" />
     <None Include="Localization\PropAnarchy.fr.locale" />
     <None Include="Localization\PropAnarchy.es.locale" />
     <None Include="Localization\PropAnarchy.ko.locale" />
