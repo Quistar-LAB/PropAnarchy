@@ -20,12 +20,12 @@ namespace PropAnarchy {
     public sealed class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = @"Prop Anarchy";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.6.7";
+        internal const string m_modVersion = @"0.6.9";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
-
         internal static bool IsInGame = false;
+
         public static float PropLimitScale {
             get => EPropManager.PROP_LIMIT_SCALE;
             set {
@@ -90,6 +90,7 @@ namespace PropAnarchy {
             if (HarmonyHelper.IsHarmonyInstalled) PAPatcher.DisablePatches();
         }
         public void OnSettingsUI(UIHelperBase helper) {
+            PLT.PropLineTool.InitializeTextures();
             PALocale.OnLocaleChanged();
             LocaleManager.eventLocaleChanged += PALocale.OnLocaleChanged;
             PAOptionPanel.SetupPanel((helper.AddGroup(m_modName + @" -- Version " + m_modVersion) as UIHelper).self as UIPanel);
@@ -100,7 +101,6 @@ namespace PropAnarchy {
         public void OnCreated(ILoading loading) {
             OutputPluginsList();
             PAPatcher.AttachMoveItPostProcess();
-            PAPainter.Initialize();
         }
 
         public void OnReleased() {
@@ -166,6 +166,7 @@ namespace PropAnarchy {
 
         public void OnLevelLoaded(LoadMode mode) {
             IsInGame = true;
+            PAOptionPanel.UpdateState(true);
             if (Singleton<ToolManager>.instance.m_properties.m_mode != ItemClass.Availability.AssetEditor) {
                 UIIndicator indicatorPanel = UIIndicator.Setup();
                 if (indicatorPanel) {
@@ -194,11 +195,14 @@ namespace PropAnarchy {
             levelOfDetail.eventSelectedIndexChanged += (c, val) => TransparencyLODFix.TransparencyLODFix.Update();
             UIComponent optionsPanel = UIView.library.Get<UIPanel>("OptionsPanel");
             optionsPanel.eventVisibilityChanged += (c, isVisible) => TransparencyLODFix.TransparencyLODFix.Update();
-            PLT.PropLineTool.InitializedPLT();
+            SimulationManager smInstance = Singleton<SimulationManager>.instance;
+            PLT.PropLineTool.InitializedPLT(mode);
+            PAPainter.Initialize(smInstance);
         }
 
         public void OnLevelUnloading() {
             IsInGame = false;
+            PAOptionPanel.UpdateState(false);
             PLT.PropLineTool.UnloadPLT();
             UIView.GetAView().StopCoroutine(AdditiveShaderManager.AdditiveShaderThread());
             AdditiveShaderManager.m_managedAssets = null;
@@ -224,6 +228,9 @@ namespace PropAnarchy {
                 PLT.Settings.m_perfectCircles = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"PerfectCircles"));
                 PLT.Settings.m_linearFenceFill = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"LinearFenceFill"));
                 PLT.Settings.m_useMeshCenterCorrection = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UseMeshCenterCorrection"));
+                PLT.Settings.m_verticalLayout = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"VerticalLayout"));
+                PLT.Settings.m_optionXPos = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PLTOptionXPos"));
+                PLT.Settings.m_optionYPos = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PLTOptionYPos"));
                 TransparencyLODFix.Settings.m_hideClouds = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"HideClouds"));
                 TransparencyLODFix.Settings.m_lodFactorMultiplierProps = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"LodFactorMultiplierProps"), System.Globalization.NumberStyles.Float);
                 TransparencyLODFix.Settings.m_distanceOffsetProps = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"DistanceOffsetProps"), System.Globalization.NumberStyles.Float);
@@ -258,6 +265,9 @@ namespace PropAnarchy {
                 root.Attributes.Append(AddElement(xmlConfig, @"PerfectCircles", PLT.Settings.m_perfectCircles));
                 root.Attributes.Append(AddElement(xmlConfig, @"LinearFenceFill", PLT.Settings.m_linearFenceFill));
                 root.Attributes.Append(AddElement(xmlConfig, @"UseMeshCenterCorrection", PLT.Settings.m_useMeshCenterCorrection));
+                root.Attributes.Append(AddElement(xmlConfig, @"VerticalLayout", PLT.Settings.m_verticalLayout));
+                root.Attributes.Append(AddElement(xmlConfig, @"PLTOptionXPos", PLT.Settings.m_optionXPos));
+                root.Attributes.Append(AddElement(xmlConfig, @"PLTOptionYPos", PLT.Settings.m_optionYPos));
                 root.Attributes.Append(AddElement(xmlConfig, @"HideClouds", TransparencyLODFix.Settings.m_hideClouds));
                 root.Attributes.Append(AddElement(xmlConfig, @"LodFactorMultiplierProps", TransparencyLODFix.Settings.m_lodFactorMultiplierProps));
                 root.Attributes.Append(AddElement(xmlConfig, @"DistanceOffsetProps", TransparencyLODFix.Settings.m_distanceOffsetProps));
@@ -303,7 +313,8 @@ namespace PropAnarchy {
                 using (StreamWriter sw = new StreamWriter(debugFile)) {
                     sw.WriteLine(@"Mods Installed are:");
                     foreach (PluginManager.PluginInfo info in Singleton<PluginManager>.instance.GetPluginsInfo()) {
-                        sw.WriteLine(@"=> " + info.name + '-' + (info.userModInstance as IUserMod).Name + ' ' + (info.isEnabled ? @"** Enabled **" : @"** Disabled **"));
+                        if(!(info is null) && info.userModInstance is IUserMod modInstance)
+                        sw.WriteLine(@"=> " + info.name + '-' + modInstance.Name + ' ' + (info.isEnabled ? @"** Enabled **" : @"** Disabled **"));
                     }
                     sw.WriteLine(@"-------------------------------------");
                 }
