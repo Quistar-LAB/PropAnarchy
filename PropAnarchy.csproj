@@ -85,6 +85,8 @@
     <Compile Include="PAUtils.cs" />
     <Compile Include="PAScaleManager.cs" />
     <Compile Include="PAModule.cs" />
+    <Compile Include="PLT\OptionPanel.cs" />
+    <Compile Include="PLT\Extensions\Array32Extension.cs" />
     <Compile Include="PLT\MathUtils\BezierXZ.cs" />
     <Compile Include="PLT\MathUtils\CircleXZ.cs" />
     <Compile Include="PLT\ControlPoint.cs" />
@@ -96,7 +98,6 @@
     <Compile Include="PLT\Modes\DrawCurve.cs" />
     <Compile Include="PLT\Modes\DrawFreeform.cs" />
     <Compile Include="PLT\Modes\DrawStraight.cs" />
-    <Compile Include="PLT\OptionPanel.cs" />
     <Compile Include="PLT\PlacementError.cs" />
     <Compile Include="PLT\PropLineTool.cs" />
     <Compile Include="PLT\SegmentState.cs" />
@@ -110,6 +111,8 @@
     <Compile Include="PALocale.cs" />
     <Compile Include="TransparencyLODFix\Settings.cs" />
     <Compile Include="TransparencyLODFix\TransparencyLODFix.cs" />
+    <Compile Include="UI\UIColorPicker.cs" />
+    <Compile Include="UI\UIColorPickerOld.cs" />
     <Compile Include="UI\UIFancySlider.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -149,187 +152,78 @@
     <EmbeddedResource Include="Resources\treelimitbg.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_BasicDividerTile02x02.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOne.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOnePressed.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeTwo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeTwoDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeTwoFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeTwoHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeTwoPressed.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZero.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroPressed.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseOne.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseOneDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseOneFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseOneHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseOnePressed.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseZero.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseZeroDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseZeroFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseZeroHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_ItemwiseZeroPressed.png" />
-  </ItemGroup>
-  <ItemGroup>
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOne.png" />
+    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZero.png" />
     <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOne.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOnePressed.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateTwo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateTwoDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateTwoFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateTwoHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateTwoPressed.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZero.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroPressed.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseOne.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseOneDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseOneFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseOneHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseOnePressed.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseZero.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseZeroDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseZeroFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseZeroHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_SpacingwiseZeroPressed.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOne.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOnePressed.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZero.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroDisabled.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroFocused.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroHovered.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\Angle.png" />
+    <EmbeddedResource Include="PLT\Icons\AngleDynamic.png" />
+    <EmbeddedResource Include="PLT\Icons\AngleDynamicHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\AngleDynamicPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\AngleSingle.png" />
+    <EmbeddedResource Include="PLT\Icons\AngleSingleHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\AngleSinglePressed.png" />
+    <EmbeddedResource Include="PLT\Icons\AutoSpacing.png" />
+    <EmbeddedResource Include="PLT\Icons\AutoSpacingHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\AutoSpacingPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\Default.png" />
+    <EmbeddedResource Include="PLT\Icons\DefaultHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\DefaultPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\Flip180.png" />
+    <EmbeddedResource Include="PLT\Icons\Flip180Hovered.png" />
+    <EmbeddedResource Include="PLT\Icons\Flip180Pressed.png" />
+    <EmbeddedResource Include="PLT\Icons\Flip90.png" />
+    <EmbeddedResource Include="PLT\Icons\Flip90Hovered.png" />
+    <EmbeddedResource Include="PLT\Icons\Flip90Pressed.png" />
+    <EmbeddedResource Include="PLT\Icons\ItemWise.png" />
+    <EmbeddedResource Include="PLT\Icons\ItemWiseHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\ItemWisePressed.png" />
+    <EmbeddedResource Include="PLT\Icons\Length.png" />
+    <EmbeddedResource Include="PLT\Icons\LengthHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\LengthPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\LinearFence.png" />
+    <EmbeddedResource Include="PLT\Icons\LinearFenceHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\LinearFencePressed.png" />
+    <EmbeddedResource Include="PLT\Icons\MeshCenter.png" />
+    <EmbeddedResource Include="PLT\Icons\MeshCenterHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\MeshCenterPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\PerfectCircle.png" />
+    <EmbeddedResource Include="PLT\Icons\PerfectCircleHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\PerfectCirclePressed.png" />
+    <EmbeddedResource Include="PLT\Icons\SpacingTitle.png" />
+    <EmbeddedResource Include="PLT\Icons\Spacing.png" />
+    <EmbeddedResource Include="PLT\Icons\SpacingHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\SpacingPressed.png" />
+    <EmbeddedResource Include="PLT\Icons\TextBorder.png" />
+    <EmbeddedResource Include="PLT\Icons\Width.png" />
+    <EmbeddedResource Include="PLT\Icons\WidthHovered.png" />
+    <EmbeddedResource Include="PLT\Icons\WidthPressed.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

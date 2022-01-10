@@ -63,11 +63,17 @@ namespace PropAnarchy {
         }
 
         internal static Texture2D LoadTextureFromAssembly(string filename) {
-            Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(filename);
-            byte[] array = new byte[s.Length];
-            s.Read(array, 0, array.Length);
-            Texture2D texture = new Texture2D(2, 2);
-            texture.LoadImage(array);
+            Texture2D texture = null;
+            try {
+                Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(filename);
+                byte[] array = new byte[s.Length];
+                s.Read(array, 0, array.Length);
+                texture = new Texture2D(2, 2);
+                texture.LoadImage(array);
+            } catch {
+                PAModule.PALog($"Error loading: {filename}");
+                throw;
+            }
             return texture;
         }
 

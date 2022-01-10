@@ -21,7 +21,7 @@ namespace PropAnarchy {
         public static UILabel MaxPropLabel;
         public static UISlider PropScaleFactorSlider;
 
-        private static void UpdateState(bool isInGame) {
+        internal static void UpdateState(bool isInGame) {
             if (isInGame) {
                 PropScaleFactorSlider.Disable();
                 return;
