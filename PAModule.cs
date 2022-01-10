@@ -20,7 +20,7 @@ namespace PropAnarchy {
     public sealed class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = @"Prop Anarchy";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.6.9";
+        internal const string m_modVersion = @"0.7.1";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
@@ -313,8 +313,8 @@ namespace PropAnarchy {
                 using (StreamWriter sw = new StreamWriter(debugFile)) {
                     sw.WriteLine(@"Mods Installed are:");
                     foreach (PluginManager.PluginInfo info in Singleton<PluginManager>.instance.GetPluginsInfo()) {
-                        if(!(info is null) && info.userModInstance is IUserMod modInstance)
-                        sw.WriteLine(@"=> " + info.name + '-' + modInstance.Name + ' ' + (info.isEnabled ? @"** Enabled **" : @"** Disabled **"));
+                        if (!(info is null) && info.userModInstance is IUserMod modInstance)
+                            sw.WriteLine(@"=> " + info.name + '-' + modInstance.Name + ' ' + (info.isEnabled ? @"** Enabled **" : @"** Disabled **"));
                     }
                     sw.WriteLine(@"-------------------------------------");
                 }
