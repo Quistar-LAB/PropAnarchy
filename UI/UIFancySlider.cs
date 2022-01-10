@@ -3,7 +3,7 @@ using EManagersLib;
 using UnityEngine;
 
 namespace PropAnarchy.UI {
-    public sealed class UIFancySlider : UIComponent {
+    internal sealed class UIFancySlider : UIComponent {
         private const float HEIGHT = 30f;
         private const float LEFTSPRITEWIDTH = 50f;
         private const float RIGHTSPRITEWIDTH = 50f;
@@ -21,7 +21,7 @@ namespace PropAnarchy.UI {
         }
 #pragma warning restore IDE1006 // Naming Styles
 
-        public override void Awake() {
+        private void CustomStart() {
             UITextureAtlas atlas;
             if (m_atlas is null) {
                 atlas = PAUtils.CreateTextureAtlas(@"FancySliderAtlas", @"PropAnarchy.Resources.", new string[] { @"leftSprite", @"midSprite", @"rightSprite", @"slider" }, 1024);
@@ -88,11 +88,8 @@ namespace PropAnarchy.UI {
             m_rightLabel = rightLabel;
         }
 
-        public override void Start() {
-            base.Start();
-        }
-
         public void Initialize(string text, float min, float max, float step, float defaultVal, PropertyChangedEventHandler<float> callback) {
+            CustomStart();
             UISlider slider = m_slider;
             slider.minValue = min;
             slider.maxValue = max;
