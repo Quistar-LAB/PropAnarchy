@@ -44,18 +44,18 @@ namespace PropAnarchy {
             SetPickerColorField(picker, GetColor(vector.x, vector.y, HSBField.width, HSBField.height, picker.hue));
         }
 
-        internal static void Initialize() {
+        internal static void Initialize(SimulationManager smInstance) {
+            Singleton<LoadingManager>.instance.WaitUntilEssentialScenesLoaded();
             EPropInstance[] props = EPropManager.m_props.m_buffer;
-            SimulationManager smInstance = Singleton<SimulationManager>.instance;
             SetPickerColorField = PAUtils.CreateSetter<UIColorPicker, Color>(typeof(UIColorPicker).GetField("m_Color", BindingFlags.Instance | BindingFlags.NonPublic));
-            UIColorField field = Object.Instantiate(UITemplateManager.Get<UIPanel>("LineTemplate").Find<UIColorField>("LineColor"));
-            field.isVisible = true;
-            field.name = COLORFIELD_NAME;
-            UIColorPicker picker = Object.Instantiate(field.colorPicker);
-            picker.color = Color.white;
-            picker.name = COLORPICKER_NAME;
-            UIToolOptionPanel.AddMoreButtonCallback += (optionPanel, moreTools, mtpBackGround, mtpContainer) => {
-                if (Singleton<ToolManager>.instance.m_properties.m_mode != ItemClass.Availability.AssetEditor) {
+            if (UITemplateManager.Get<UIPanel>("LineTemplate") is UIPanel linePanel && linePanel.Find<UIColorField>("LineColor") is UIColorField field) {
+                UIColorField colorField = Object.Instantiate(field);
+                colorField.isVisible = true;
+                colorField.name = COLORFIELD_NAME;
+                UIColorPicker picker = Object.Instantiate(field.colorPicker);
+                picker.color = Color.white;
+                picker.name = COLORPICKER_NAME;
+                UIToolOptionPanel.AddMoreButtonCallback += (optionPanel, moreTools, mtpBackGround, mtpContainer) => {
                     optionPanel.AttachUIComponent(picker.gameObject);
                     UIPanel pickerPanel = picker.component as UIPanel;
                     pickerPanel.color = Color.white;
@@ -137,8 +137,8 @@ namespace PropAnarchy {
                             }
                         });
                     };
-                }
-            };
+                };
+            }
         }
     }
 }
