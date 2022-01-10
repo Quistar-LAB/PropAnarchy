@@ -8,13 +8,25 @@
 <resources>
   <!-- Painter Translation -->
   <string name="PropPainter">道具上色器</string>
-  <string name="PainterTooltip">道具上色器</string>
+  <string name="PainterTooltip">可自定義道具顏色</string>
   <!-- PLT Specific Translation -->
   <string name="PropLineTool">道具綫性擺放功能</string>
-  <string name="PLTToggleSnapping">切換</string>
-  <string name="PLTToggleFenceMode">切換柵欄模式</string>
+  <string name="SpacingFieldTooltip">
+    滑動滑輪可更改數字。按著ALT調整數字±0.1，或CTRL調整數字±5。
+    按右鍵可重置至道具初始間距
+  </string>
+  <string name="AnglefieldTooltip">
+    滑動滑輪可更改數字。按著ALT調整數字±0.1，或CTRL調整數字±5。
+    按右鍵重置至0&#xb0;
+  </string>
+  <string name="PLTToggleFenceMode">切換欄杆模式</string>
+  <string name="PLTToggleSingleMode">切換單一模式</string>
+  <string name="PLTToggleStraightMode">切換直綫模式</string>
+  <string name="PLTToggleCircleMode">切換圓形模式</string>
+  <string name="PLTToggleCurveMode">切換曲綫模式</string>
+  <string name="PLTToggleFreeformMode">切換自由模式</string>
   <string name="PLTToggleControlPanel">顯示或隱藏選項界面</string>
-  <string name="PLTTitleBar">道具綫性擺放設定</string>
+  <string name="PLTTitleBar">Prop Line Tool 設定</string>
   <string name="PLTParameters">參數</string>
   <string name="PLTOptions">選項</string>
   <string name="PLTItemWiseTooltip">手動擺置道具</string>
@@ -22,26 +34,33 @@
   <string name="PLTDecouplePrevSegment">與前擺放段解耦</string>
   <string name="PLTSpacingTitle">道具間隔</string>
   <string name="PLTAutoDefaultSpacing">自動計算間隔</string>
-  <string name="PLTAutoDefaultSpacingTooltip">選擇后可自動計算樹木或道具間隔&#xA;切換至柵欄模式時，間隔計算會自動化</string>
+  <string name="PLTAutoDefaultSpacingTooltip">
+    選擇后可自動計算樹木或道具間隔
+    切換至柵欄模式時，間隔計算會自動化
+  </string>
   <string name="PLTAngleTitle">角度</string>
-  <string name="PLTAngleDynamic">動態角度</string>
-  <string name="PLTAngleSingle">固定角度</string>
-  <string name="PLTFlip180">180°反轉</string>
-  <string name="PLTFlip180Tooltip">在無鎖定模式下翻轉道具180度</string>
+  <string name="PLTAngleDynamicTooltip">沿著曲綫計算動態角度</string>
+  <string name="PLTAngleSingleTooltip">沿著曲綫設定固定角度</string>
+  <string name="PLTFlip180Tooltip">一鍵使道具反轉180°</string>
+  <string name="PLTFlip90Tooltip">一鍵使道具反轉90°</string>
   <string name="PLTRelativeAngle">相對角度</string>
   <!-- PLT Calculator Specific Translation -->
-  <string name="PLTDefault">初始化</string>
-  <string name="PLTLength">長度</string>
-  <string name="PLTWidth">寬度</string>
-  <string name="PLTRound">四捨五入</string>
-  <string name="PLTZero">零</string>
+  <string name="PLTDefaultTooltip">設定為道具初始間距</string>
+  <string name="PLTLengthTooltip">使用道具長度為間距</string>
+  <string name="PLTWidthTooltip">使用道具寬度為間距</string>
   <!-- PLT Option Specific Translation -->
   <string name="PLTShowUndoPreview">預覽撤銷動作</string>
   <string name="PLTShowUndoPreviewTooltip">當按住[Ctrl]鍵時，突出顯示下一個撤銷命令中將刪除的物品</string>
   <string name="PLTMeshCenterCorrection">使用網格進行中心校正</string>
-  <string name="PLTMeshCenterCorrectionTooltip">嘗試將物品置於其中心軸上。&#xA;對於道具來說不在其邊界居中會更合適</string>
+  <string name="PLTMeshCenterCorrectionTooltip">
+    嘗試將物品置於其中心軸上。
+    對於道具來說不在其邊界居中會更合適
+  </string>
   <string name="PLTPerfectCircle">圓滑的圓</string>
-  <string name="PLTPerfectCircleTooltip">&#xA;一旦啟用，圓將自動調整到最接近的大小，以完美地適合曲線上的所有物品。&#xA;最接近的大小取決於間距參數</string>
+  <string name="PLTPerfectCircleTooltip">
+    一旦啟用，圓將自動調整到最接近的大小，以完美地適合曲線上的所有物品。
+    最接近的大小取決於間距參數
+  </string>
   <string name="PLTLinearFence">線性無間距填補</string>
   <string name="PLTLinearFenceTooltip">當使用無間距擺放時，將在精準的鼠標位置上結束重疊的物品</string>
   <!-- Misc Props -->
@@ -92,7 +111,10 @@
   <string name="EnableCustomLimit">啟用自定義道具限制</string>
   <string name="MaxPropLimitTitle">配置自定義道具限制</string>
   <string name="MaxPropLimit">最大工具限制：{0} 個工具</string>
-  <string name="Important">重要!必須在開始/加載遊戲前設置&#xA;注意，增加道具上限會對性能產生輕微影響。即便EML優化了遊戲本身渲染道具的速度，但該優化主要是為了提高道具上限所帶來的影響。最好是根據遊戲內道具需求在遊戲後期逐漸增加</string>
+  <string name="Important">
+    重要!必須在開始/加載遊戲前設置
+    注意，增加道具上限會對性能產生輕微影響。即便EML優化了遊戲本身渲染道具的速度，但該優化主要是為了提高道具上限所帶來的影響。最好是根據遊戲內道具需求在遊戲後期逐漸增加
+  </string>
   <!-- Tree Snapping specific -->
   <string name="PropSnap">道具吸附</string>
   <string name="PropSnapLabel">此選項可解除樹木移動限制，進行上下左右調整，同時也可沿著大樓、道路、等表面自動調整高低</string>

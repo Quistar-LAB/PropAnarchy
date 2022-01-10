@@ -8,13 +8,19 @@
 <resources>
   <!-- Painter Translation -->
   <string name="PropPainter">Prop Painter</string>
-  <string name="PainterTooltip">Prop Painter</string>
+  <string name="PainterTooltip">Customize Prop Color</string>
   <!-- PLT Specific Translation -->
   <string name="PropLineTool">Prop Line Tool</string>
-  <string name="PLTToggleSnapping">PLT: Toggle Snapping</string>
-  <string name="PLTToggleFenceMode">PLT: Toggle Fence Mode</string>
-  <string name="PLTToggleControlPanel">PLT: Show/Hide Option Panel</string>
-  <string name="PLTTitleBar">PLT Settings</string>
+  <string name="SpacingFieldTooltip">Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.&#xA;Right click to reset to default spacing</string>
+  <string name="AnglefieldTooltip">Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.&#xA;Right click to reset to 0&#xb0;</string>
+  <string name="PLTToggleFenceMode">Toggle Fence Mode</string>
+  <string name="PLTToggleSingleMode">Toggle Single Mode</string>
+  <string name="PLTToggleStraightMode">Toggle Straight Mode</string>
+  <string name="PLTToggleCircleMode">Toggle Circle Mode</string>
+  <string name="PLTToggleCurveMode">Toggle Curve Mode</string>
+  <string name="PLTToggleFreeformMode">Toggle Freeform Mode</string>
+  <string name="PLTToggleControlPanel">Show/Hide Option Panel</string>
+  <string name="PLTTitleBar">Prop Line Tool Settings</string>
   <string name="PLTParameters">Parameters</string>
   <string name="PLTOptions">Options</string>
   <string name="PLTItemWiseTooltip">Itemwise control&#xA;Place one item at a time along the curve</string>
@@ -24,28 +30,18 @@
   <string name="PLTAutoDefaultSpacing">Auto-Default Spacing</string>
   <string name="PLTAutoDefaultSpacingTooltip">If enabled, automatically sets default spacing whenever a different prop/tree type is selected.&#xA;Spacing will still auto-default when toggling fence mode</string>
   <string name="PLTAngleTitle">Angle</string>
-  <string name="PLTAngleDynamic">Angle Dynamic</string>
-  <string name="PLTAngleSingle">Angle Single</string>
-  <string name="PLTFlip180">Flip 180&#xb0;</string>
-  <string name="PLTFlip180Tooltip">Rotate props by 180&#xb0;without rotating the change-angle handle in Lock Mode (green)</string>
+  <string name="PLTAngleDynamicTooltip">Calculate angles dynamically to follow direction of the curve</string>
+  <string name="PLTAngleSingleTooltip">Uses static angle for every asset along the curve</string>
+  <string name="PLTFlip180Tooltip">Rotate props by 180&#xb0; without rotating the change-angle handle in Lock Mode</string>
+  <string name="PLTFlip90Tooltip">Rotate props by 90&#xb0; without rotating the change-angle handle in Lock Mode</string>
   <string name="PLTRelativeAngle">Relative Angle</string>
   <!-- PLT Calculator Specific Translation -->
-  <string name="PLTDefault">Default</string>
-  <string name="PLTLength">Length</string>
-  <string name="PLTWidth">Width</string>
-  <string name="PLTRound">Round</string>
-  <string name="PLTZero">Zero</string>
+  <string name="PLTDefaultTooltip">Sets current spacing to default value</string>
+  <string name="PLTLengthTooltip">Sets current spacing to asset length</string>
+  <string name="PLTWidthTooltip">Sets current spacing to assset width</string>
   <!-- PLT Option Specific Translation -->
   <string name="PLTShowUndoPreview">Show Undo Preview</string>
   <string name="PLTShowUndoPreviewTooltip">Highlights which items will be deleted in the next Undo command when [Ctrl] key is held</string>
-  <string name="PLTErrorChecking">Error Checking</string>
-  <string name="PLTErrorCheckingTooltip">Toggles whether collision-error calculations are run. Disabling may improve performance</string>
-  <string name="PLTShowErrorGuides">Show Error Guides</string>
-  <string name="PLTShowErrorGuidesTooltip">Highlights items that are blocked by road/building (Yellow-Orange) and items that are invalid placement (Red)</string>
-  <string name="PLTAnarchy">PLT Anarchy</string>
-  <string name="PLTAnarchyTooltip">If Enabled, items are placed regardless of collision-errors</string>
-  <string name="PLTPlaceBlockedItem">Place Blocked Items</string>
-  <string name="PLTPlaceBlockedItemTooltip">If Enabled, items blocked by road/building (Yellow-Orange) will be placed, while invalid items (Red) will not</string>
   <string name="PLTMeshCenterCorrection">Use Mesh for Center Correction</string>
   <string name="PLTMeshCenterCorrectionTooltip">Attempt to center items within their footprint.&#xA;Good for props that are not centered within their bounds</string>
   <string name="PLTPerfectCircle">Perfect Circle</string>
@@ -103,7 +99,7 @@
   <string name="Important">Important! Must be set before starting/loading a game&#xA;Please note that increasing prop limit can have minor performance implications. Although EML is optimized to render props faster than vanilla game, this optimization was primarily focused to leverage the cost of increased prop limit. It is best to increase it incrementally as your prop limit requirement increases in your game progression</string>
   <!-- Tree Snapping specific -->
   <string name="PropSnap">Prop Snapping</string>
-  <string name="PropSnapLabel">This option allows free movement of trees, and allows trees to be snapped to buildings and props</string>
+  <string name="PropSnapLabel">This option allows free movement of props, and allows props to be snapped to buildings</string>
   <string name="PropSnapToBuilding">Enable this option to allow props to snap to buildings</string>
   <string name="PropSnapToNetwork">Enable this option to allow prop to snap to networks</string>
   <!-- Misc. -->

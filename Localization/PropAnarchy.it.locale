@@ -8,40 +8,65 @@
 <resources>
   <!-- Painter Translation -->
   <string name="PropPainter">Colorazione Prop</string>
-  <string name="PainterTooltip">Colorazione Prop</string>
+  <string name="PainterTooltip">Customize Prop Color</string>
   <!-- PLT Specific Translation -->
   <string name="PropLineTool">Allineamento Prop</string>
-  <string name="PLTToggleSnapping">PLT: Attiva snapping</string>
-  <string name="PLTToggleFenceMode">PLT: Attiva modalità recinzione</string>
-  <string name="PLTToggleControlPanel">PLT: Mostra/nascondi pannello opzioni</string>
-  <string name="PLTTitleBar">Impostazioni PLT</string>
+  <string name="SpacingFieldTooltip">
+    Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.
+    Right click to reset to default spacing
+  </string>
+  <string name="AnglefieldTooltip">
+    Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.
+    Right click to reset to 0&#xb0;
+  </string>
+  <string name="PLTToggleFenceMode">Toggle Fence Mode</string>
+  <string name="PLTToggleSingleMode">Toggle Single Mode</string>
+  <string name="PLTToggleStraightMode">Toggle Straight Mode</string>
+  <string name="PLTToggleCircleMode">Toggle Circle Mode</string>
+  <string name="PLTToggleCurveMode">Toggle Curve Mode</string>
+  <string name="PLTToggleFreeformMode">Toggle Freeform Mode</string>
+  <string name="PLTToggleControlPanel">Show/Hide Option Panel</string>
+  <string name="PLTTitleBar">Prop Line Tool Settings</string>
   <string name="PLTParameters">Parametri</string>
   <string name="PLTOptions">Opzioni</string>
-  <string name="PLTItemWiseTooltip">Controllo oggetto&#xA;Posiziona un elemento alla volta lungo la curva</string>
-  <string name="PLTSpacingTooltip">Controllo in spaziale&#xA;Posiziona gli oggetti ad intervalli discreti</string>
+  <string name="PLTItemWiseTooltip">
+    Controllo oggetto
+    Posiziona un elemento alla volta lungo la curva
+  </string>
+  <string name="PLTSpacingTooltip">
+    Controllo in spaziale
+    Posiziona gli oggetti ad intervalli discreti
+  </string>
   <string name="PLTDecouplePrevSegment">Sdoppia dal segmento precedente</string>
   <string name="PLTSpacingTitle">Spaziatura</string>
   <string name="PLTAutoDefaultSpacing">Spaziatura Auto-Predefinita</string>
-  <string name="PLTAutoDefaultSpacingTooltip">Se abilitata, imposta automaticamente la spaziatura predefinita ogni volta che viene selezionato un diverso tipo di prop/albero.&#xA;La spaziatura sarà comunque auto-predefinita quando si attiva la modalità recinzione</string>
+  <string name="PLTAutoDefaultSpacingTooltip">
+    Se abilitata, imposta automaticamente la spaziatura predefinita ogni volta che viene selezionato un diverso tipo di prop/albero.
+    La spaziatura sarà comunque auto-predefinita quando si attiva la modalità recinzione
+  </string>
   <string name="PLTAngleTitle">Angolo</string>
-  <string name="PLTAngleDynamic">Angolo Dinamico</string>
-  <string name="PLTAngleSingle">Angolo Singolo</string>
-  <string name="PLTFlip180">Rifletti 180&#xb0;</string>
-  <string name="PLTFlip180Tooltip">Ruota le prop di 180&#xb0; senza ruotare la maniglia di cambio-angolo in Modalità Blocco (verde)</string>
+  <string name="PLTAngleDynamicTooltip">Calculate angles dynamically to follow direction of the curve</string>
+  <string name="PLTAngleSingleTooltip">Uses static angle for every asset along the curve</string>
+  <string name="PLTFlip180Tooltip">Rotate props by 180&#xb0; without rotating the change-angle handle in Lock Mode</string>
+  <string name="PLTFlip90Tooltip">Rotate props by 90&#xb0; without rotating the change-angle handle in Lock Mode</string>
   <string name="PLTRelativeAngle">Angolo Relativo</string>
   <!-- PLT Calculator Specific Translation -->
-  <string name="PLTDefault">Predefinito</string>
-  <string name="PLTLength">Lunghezza</string>
-  <string name="PLTWidth">Larghezza</string>
-  <string name="PLTRound">Arrotondamento</string>
-  <string name="PLTZero">Zero</string>
+  <string name="PLTDefaultTooltip">Sets current spacing to default value</string>
+  <string name="PLTLengthTooltip">Sets current spacing to asset length</string>
+  <string name="PLTWidthTooltip">Sets current spacing to asset width</string>
   <!-- PLT Option Specific Translation -->
   <string name="PLTShowUndoPreview">Mostra anteprima Annullamento</string>
   <string name="PLTShowUndoPreviewTooltip">Evidenzia quali elementi verranno eliminati nel prossimo comando Annulla quando il tasto [Ctrl] viene tenuto premuto</string>
   <string name="PLTMeshCenterCorrection">Usa Mesh per la correzione centrale</string>
-  <string name="PLTMeshCenterCorrectionTooltip">Cerca di centrare gli oggetti all\'interno della loro forma.&#xA;Adatto alle prop che non sono centrate nella propria selezione</string>
+  <string name="PLTMeshCenterCorrectionTooltip">
+    Cerca di centrare gli oggetti all\'interno della loro forma.
+    Adatto alle prop che non sono centrate nella propria selezione
+  </string>
   <string name="PLTPerfectCircle">Cerchio Perfetto</string>
-  <string name="PLTPerfectCircleTooltip">Se abilitato, i cerchi si impostano alla dimensione più vicina a quella che si adatta perfettamente a tutti gli oggetti sulla curva.&#xA;La dimensione più vicina dipende dal parametro Spaziatura</string>
+  <string name="PLTPerfectCircleTooltip">
+    Se abilitato, i cerchi si impostano alla dimensione più vicina a quella che si adatta perfettamente a tutti gli oggetti sulla curva.
+    La dimensione più vicina dipende dal parametro Spaziatura
+  </string>
   <string name="PLTLinearFence">Riempimento Recinto Lineare</string>
   <string name="PLTLinearFenceTooltip">Quando si disegnano recinzioni diritte, sovrappone il pezzo finale per terminare alla posizione esatta del mouse</string>
   <!-- Misc Props -->
@@ -92,7 +117,10 @@
   <string name="EnableCustomLimit">Abilita Limite Prop Personalizzato</string>
   <string name="MaxPropLimitTitle">Configura Limite Prop Personalizzato</string>
   <string name="MaxPropLimit">Limite massimo di Prop:  {0} prop</string>
-  <string name="Important">Importante! Deve essere impostato prima di iniziare/caricare una partita&#xA;Si prega di notare che l\'aumento del limite di prop può avere lievi implicazioni di prestazioni. Anche se EML è ottimizzato per un più veloce render delle prop nel gioco base, questa ottimizzazione prevalentemente dedicata a bilanciare il costo di un aumento del limite massimo di prop. E consigliabile aumentarlo in modo incrementale, in relazione con l\'aumento dell\'uso di prop nella progressione del gioco</string>
+  <string name="Important">
+    Importante! Deve essere impostato prima di iniziare/caricare una partita
+    Si prega di notare che l\'aumento del limite di prop può avere lievi implicazioni di prestazioni. Anche se EML è ottimizzato per un più veloce render delle prop nel gioco base, questa ottimizzazione prevalentemente dedicata a bilanciare il costo di un aumento del limite massimo di prop. E consigliabile aumentarlo in modo incrementale, in relazione con l\'aumento dell\'uso di prop nella progressione del gioco
+  </string>
   <!-- Tree Snapping specific -->
   <string name="PropSnap">Snapping delle Prop</string>
   <string name="PropSnapLabel">Questa opzione consente lo spostamento libero delle Prop e consente loro di essere poste sopra agli edifici</string>

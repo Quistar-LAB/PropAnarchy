@@ -8,42 +8,70 @@
 <resources>
   <!-- Painter Translation -->
   <string name="PropPainter">Prop Painter</string>
-  <string name="PainterTooltip">Propに着色出来ます</string>
+  <string name="PainterTooltip">Propの色をカスタマイズ</string>
   <!-- PLT Specific Translation -->
   <string name="PropLineTool">Prop Line Tool</string>
-  <string name="PLTToggleSnapping">PLT: スナップの切り替え</string>
-  <string name="PLTToggleFenceMode">PLT: フェンスモードの切り替え</string>
-  <string name="PLTToggleControlPanel">PLT: オプションパネルの切り替え</string>
-  <string name="PLTTitleBar">PLTの設定</string>
+  <string name="SpacingFieldTooltip">
+    Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.
+    Right click to reset to default spacing
+  </string>
+  <string name="AnglefieldTooltip">
+    Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.
+    Right click to reset to 0&#xb0;
+  </string>
+  <string name="PLTToggleFenceMode">フェンスモード</string>
+  <string name="PLTToggleSingleMode">シングルモード</string>
+  <string name="PLTToggleStraightMode">直線モード</string>
+  <string name="PLTToggleCircleMode">サークルモード</string>
+  <string name="PLTToggleCurveMode">曲線モード</string>
+  <string name="PLTToggleFreeformMode">自由曲線モード</string>
+  <string name="PLTToggleControlPanel">オプションパネルの表示/非表示</string>
+  <string name="PLTTitleBar">Prop Line Toolの設定</string>
   <string name="PLTParameters">パラメータ</string>
   <string name="PLTOptions">オプション</string>
-  <string name="PLTItemWiseTooltip">アイテムの制御&#xA;曲線に沿ってまとめてアイテムを配置します</string>
-  <string name="PLTSpacingTooltip">スペーシングの制御&#xA;等間隔のスペースでアイテムを配置します</string>
+  <string name="PLTItemWiseTooltip">
+    アイテム毎の制御
+    曲線に沿ってまとめてアイテムを配置します
+  </string>
+  <string name="PLTSpacingTooltip">
+    スペーシング毎の制御
+    等間隔のスペースでアイテムを配置します
+  </string>
   <string name="PLTDecouplePrevSegment">直前のセグメントから連続性を分離</string>
   <string name="PLTSpacingTitle">スペーシング</string>
   <string name="PLTAutoDefaultSpacing">デフォルトの自動スペーシング</string>
-  <string name="PLTAutoDefaultSpacingTooltip">有効時に異なるPropやツリーを選択しても、デフォルトで自動スペーシングが指定されます&#xA;フェンスモードに切り替えても、スペーシングが自動的にデフォルトへ戻ります</string>
+  <string name="PLTAutoDefaultSpacingTooltip">
+    有効時に異なるPropやツリーを選択しても、デフォルトで自動スペーシングが指定されます
+    フェンスモードに切り替えても、スペーシングが自動的にデフォルトへ戻ります
+  </string>
   <string name="PLTAngleTitle">角度</string>
-  <string name="PLTAngleDynamic">動的な角度</string>
-  <string name="PLTAngleSingle">単体の角度</string>
-  <string name="PLTFlip180">180°反転</string>
-  <string name="PLTFlip180Tooltip">Propを180°反転します。ロックモード(緑色)では、change angle識別子で反転させない</string>
+  <string name="PLTAngleDynamicTooltip">カーブの向きに合わせて動的に角度を計算</string>
+  <string name="PLTAngleSingleTooltip">カーブに沿って全てのアセットに静的な角度で配置</string>
+  <string name="PLTFlip180Tooltip">Propを180°反転します。 ロックモードでは、角度変更の識別子で反転させない</string>
+  <string name="PLTFlip90Tooltip">Propを90°反転します。 ロックモードでは、角度変更の識別子で反転させない</string>
   <string name="PLTRelativeAngle">相対的な角度</string>
   <!-- PLT Calculator Specific Translation -->
-  <string name="PLTDefault">デフォルト</string>
-  <string name="PLTLength">長さ</string>
-  <string name="PLTWidth">幅</string>
-  <string name="PLTRound">四捨五入</string>
-  <string name="PLTZero">ゼロ</string>
+  <string name="PLTDefaultTooltip">現在のスペーシングをデフォルト値に設定します</string>
+  <string name="PLTLengthTooltip">現在のスペーシングをアセットの長さで設定します</string>
+  <string name="PLTWidthTooltip">Sets current spacing to asset width</string>
   <!-- PLT Option Specific Translation -->
   <string name="PLTShowUndoPreview">Undoをプレビュー表示</string>
   <string name="PLTShowUndoPreviewTooltip">[Ctrl] キーを押しながら、次回のUndoコマンドで削除する項目をハイライトします</string>
   <string name="PLTMeshCenterCorrection">センター補正にメッシュを使用</string>
-  <string name="PLTMeshCenterCorrectionTooltip">フットプリント内のアイテムから中央部へ配置を試みます&#xA;境界上で中央に配置されないPropに適します</string>
+  <string name="PLTMeshCenterCorrectionTooltip">
+    フットプリント内のアイテムから中央部へ配置を試みます
+    境界上で中央に配置されないPropに適します
+  </string>
   <string name="PLTPerfectCircle">真円なサークル</string>
-  <string name="PLTPerfectCircleTooltip">有効時は円周上にある全てのアイテムとサイズから一致する、サークルの最小半径でスナップします&#xA;サークルの最小半径は、スペーシングのパラメータに依存します</string>
+  <string name="PLTPerfectCircleTooltip">
+    有効時は円周上にある全てのアイテムとサイズから一致する、サークルの最小半径でスナップします
+    サークルの最小半径は、スペーシングのパラメータに依存します
+  </string>
   <string name="PLTLinearFence">直線時にフェンスを重ねる</string>
-  <string name="PLTLinearFenceTooltip">直線でフェンスを配置した場合はマウスの指定位置で終わるようにします&#xA;最後のフェンスを二重にして全長を調整します</string>
+  <string name="PLTLinearFenceTooltip">
+    直線でフェンスを配置した場合はマウスの指定位置で終わるようにします
+    最後のフェンスを二重にして全長を調整します
+  </string>
   <!-- Misc Props -->
   <string name="GroupProps">Propのグループ化</string>
   <string name="UngroupProps">Propの非グループ化</string>
@@ -87,12 +115,15 @@
   <string name="MainOptionTab">主なオプション</string>
   <string name="ExtraFunctionsTab">追加機能</string>
   <string name="KeyboardShortcutTab">キーバインド</string>
-  <string name="KeyBindDescription">ホットキーを設定する際、 Prop Anarchyでは必ず修飾キー (SHIFT｜CONTROL｜ALT) を組み合わせてください。 &amp;#xA;プロップのサイズ増減のホットキーについては、 特殊なので修飾キーは不要です。 &amp;#xA;ただし、 可能ならユニークなホットキーを推奨します。</string>
+  <string name="KeyBindDescription">ホットキーを設定する際、 Prop Anarchyでは必ず修飾キー (SHIFT｜CONTROL｜ALT) を組み合わせてください。 プロップのサイズ増減のホットキーについては、 特殊なので修飾キーは不要です。 ただし、可能ならユニークなホットキーを推奨します。</string>
   <!-- Main options -->
   <string name="EnableCustomLimit">カスタムPropの上限を有効化</string>
   <string name="MaxPropLimitTitle">カスタムPropの上限数</string>
   <string name="MaxPropLimit">Propの上限:  {0} props</string>
-  <string name="Important">重要！ ゲームの起動時・マップロード前に設定する必要があります。&#xA;Propの上限変更は、 パフォーマンスに少なからず影響を与える可能性があります。 &amp;#xA;EMLはバニラよりも描画処理が速くなるように最適化されていますが、 主にPropの増加時で起こる負荷軽減に重点を置いています。 &amp;#xA;ゲーム進行に伴いPropの上限変更が必要になった時点で、 段階的に増加させることを推奨します。</string>
+  <string name="Important">
+    重要！ ゲームの起動時・マップロード前に設定する必要があります。
+    Propの上限変更は、 パフォーマンスに少なからず影響を与える可能性があります。 EMLはバニラよりも描画処理が速くなるように最適化されていますが、 主にPropの増加時で起こる負荷軽減に重点を置いています。 ゲーム進行に伴いPropの上限変更が必要になった時点で、 段階的に増加させることを推奨します。
+  </string>
   <!-- Tree Snapping specific -->
   <string name="PropSnap">Prop Snapping</string>
   <string name="PropSnapLabel">Propを自由に動かせて、 建物にPropをスナップさせることが可能</string>

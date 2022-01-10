@@ -8,40 +8,65 @@
 <resources>
   <!-- Painter Translation -->
   <string name="PropPainter">道具上色器</string>
-  <string name="PainterTooltip">道具上色器</string>
+  <string name="PainterTooltip">可自定义道具颜色</string>
   <!-- PLT Specific Translation -->
   <string name="PropLineTool">道具线性摆放工具</string>
-  <string name="PLTToggleSnapping">PLT: 切换至自动间距模式</string>
-  <string name="PLTToggleFenceMode">PLT: 切换至无间距模式</string>
-  <string name="PLTToggleControlPanel">PLT: 显示/隐藏选项面板Show/Hide Option Panel</string>
-  <string name="PLTTitleBar">PLT设置</string>
+  <string name="SpacingFieldTooltip">
+    滑动滑轮可更改数字。按着ALT调整数字±0.1，或CTRL调整数字±5。
+    按右键可重置至道具初始间距
+  </string>
+  <string name="AnglefieldTooltip">
+    滑动滑轮可更改数字。按着ALT调整数字±0.1，或CTRL调整数字±5。
+    按右键重置至0&#xb0;
+  </string>
+  <string name="PLTToggleFenceMode">切换栏杆模式</string>
+  <string name="PLTToggleSingleMode">切换单一模式</string>
+  <string name="PLTToggleStraightMode">切换直线模式</string>
+  <string name="PLTToggleCircleMode">切换圆形模式</string>
+  <string name="PLTToggleCurveMode">切换曲线模式</string>
+  <string name="PLTToggleFreeformMode">切换自由模式</string>
+  <string name="PLTToggleControlPanel">显示或隐藏选项界面</string>
+  <string name="PLTTitleBar">道具线工具设置</string>
   <string name="PLTParameters">参数</string>
   <string name="PLTOptions">选项</string>
-  <string name="PLTItemWiseTooltip">摆放控制&#xA;沿曲线一次摆放一个道具</string>
-  <string name="PLTSpacingTooltip">摆放控制&#xA;离散间距摆放道具</string>
+  <string name="PLTItemWiseTooltip">
+    摆放控制
+    沿曲线一次摆放一个道具
+  </string>
+  <string name="PLTSpacingTooltip">
+    摆放控制
+    离散间距摆放道具
+  </string>
   <string name="PLTDecouplePrevSegment">与前摆放段解耦</string>
   <string name="PLTSpacingTitle">间距</string>
   <string name="PLTAutoDefaultSpacing">自动初始化间距</string>
-  <string name="PLTAutoDefaultSpacingTooltip">一旦启用，选择不同道具/树木时自动初始化间距。&#xA;当切换至无间距模式时间距仍然会自动初始化。</string>
+  <string name="PLTAutoDefaultSpacingTooltip">
+    一旦启用，选择不同道具/树木时自动初始化间距。
+    当切换至无间距模式时间距仍然会自动初始化。
+  </string>
   <string name="PLTAngleTitle">角度</string>
-  <string name="PLTAngleDynamic">动态角度</string>
-  <string name="PLTAngleSingle">单一角度</string>
-  <string name="PLTFlip180">翻转180度;</string>
-  <string name="PLTFlip180Tooltip">在无锁定模式下翻转道具180度</string>
+  <string name="PLTAngleDynamicTooltip">沿着曲线计算动态角度</string>
+  <string name="PLTAngleSingleTooltip">沿着曲线设定固定角度</string>
+  <string name="PLTFlip180Tooltip">一键使道具反转180°</string>
+  <string name="PLTFlip90Tooltip">一键使道具反转90°</string>
   <string name="PLTRelativeAngle">相对角度</string>
   <!-- PLT Calculator Specific Translation -->
-  <string name="PLTDefault">默认</string>
-  <string name="PLTLength">长度</string>
-  <string name="PLTWidth">宽度</string>
-  <string name="PLTRound">圆</string>
-  <string name="PLTZero">零</string>
+  <string name="PLTDefaultTooltip">设定为道具初始间距</string>
+  <string name="PLTLengthTooltip">使用道具长度为间距</string>
+  <string name="PLTWidthTooltip">使用道具宽度为间距</string>
   <!-- PLT Option Specific Translation -->
   <string name="PLTShowUndoPreview">显示撤销预览</string>
   <string name="PLTShowUndoPreviewTooltip">当按住[Ctrl]键时，突出显示下一个撤销命令中将删除的物品</string>
   <string name="PLTMeshCenterCorrection">使用网格进行中心校正</string>
-  <string name="PLTMeshCenterCorrectionTooltip">尝试将物品置于其中心轴上。&#xA;对于道具来说不在其边界居中会更合适</string>
+  <string name="PLTMeshCenterCorrectionTooltip">
+    尝试将物品置于其中心轴上。
+    对于道具来说不在其边界居中会更合适
+  </string>
   <string name="PLTPerfectCircle">圆滑的圆</string>
-  <string name="PLTPerfectCircleTooltip">一旦启用，圆将自动调整到最接近的大小，以完美地适合曲线上的所有物品。&#xA;最接近的大小取决于间距参数</string>
+  <string name="PLTPerfectCircleTooltip">
+    一旦启用，圆将自动调整到最接近的大小，以完美地适合曲线上的所有物品。
+    最接近的大小取决于间距参数
+  </string>
   <string name="PLTLinearFence">线性无间距填补</string>
   <string name="PLTLinearFenceTooltip">当使用无间距摆放时，将在精准的鼠标位置上结束重叠的物品</string>
   <!-- Misc Props -->
@@ -92,7 +117,10 @@
   <string name="EnableCustomLimit">启用自定义道具限制</string>
   <string name="MaxPropLimitTitle">配置自定义道具限制</string>
   <string name="MaxPropLimit">道具最大上限:  {0} 道具</string>
-  <string name="Important">重要!必须在开始/加载游戏前设置&#xA;注意，增加道具上限会对性能产生轻微影响。即便EML优化了游戏本身渲染道具的速度，但该优化主要是为了提高道具上限所带来的影响。最好是根据游戏内道具需求在游戏后期逐渐增加</string>
+  <string name="Important">
+    重要!必须在开始/加载游戏前设置
+    注意，增加道具上限会对性能产生轻微影响。即便EML优化了游戏本身渲染道具的速度，但该优化主要是为了提高道具上限所带来的影响。最好是根据游戏内道具需求在游戏后期逐渐增加
+  </string>
   <!-- Tree Snapping specific -->
   <string name="PropSnap">道具吸附</string>
   <string name="PropSnapLabel">此选项可解除树木移动限制，进行上下左右调整，同时也可沿着大楼、道路、等表面自动调整高低</string>

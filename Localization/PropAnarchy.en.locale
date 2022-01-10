@@ -8,13 +8,19 @@
 <resources>
   <!-- Painter Translation -->
   <string name="PropPainter">Prop Painter</string>
-  <string name="PainterTooltip">Prop Painter</string>
+  <string name="PainterTooltip">Customize Prop Color</string>
   <!-- PLT Specific Translation -->
   <string name="PropLineTool">Prop Line Tool</string>
-  <string name="PLTToggleSnapping">PLT: Toggle Snapping</string>
-  <string name="PLTToggleFenceMode">PLT: Toggle Fence Mode</string>
-  <string name="PLTToggleControlPanel">PLT: Show/Hide Option Panel</string>
-  <string name="PLTTitleBar">PLT Settings</string>
+  <string name="SpacingFieldTooltip">Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.&#xA;Right click to reset to default spacing</string>
+  <string name="AnglefieldTooltip">Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.&#xA;Right click to reset to 0&#xb0;</string>
+  <string name="PLTToggleFenceMode">Toggle Fence Mode</string>
+  <string name="PLTToggleSingleMode">Toggle Single Mode</string>
+  <string name="PLTToggleStraightMode">Toggle Straight Mode</string>
+  <string name="PLTToggleCircleMode">Toggle Circle Mode</string>
+  <string name="PLTToggleCurveMode">Toggle Curve Mode</string>
+  <string name="PLTToggleFreeformMode">Toggle Freeform Mode</string>
+  <string name="PLTToggleControlPanel">Show/Hide Option Panel</string>
+  <string name="PLTTitleBar">Prop Line Tool Settings</string>
   <string name="PLTParameters">Parameters</string>
   <string name="PLTOptions">Options</string>
   <string name="PLTItemWiseTooltip">Itemwise control&#xA;Place one item at a time along the curve</string>
@@ -24,17 +30,15 @@
   <string name="PLTAutoDefaultSpacing">Auto-Default Spacing</string>
   <string name="PLTAutoDefaultSpacingTooltip">If enabled, automatically sets default spacing whenever a different prop/tree type is selected.&#xA;Spacing will still auto-default when toggling fence mode</string>
   <string name="PLTAngleTitle">Angle</string>
-  <string name="PLTAngleDynamic">Angle Dynamic</string>
-  <string name="PLTAngleSingle">Angle Single</string>
-  <string name="PLTFlip180">Flip 180&#xb0;</string>
-  <string name="PLTFlip180Tooltip">Rotate props by 180&#xb0;without rotating the change-angle handle in Lock Mode (green)</string>
+  <string name="PLTAngleDynamicTooltip">Calculate angles dynamically to follow direction of the curve</string>
+  <string name="PLTAngleSingleTooltip">Uses static angle for every asset along the curve</string>
+  <string name="PLTFlip180Tooltip">Rotate props by 180&#xb0; without rotating the change-angle handle in Lock Mode</string>
+  <string name="PLTFlip90Tooltip">Rotate props by 90&#xb0; without rotating the change-angle handle in Lock Mode</string>
   <string name="PLTRelativeAngle">Relative Angle</string>
   <!-- PLT Calculator Specific Translation -->
-  <string name="PLTDefault">Default</string>
-  <string name="PLTLength">Length</string>
-  <string name="PLTWidth">Width</string>
-  <string name="PLTRound">Round</string>
-  <string name="PLTZero">Zero</string>
+  <string name="PLTDefaultTooltip">Sets current spacing to default value</string>
+  <string name="PLTLengthTooltip">Sets current spacing to asset length</string>
+  <string name="PLTWidthTooltip">Sets current spacing to asset width</string>
   <!-- PLT Option Specific Translation -->
   <string name="PLTShowUndoPreview">Show Undo Preview</string>
   <string name="PLTShowUndoPreviewTooltip">Highlights which items will be deleted in the next Undo command when [Ctrl] key is held</string>
