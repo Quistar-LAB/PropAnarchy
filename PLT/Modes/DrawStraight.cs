@@ -640,8 +640,10 @@ namespace PropAnarchy.PLT.Modes {
                 } else {
                     SegmentState.LastFenceEndpoint = EMath.Vector3Down;
                     SegmentState.LastFinalOffset = 0f;
-                    //UpdatePlacement();
                 }
+            }
+            if (numItems > 0) {
+                UpdateFinalPrefab(items, numItems);
             }
             ItemInfo.Count = numItems;
             if (EMath.FloorToInt(numItemsRaw) > MAX_ITEM_ARRAY_LENGTH) {

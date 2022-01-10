@@ -2,6 +2,7 @@
 using ColossalFramework.Math;
 using ColossalFramework.UI;
 using EManagersLib;
+using ICities;
 using PropAnarchy.PLT.Extensions;
 using PropAnarchy.PLT.MathUtils;
 using System;
@@ -30,7 +31,7 @@ namespace PropAnarchy.PLT {
         internal const int MAX_ITEM_ARRAY_LENGTH = 1024;
 
         internal delegate T PropertyGetterHandler<T>();
-        internal delegate T PropertySetterHandler<T>(T value);
+        internal delegate void PropertySetterHandler<T>(T value);
         internal delegate void StandardSetterHandler<T>(T value);
         internal delegate void DrawCircleAPI(RenderManager.CameraInfo cameraInfo, Color color, Vector3 center, float size, float minY, float maxY, bool renderLimits, bool alphaBlend);
         internal delegate void DrawBezierAPI(RenderManager.CameraInfo cameraInfo, Color color, Bezier3 bezier, float size, float cutStart, float cutEnd, float minY, float maxY, bool renderLimits, bool alphaBlend);
@@ -56,7 +57,7 @@ namespace PropAnarchy.PLT {
         internal static PropertyGetterHandler<float> GetSpacingValue;
         internal static PropertySetterHandler<float> SetAngleValue;
         internal static PropertyGetterHandler<float> GetAngleValue;
-        internal static PropertySetterHandler<int> SetAngleMode;
+        internal static PropertySetterHandler<AngleMode> SetAngleMode;
         internal static StandardSetterHandler<bool> SetAngleModeState;
         internal static PropertySetterHandler<bool> SetAutoSpacing;
 
@@ -94,12 +95,16 @@ namespace PropAnarchy.PLT {
         internal static class ItemInfo {
             internal struct ItemData {
                 internal uint m_itemID;
+                internal PrefabInfo m_finalPrefab;
                 internal Vector3 m_position;
                 internal Vector3 m_fenceEndPoint;
                 internal VectorXZ m_direction;
                 internal VectorXZ m_offsetDirection;
                 internal float m_t;
                 internal float m_angle;
+                internal Color m_color;
+                internal float m_scale;
+                internal float m_brightness;
                 internal bool m_isValidPlacement;
                 internal CollisionType m_collisionType;
                 internal Vector3 Position {
@@ -146,7 +151,7 @@ namespace PropAnarchy.PLT {
                 }
                 internal void RenderItem(RenderManager.CameraInfo cameraInfo) {
                     if (m_isValidPlacement) {
-                        if (m_prefab is PropInfo propInfo) {
+                        if (m_finalPrefab is PropInfo propInfo) {
                             InstanceID id = default;
                             if (propInfo.m_requireHeightMap) {
                                 GetHeightMapping(m_position, out Texture heightMap, out Vector4 heightMapping, out Vector4 surfaceMapping);
@@ -154,7 +159,7 @@ namespace PropAnarchy.PLT {
                             } else {
                                 EPropInstance.RenderInstance(cameraInfo, propInfo, id, m_position, m_scale, m_angle, m_color, RenderManager.DefaultColorLocation, true);
                             }
-                        } else if (m_prefab is TreeInfo treeInfo) {
+                        } else if (m_finalPrefab is TreeInfo treeInfo) {
                             TreeInstance.RenderInstance(cameraInfo, treeInfo, m_position, m_scale, m_brightness, RenderManager.DefaultColorLocation);
                         }
                     }
@@ -172,9 +177,6 @@ namespace PropAnarchy.PLT {
             private static PrefabInfo m_prefab;
             private static VectorXZ m_itemSize;
             private static float m_itemMaxWidth;
-            private static float m_scale;
-            private static Color m_color;
-            private static float m_brightness;
 
             private static float CalcDefaultSpacing(ItemType itemType, float itemWidth) {
                 float res = 0f;
@@ -206,30 +208,27 @@ namespace PropAnarchy.PLT {
             internal static PrefabInfo Prefab {
                 get => m_prefab;
                 set {
-                    m_prefab = value;
-                    if (value is PropInfo propInfo) {
-                        Type = ItemType.Prop;
-                        m_itemSize.x = propInfo.m_mesh.bounds.extents.x * 2f;
-                        m_itemSize.z = propInfo.m_mesh.bounds.extents.z * 2f;
-                        m_itemMaxWidth = m_itemSize.x > m_itemSize.z ? m_itemSize.x : m_itemSize.z;
-                        if (Settings.AutoDefaultSpacing) {
-                            Spacing = CalcDefaultSpacing(ItemType.Prop, m_itemMaxWidth);
+                    if (m_prefab != value) {
+                        m_prefab = value;
+                        if (value is PropInfo propInfo) {
+                            Type = ItemType.Prop;
+                            m_itemSize.x = propInfo.m_mesh.bounds.extents.x * 2f;
+                            m_itemSize.z = propInfo.m_mesh.bounds.extents.z * 2f;
+                            m_itemMaxWidth = m_itemSize.x > m_itemSize.z ? m_itemSize.x : m_itemSize.z;
+                            if (Settings.AutoDefaultSpacing) {
+                                Spacing = CalcDefaultSpacing(ItemType.Prop, m_itemMaxWidth);
+                            }
+                            SetAngleModeState(true);
+                        } else if (value is TreeInfo treeInfo) {
+                            Type = ItemType.Tree;
+                            m_itemSize.x = treeInfo.m_mesh.bounds.extents.x * 2f;
+                            m_itemSize.z = treeInfo.m_mesh.bounds.extents.z * 2f;
+                            m_itemMaxWidth = m_itemSize.x > m_itemSize.z ? m_itemSize.x : m_itemSize.z;
+                            if (Settings.AutoDefaultSpacing) {
+                                Spacing = CalcDefaultSpacing(ItemType.Prop, m_itemMaxWidth);
+                            }
+                            SetAngleModeState(false);
                         }
-                        Randomizer randomizer = new Randomizer(EPropManager.m_props.NextFreeItem());
-                        int random = randomizer.Int32(10000u);
-                        m_scale = propInfo.m_minScale + random * (propInfo.m_maxScale - propInfo.m_minScale) * 0.0001f;
-                        m_color = propInfo.GetColor(ref randomizer);
-                    } else if (value is TreeInfo treeInfo) {
-                        Type = ItemType.Tree;
-                        m_itemSize.x = treeInfo.m_mesh.bounds.extents.x * 2f;
-                        m_itemSize.z = treeInfo.m_mesh.bounds.extents.z * 2f;
-                        m_itemMaxWidth = m_itemSize.x > m_itemSize.z ? m_itemSize.x : m_itemSize.z;
-                        if (Settings.AutoDefaultSpacing) {
-                            Spacing = CalcDefaultSpacing(ItemType.Prop, m_itemMaxWidth);
-                        }
-                        int random = new Randomizer(Singleton<TreeManager>.instance.m_trees.NextFreeItem()).Int32(10000u);
-                        m_scale = treeInfo.m_minScale + random * (treeInfo.m_maxScale - treeInfo.m_minScale) * 0.0001f;
-                        m_brightness = treeInfo.m_minBrightness + random * (treeInfo.m_maxBrightness - treeInfo.m_minBrightness) * 0.0001f;
                     }
                 }
             }
@@ -270,7 +269,6 @@ namespace PropAnarchy.PLT {
                     Angle = 0f;
                     if (value) {
                         SetAngleMode((int)AngleMode.Dynamic);
-                        SetAngleModeState(false);
                         SetAutoSpacing(true);
                         SetDefaultSpacing();
                     } else {
@@ -299,29 +297,23 @@ namespace PropAnarchy.PLT {
                 int itemCount = m_itemCount;
                 if (itemCount > 0) {
                     ItemData[] itemDatas = m_datas;
-                    Randomizer randomizer;
-                    if (Prefab is PropInfo propInfo) {
-                        Array32<EPropInstance> props = EPropManager.m_props;
-                        ControlMode controlMode = Settings.ControlMode;
+                    if (Prefab is PropInfo) {
                         for (int i = 0; i < itemCount; i++) {
                             if (itemDatas[i].m_isValidPlacement) {
-                                randomizer = new Randomizer(props.NextFreeItem());
-                                PropInfo newPropInfo = controlMode == ControlMode.ItemWise && i == ITEMWISE_INDEX ? propInfo.GetVariation(ref randomizer) : propInfo;
+                                PropInfo finalProp = itemDatas[i].m_finalPrefab as PropInfo;
                                 Vector3 position = itemDatas[i].Position;
-                                if (Singleton<PropManager>.instance.CreateProp(out uint propID, ref randomizer, newPropInfo, position, itemDatas[i].m_angle, true)) {
+                                if (Singleton<PropManager>.instance.CreateProp(out uint propID, ref m_randomizer, finalProp, position, itemDatas[i].m_angle, true)) {
                                     itemDatas[i].m_itemID = propID;
                                     DispatchPlacementEffect(position, false);
                                 }
                             }
                         }
-                    } else if (Prefab is TreeInfo treeInfo) {
-                        Array32<TreeInstance> trees = Singleton<TreeManager>.instance.m_trees;
+                    } else if (Prefab is TreeInfo) {
                         for (int i = 0; i < itemCount; i++) {
                             if (itemDatas[i].m_isValidPlacement) {
-                                randomizer = new Randomizer(trees.NextFreeItem());
-                                TreeInfo newTreeInfo = Settings.ControlMode == ControlMode.ItemWise && i == ITEMWISE_INDEX ? treeInfo.GetVariation(ref randomizer) : treeInfo;
+                                TreeInfo finalTree = itemDatas[i].m_finalPrefab as TreeInfo;
                                 Vector3 position = itemDatas[i].Position;
-                                if (Singleton<TreeManager>.instance.CreateTree(out uint treeID, ref randomizer, newTreeInfo, position, true)) {
+                                if (Singleton<TreeManager>.instance.CreateTree(out uint treeID, ref m_randomizer, finalTree, position, true)) {
                                     itemDatas[i].m_itemID = treeID;
                                     DispatchPlacementEffect(position, false);
                                 }
@@ -339,6 +331,7 @@ namespace PropAnarchy.PLT {
             }
         }
 
+        internal static LoadMode m_gameMode;
         internal static ToolBar m_toolbar;
         internal static OptionPanel m_optionPanel;
         internal static TreeTool m_treeTool;
@@ -356,6 +349,8 @@ namespace PropAnarchy.PLT {
         private static EffectInfo m_bulldozeEffect;
         private static EffectInfo m_placementEffect;
         private static AudioGroup m_defaultAudioGroup;
+        internal static Randomizer m_randomizer;
+
 
         internal static int HoverItemPositionIndex => Settings.ControlMode == ControlMode.ItemWise ? (ItemInfo.FenceMode ? ITEMWISE_FENCE_INDEX_START : ITEMWISE_INDEX) : 1;
         internal static int HoverItemAngleCenterIndex => Settings.ControlMode == ControlMode.ItemWise ? ITEMWISE_INDEX : 1;
@@ -364,11 +359,14 @@ namespace PropAnarchy.PLT {
             m_positionChanging = false;
             m_mouseRayValid = false;
             ControlPoint.Reset();
+            UndoManager.Reset();
+            DrawMode.GotoActiveState(ActiveState.CreatePointFirst);
         }
 
         protected override void Awake() {
             base.Awake();
             PlacementError.Initialize();
+            m_randomizer = new Randomizer((int)DateTime.Now.Ticks);
             DrawCircle = Singleton<RenderManager>.instance.OverlayEffect.DrawCircle;
             DrawBezier = Singleton<RenderManager>.instance.OverlayEffect.DrawBezier;
             DrawSegment = Singleton<RenderManager>.instance.OverlayEffect.DrawSegment;
@@ -389,11 +387,13 @@ namespace PropAnarchy.PLT {
 
         protected override void OnEnable() {
             base.OnEnable();
-            ResetPLT();
+            m_optionPanel.Enable();
+            //ResetPLT();
         }
 
         protected override void OnDisable() {
             base.OnDisable();
+            m_optionPanel.Disable();
             ResetPLT();
         }
 
@@ -526,7 +526,9 @@ namespace PropAnarchy.PLT {
             switch (e.type) {
             case EventType.KeyDown:
                 switch (e.keyCode) {
-                case KeyCode.Escape: return;
+                case KeyCode.Escape:
+                    ResetPLT();
+                    return;
                 case KeyCode.Z:
                     if (ctrlDown) {
                         UndoManager.UndoLatestEntry();
@@ -547,6 +549,7 @@ namespace PropAnarchy.PLT {
         }
 
         protected override void OnToolUpdate() {
+#if FALSE
             if (DrawMode.CurrentMode != DrawMode.Single) {
                 switch (ItemInfo.Type) {
                 case ItemType.Tree:
@@ -568,6 +571,7 @@ namespace PropAnarchy.PLT {
                     break;
                 }
             }
+#endif
         }
 
         private void RenderMaxFillContinueMarkers(RenderManager.CameraInfo cameraInfo, ItemInfo.ItemData[] itemDatas) {
@@ -764,7 +768,36 @@ namespace PropAnarchy.PLT {
             }
         }
 
-        internal static void InitializedPLT() {
+        internal static void InitializeTextures() {
+            string[] m_spriteNamesPLT = {
+                "Angle", "SpacingTitle", "TextBorder",
+                "AngleDynamic", "AngleDynamicHovered", "AngleDynamicPressed",
+                "AngleSingle", "AngleSingleHovered", "AngleSinglePressed",
+                "AutoSpacing", "AutoSpacingHovered", "AutoSpacingPressed",
+                "Default", "DefaultHovered", "DefaultPressed",
+                "Flip180", "Flip180Hovered", "Flip180Pressed",
+                "Flip90", "Flip90Hovered", "Flip90Pressed",
+                "ItemWise", "ItemWiseHovered", "ItemWisePressed",
+                "Length", "LengthHovered", "LengthPressed",
+                "Width", "WidthHovered", "WidthPressed",
+                "LinearFence", "LinearFenceHovered", "LinearFencePressed",
+                "MeshCenter", "MeshCenterHovered", "MeshCenterPressed",
+                "PerfectCircle", "PerfectCircleHovered", "PerfectCirclePressed",
+                "Spacing", "SpacingHovered", "SpacingPressed",
+                "PLT_MultiStateZero", "PLT_MultiStateZeroFocused", "PLT_MultiStateZeroHovered", "PLT_MultiStateZeroPressed", "PLT_MultiStateZeroDisabled",
+                "PLT_MultiStateOne", "PLT_MultiStateOneFocused", "PLT_MultiStateOneHovered", "PLT_MultiStateOnePressed", "PLT_MultiStateOneDisabled",
+                "PLT_ToggleCPZero", "PLT_ToggleCPZeroFocused", "PLT_ToggleCPZeroHovered", "PLT_ToggleCPZeroPressed", "PLT_ToggleCPZeroDisabled",
+                "PLT_ToggleCPOne", "PLT_ToggleCPOneFocused", "PLT_ToggleCPOneHovered", "PLT_ToggleCPOnePressed", "PLT_ToggleCPOneDisabled",
+                "PLT_FenceModeZero", "PLT_FenceModeZeroFocused", "PLT_FenceModeZeroHovered", "PLT_FenceModeZeroPressed", "PLT_FenceModeZeroDisabled",
+                "PLT_FenceModeOne", "PLT_FenceModeOneFocused", "PLT_FenceModeOneHovered", "PLT_FenceModeOnePressed", "PLT_FenceModeOneDisabled"
+            };
+            ToolBar.m_sharedTextures = PAUtils.CreateTextureAtlas(@"PLTAtlas", @"PropAnarchy.PLT.Icons.", m_spriteNamesPLT, 1024);
+            ToolBar.m_sharedTextures.AddSprite(UIView.GetAView().defaultAtlas[@"EmptySprite"]);
+        }
+
+        internal static void InitializedPLT(LoadMode mode) {
+            m_gameMode = mode;
+            Singleton<LoadingManager>.instance.WaitUntilEssentialScenesLoaded();
             ToolController toolController = FindObjectOfType<ToolController>();
             try {
                 PropLineTool propLineTool = toolController.gameObject.GetComponent<PropLineTool>();

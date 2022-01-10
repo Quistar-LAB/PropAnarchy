@@ -7,6 +7,7 @@ using static PropAnarchy.PLT.PropLineTool;
 namespace PropAnarchy.PLT {
     internal static class UndoManager {
         private const int MAX_UNDO_COUNT = 64;
+        private static readonly CyclicStack<UndoEntry> m_undoStack = new CyclicStack<UndoEntry>();
         private class CyclicStack<T> {
             private const int m_capacity = MAX_UNDO_COUNT;
             private readonly T[] m_stack;
@@ -28,7 +29,12 @@ namespace PropAnarchy.PLT {
                 return m_stack[oldIndex];
             }
             public T Peek() => m_stack[m_curIndex];
+            public void Reset() {
+                m_curIndex = 0;
+                Count = 0;
+            }
         }
+
         internal readonly struct UndoEntry {
             internal readonly struct ItemSubEntry {
                 private readonly uint m_itemID;
@@ -64,6 +70,7 @@ namespace PropAnarchy.PLT {
                     yield return null;
                 }
             }
+
             public readonly bool m_fenceMode;
             public readonly int m_itemCount;
             public readonly ItemSubEntry[] m_items;
@@ -77,7 +84,8 @@ namespace PropAnarchy.PLT {
                 m_items = subItems;
             }
         }
-        private static readonly CyclicStack<UndoEntry> m_undoStack = new CyclicStack<UndoEntry>();
+
+        internal static void Reset() => m_undoStack.Reset();
 
         internal static bool AddEntry(int itemCount, ItemInfo.ItemData[] items, bool fenceMode) {
             UndoEntry newUndoEntry = new UndoEntry(items, itemCount, fenceMode);

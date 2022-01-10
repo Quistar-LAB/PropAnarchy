@@ -1,7 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
 using EManagersLib;
-using System.Runtime.CompilerServices;
+using System.Collections;
 using UnityEngine;
 
 namespace PropAnarchy.PLT {
@@ -17,29 +17,17 @@ namespace PropAnarchy.PLT {
         private const string PLT_CURVED_NAME = @"Curved";
         private const string PLT_FREEFORM_NAME = @"Freeform";
         private const string PLT_CIRCLE_NAME = @"Circle";
+        private delegate PropTool GetPropToolAPI();
+        private delegate TreeTool GetTreeToolAPI();
+        private delegate PropLineTool GetPropLineToolAPI();
+        private delegate BulldozeTool GetBulldozeToolAPI();
         private static UIPanel m_brushPanel;
         internal static UITextureAtlas m_sharedTextures;
         internal static PropertyChangedEventHandler<int> SetCurrentMode;
 
         public override void Awake() {
-            string[] m_spriteNamesPLT = {
-                "PLT_MultiStateZero", "PLT_MultiStateZeroFocused", "PLT_MultiStateZeroHovered", "PLT_MultiStateZeroPressed", "PLT_MultiStateZeroDisabled",
-                "PLT_MultiStateOne", "PLT_MultiStateOneFocused", "PLT_MultiStateOneHovered", "PLT_MultiStateOnePressed", "PLT_MultiStateOneDisabled",
-                "PLT_MultiStateTwo", "PLT_MultiStateTwoFocused", "PLT_MultiStateTwoHovered", "PLT_MultiStateTwoPressed", "PLT_MultiStateTwoDisabled",
-                "PLT_ToggleCPZero", "PLT_ToggleCPZeroFocused", "PLT_ToggleCPZeroHovered", "PLT_ToggleCPZeroPressed", "PLT_ToggleCPZeroDisabled",
-                "PLT_ToggleCPOne", "PLT_ToggleCPOneFocused", "PLT_ToggleCPOneHovered", "PLT_ToggleCPOnePressed", "PLT_ToggleCPOneDisabled",
-                "PLT_FenceModeZero", "PLT_FenceModeZeroFocused", "PLT_FenceModeZeroHovered", "PLT_FenceModeZeroPressed", "PLT_FenceModeZeroDisabled",
-                "PLT_FenceModeOne", "PLT_FenceModeOneFocused", "PLT_FenceModeOneHovered", "PLT_FenceModeOnePressed", "PLT_FenceModeOneDisabled",
-                "PLT_FenceModeTwo", "PLT_FenceModeTwoFocused", "PLT_FenceModeTwoHovered", "PLT_FenceModeTwoPressed", "PLT_FenceModeTwoDisabled",
-                "PLT_ItemwiseZero", "PLT_ItemwiseZeroFocused", "PLT_ItemwiseZeroHovered", "PLT_ItemwiseZeroPressed", "PLT_ItemwiseZeroDisabled",
-                "PLT_ItemwiseOne", "PLT_ItemwiseOneFocused", "PLT_ItemwiseOneHovered", "PLT_ItemwiseOnePressed", "PLT_ItemwiseOneDisabled",
-                "PLT_SpacingwiseZero", "PLT_SpacingwiseZeroFocused", "PLT_SpacingwiseZeroHovered", "PLT_SpacingwiseZeroPressed", "PLT_SpacingwiseZeroDisabled",
-                "PLT_SpacingwiseOne", "PLT_SpacingwiseOneFocused", "PLT_SpacingwiseOneHovered", "PLT_SpacingwiseOnePressed", "PLT_SpacingwiseOneDisabled",
-                "PLT_BasicDividerTile02x02"
-            };
-
             base.Awake();
-            atlas = m_sharedTextures = PAUtils.CreateTextureAtlas(@"PLTAtlas", @"PropAnarchy.PLT.Icons.", m_spriteNamesPLT, 1024);
+            atlas = m_sharedTextures;
             size = new Vector2(PLT_TOOLBAR_WIDTH, PLT_TOOLBAR_HEIGHT);
             UIMultiStateButton fenceModeToggleBtn = AddToggleBtn(this, @"PLTToggleFenceMode", atlas, @"PLT_MultiStateZero", @"PLT_MultiStateOne", @"PLT_FenceModeZero", @"PLT_FenceModeOne");
             fenceModeToggleBtn.relativePosition = new Vector3(0, 0);
@@ -59,10 +47,15 @@ namespace PropAnarchy.PLT {
             singleDefaultBtn.textPadding.right = 1;
             singleDefaultBtn.textPadding.top = 4;
             singleDefaultBtn.textPadding.bottom = 0;
-            _ = AddButton(controlTabStrip, buttonTemplate, PLT_STRAIGHT_NAME);
-            _ = AddButton(controlTabStrip, buttonTemplate, PLT_CURVED_NAME);
-            _ = AddButton(controlTabStrip, buttonTemplate, PLT_FREEFORM_NAME);
+            singleDefaultBtn.tooltip = PALocale.GetLocale(@"PLTToggleSingleMode");
+            UIButton straightBtn = AddButton(controlTabStrip, buttonTemplate, PLT_STRAIGHT_NAME);
+            straightBtn.tooltip = PALocale.GetLocale(@"PLTToggleStraightMode");
+            UIButton curveBtn = AddButton(controlTabStrip, buttonTemplate, PLT_CURVED_NAME);
+            curveBtn.tooltip = PALocale.GetLocale(@"PLTToggleCurveMode");
+            UIButton freeformBtn = AddButton(controlTabStrip, buttonTemplate, PLT_FREEFORM_NAME);
+            freeformBtn.tooltip = PALocale.GetLocale(@"PLTToggleFreeformMode");
             UIButton circleBtn = AddButton(controlTabStrip, buttonTemplate, PLT_CIRCLE_NAME, @"○", 3.0f);
+            circleBtn.tooltip = PALocale.GetLocale(@"PLTToggleCircleMode");
             circleBtn.textPadding.left = -2;
             circleBtn.textPadding.right = 1;
             circleBtn.textPadding.top = -13;
@@ -80,24 +73,55 @@ namespace PropAnarchy.PLT {
             };
             controlTabStrip.eventSelectedIndexChanged += (c, index) => {
                 DrawMode.CurrentMode = index;
+                UIPanel brushPanel = m_brushPanel;
+                ToolBase currentTool = ToolsModifierControl.toolController.CurrentTool;
                 if (index == DrawMode.Single) {
-                    ToolBase currentTool = ToolsModifierControl.toolController.CurrentTool;
                     if (currentTool is TreeTool || currentTool is PropTool) {
                         controlPanelToggleBtn.activeStateIndex = 0;
-                        if (m_brushPanel && !m_brushPanel.isVisible) m_brushPanel.Show();
+                        if (brushPanel && !brushPanel.isVisible) brushPanel.Show();
                         fenceModeToggleBtn.isVisible = false;
                         controlPanelToggleBtn.isVisible = false;
                     }
                 } else {
-                    if (m_brushPanel && m_brushPanel.isVisible) m_brushPanel.Hide();
+                    if (brushPanel && brushPanel.isVisible) brushPanel.Hide();
                     fenceModeToggleBtn.isVisible = true;
                     controlPanelToggleBtn.isVisible = true;
+                    if (currentTool is PropTool propTool) {
+                        PropLineTool.ItemInfo.Prefab = propTool.m_prefab;
+                        ToolsModifierControl.SetTool<PropLineTool>();
+                    } else if (currentTool is TreeTool treeTool) {
+                        PropLineTool.ItemInfo.Prefab = treeTool.m_prefab;
+                        ToolsModifierControl.SetTool<PropLineTool>();
+                    }
                 }
             };
             isVisible = false;
+            eventVisibilityChanged += (c, visible) => {
+                ToolBase currentTool = ToolsModifierControl.toolController.CurrentTool;
+                if (visible) {
+                    if (currentTool is TreeTool treeTool) {
+                        PropLineTool.ItemInfo.Prefab = treeTool.m_prefab;
+                    } else if (currentTool is PropTool propTool) {
+                        PropLineTool.ItemInfo.Prefab = propTool.m_prefab;
+                    }
+                } else {
+                    controlPanelToggleBtn.activeStateIndex = 0;
+                    PropLineTool.ResetPLT();
+                }
+            };
         }
 
         public override void Start() {
+            GameObject brushGO = GameObject.Find(@"BrushPanel");
+            if (brushGO) {
+                UIPanel brushPanel = brushGO.GetComponent<UIPanel>();
+                brushPanel.eventVisibilityChanged += (c, visible) => {
+                    if (visible && isVisible && DrawMode.CurrentMode != DrawMode.Single) {
+                        brushPanel.Hide();
+                    }
+                };
+                m_brushPanel = brushPanel;
+            }
             UIComponent optionsBar = GameObject.Find(@"OptionsBar").GetComponent<UIComponent>();
             if (optionsBar is null) {
                 PAModule.PALog($"OptionBar not found");
@@ -121,53 +145,58 @@ namespace PropAnarchy.PLT {
                     absolutePosition = new Vector2(newX, newY);
                 }
             }
-            GameObject brushGO = GameObject.Find(@"BrushPanel");
-            if (!(brushGO is null)) {
-                m_brushPanel = brushGO.GetComponent<UIPanel>();
-            }
+            StartCoroutine(PollToolState(this));
         }
 
-        public override void OnDestroy() { }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static bool SetToolPrefix(ToolBase tool) {
-            if ((tool is TreeTool || tool is PropTool) && ToolsModifierControl.toolController.CurrentTool is PropLineTool &&
-                DrawMode.CurrentMode != DrawMode.Single) {
-                return false;
-            }
-            return true;
+        public override void OnDestroy() {
+            StopCoroutine(PollToolState(null));
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SetToolPostfix(ToolBase tool) {
-            if (!(tool is null) && !(PropLineTool.m_toolbar is null) && !(m_brushPanel is null)) {
-                if (tool is TreeTool || tool is PropTool) {
-                    if (tool is TreeTool) {
-                        PropLineTool.ItemInfo.Type = PropLineTool.ItemType.Tree;
-                        OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.Tree);
-                    } else if (tool is PropTool) {
-                        PropLineTool.ItemInfo.Type = PropLineTool.ItemType.Prop;
-                        OptionPanel.ToggleAnglePanel(PropLineTool.ItemType.Prop);
+        internal static IEnumerator PollToolState(ToolBar toolBar) {
+            PropTool propTool;
+            TreeTool treeTool;
+            GetPropToolAPI getPropTool = ToolsModifierControl.GetCurrentTool<PropTool>;
+            GetTreeToolAPI getTreeTool = ToolsModifierControl.GetCurrentTool<TreeTool>;
+            GetPropLineToolAPI getPropLineTool = ToolsModifierControl.GetCurrentTool<PropLineTool>;
+            //GetBulldozeToolAPI getBulldozeTool = ToolsModifierControl.GetCurrentTool<BulldozeTool>;
+            UIPanel brushPanel = m_brushPanel;
+            //WaitForSeconds wait = new WaitForSeconds(0.2f);
+            WaitForEndOfFrame wait = new WaitForEndOfFrame();
+            while (true) {
+                yield return wait;
+                propTool = getPropTool();
+                treeTool = getTreeTool();
+                PropLineTool propLineTool = getPropLineTool();
+                //BulldozeTool bulldozeTool = getBulldozeTool();
+                if (propTool is null && treeTool is null && propLineTool is null) {
+                    if (toolBar.isVisibleSelf) {
+                        toolBar.Hide();
+                        OptionPanel.Close();
                     }
-                    if (!PropLineTool.m_toolbar.isVisible) {
-                        SetCurrentMode?.Invoke(null, 0);
-                        PropLineTool.m_toolbar.Show();
-                    }
-                    if (DrawMode.CurrentMode == DrawMode.Single) {
-                        if (!m_brushPanel.isVisible) m_brushPanel.Show();
-                    }
-                } else if (tool is PropLineTool) {
-                    PropLineTool.m_toolbar.Show();
                 } else {
-                    if (PropLineTool.m_toolbar.isVisible) {
-                        PropLineTool.m_toolbar.Hide();
-                        PropLineTool.m_optionPanel.Hide();
-                        PropLineTool.ResetPLT();
+                    if (!toolBar.isVisibleSelf) toolBar.Show();
+                    switch (DrawMode.CurrentMode) {
+                    case DrawMode.Straight:
+                    case DrawMode.Circle:
+                    case DrawMode.Freeform:
+                    case DrawMode.Curved:
+                        if (propLineTool is null && (propTool || treeTool)) {
+                            if (brushPanel && brushPanel.isVisibleSelf) {
+                                brushPanel.Hide();
+                            }
+                            if (propTool) {
+                                PropLineTool.ItemInfo.Prefab = propTool.m_prefab;
+                            } else if (treeTool) {
+                                PropLineTool.ItemInfo.Prefab = treeTool.m_prefab;
+                            }
+                            ToolsModifierControl.SetTool<PropLineTool>();
+                        }
+                        break;
                     }
-                    if (m_brushPanel.isVisible) m_brushPanel.Hide();
                 }
             }
         }
+
 
         private static UIButton AddButton(UITabstrip tab, UIButton btnTemplate, string name, string textDisplay, float textScale) {
             UIButton btn = tab.AddTab(name, btnTemplate, false);

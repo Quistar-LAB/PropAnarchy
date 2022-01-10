@@ -10,6 +10,9 @@ namespace PropAnarchy.PLT {
         internal static bool m_linearFenceFill = false;
         internal static bool m_angleFlip180 = false;
         internal static bool m_showUndoPreview = true;
+        internal static bool m_verticalLayout = false;
+        internal static float m_optionXPos = 0f;
+        internal static float m_optionYPos = 0f;
 
         internal static Color m_PLTColor_default = new Color32(39, 130, 204, 128);
         internal static Color m_PLTColor_defaultSnapZones = new Color32(39, 130, 204, 255);
@@ -28,6 +31,27 @@ namespace PropAnarchy.PLT {
         internal static bool FenceMode { get; set; }
 
         internal static bool AutoDefaultSpacing { get; set; } = true;
+
+        internal static bool VerticalLayout {
+            get => m_verticalLayout;
+            set {
+                if (m_verticalLayout != value) {
+                    m_verticalLayout = value;
+                    ThreadPool.QueueUserWorkItem(PAModule.SaveSettings);
+                }
+            }
+        }
+
+        internal static Vector2 OptionPosition {
+            get => new Vector2(m_optionXPos, m_optionYPos);
+            set {
+                if (value.x != m_optionXPos && value.y != m_optionYPos) {
+                    m_optionXPos = value.x;
+                    m_optionYPos = value.y;
+                    ThreadPool.QueueUserWorkItem(PAModule.SaveSettings);
+                }
+            }
+        }
 
         internal static PropLineTool.AngleMode AngleMode {
             get => m_angleMode;
@@ -58,6 +82,8 @@ namespace PropAnarchy.PLT {
                 }
             }
         }
+
+        internal static bool AngleFlip90 { get; set; }
 
         internal static bool ShowUndoPreviews {
             get => m_showUndoPreview;

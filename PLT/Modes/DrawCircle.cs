@@ -489,8 +489,9 @@ namespace PropAnarchy.PLT.Modes {
                 } else {
                     SegmentState.NewFinalOffset = mainCircle.ArclengthBetween(t, 1f);
                 }
+                UpdateFinalPrefab(items, numItems);
                 ItemInfo.Count = numItems;
-                SegmentState.NewFenceEndPoint = ItemInfo.Datas[numItems].m_fenceEndPoint;
+                SegmentState.NewFenceEndPoint = items[numItems].m_fenceEndPoint;
                 return true;
             }
             deltaT = mainCircle.DeltaT(spacing);
@@ -524,11 +525,14 @@ namespace PropAnarchy.PLT.Modes {
                 position = center + radiusVector;
                 t += deltaT;
             }
-            finalT = items[numItems - 1].m_t;
-            if (SegmentState.IsReadyForMaxContinue) {
-                SegmentState.NewFinalOffset = spacing + mainCircle.ArclengthBetween(0f, finalT);
-            } else {
-                SegmentState.NewFinalOffset = mainCircle.ArclengthBetween(t, 1f);
+            if (numItems > 0) {
+                finalT = items[numItems - 1].m_t;
+                if (SegmentState.IsReadyForMaxContinue) {
+                    SegmentState.NewFinalOffset = spacing + mainCircle.ArclengthBetween(0f, finalT);
+                } else {
+                    SegmentState.NewFinalOffset = mainCircle.ArclengthBetween(t, 1f);
+                }
+                UpdateFinalPrefab(items, numItems);
             }
             ItemInfo.Count = numItems;
             return true;

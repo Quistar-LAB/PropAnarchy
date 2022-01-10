@@ -1,627 +1,599 @@
-﻿using ColossalFramework.Globalization;
+﻿using ColossalFramework;
+using ColossalFramework.Globalization;
 using ColossalFramework.UI;
+using EManagersLib;
+using System;
 using System.Globalization;
 using UnityEngine;
+using static PropAnarchy.PLT.PropLineTool;
 
 namespace PropAnarchy.PLT {
-    internal sealed class OptionPanel : UIPanel {
-        private const float OPTIONPANEL_WIDTH = 374f;
-        private const float OPTIONPANEL_HEIGHT = 420f;
-        private const float TITLEBAR_HEIGHT = 42f;
-        private const float TABSTRIP_HEIGHT = 32f;
-        private const float PADDING_TABSTRIP_SIDES = 7f;
-        private const float PADDING_PANEL = 10f;
-        private const int TAB_PADDING_HORIZONTAL = 10;
-        private const int TAB_PADDING_VERTICAL = 8;
-        internal delegate void EventOptionPanelHandler(PropLineTool.ItemType mode);
+    internal sealed class FieldInput : UITextField {
+        private float m_rawValue = 1f;
+        private int m_decimalPlaces = 0;
 #pragma warning disable IDE1006
-        internal static event EventOptionPanelHandler eventOnOptionClose;
-        internal static event EventOptionPanelHandler eventOnOptionOpen;
-        internal static event EventOptionPanelHandler eventOnAnglePanelToggle;
+        public event PropertyChangedEventHandler<float> eventValueChanged;
 #pragma warning restore IDE1006
+        public Func<float> GetDefaultVal;
+
+        public float Value {
+            get => m_rawValue;
+            set {
+                if (m_rawValue != value) {
+                    if (MinValue > 0) {
+                        value = value >= MinValue ? value : MinValue;
+                    }
+                    m_rawValue = (float)Math.Round(value, 2);
+                    text = m_rawValue.ToString();  // value.ToString(@"F" + m_decimalPlaces, LocaleManager.cultureInfo);
+                    eventValueChanged?.Invoke(this, value);
+                }
+            }
+        }
+        public float MinValue { get; set; } = 0f;
+
+        public int DecimalPlaces {
+            get => m_decimalPlaces;
+            set {
+                m_decimalPlaces = Mathf.Clamp(value, 0, 7);
+                text = value.ToString(@"F" + m_decimalPlaces, LocaleManager.cultureInfo);
+            }
+        }
+
+        protected override void OnMouseWheel(UIMouseEventParameter p) {
+            float val = m_rawValue;
+            Event e = Event.current;
+            if ((e.modifiers & EventModifiers.Control) == EventModifiers.Control) {
+                val += p.wheelDelta * 5f;
+            } else if ((e.modifiers & EventModifiers.Alt) == EventModifiers.Alt) {
+                val += p.wheelDelta * 0.1f;
+            } else {
+                val += p.wheelDelta;
+            }
+            if (MinValue > 0) {
+                Value = val >= MinValue ? val : MinValue;
+            } else {
+                Value = val;
+            }
+            base.OnMouseWheel(p);
+        }
+
+        protected override void OnMouseDown(UIMouseEventParameter p) {
+            base.OnMouseDown(p);
+            if (p.buttons == UIMouseButton.Right) {
+                Value = GetDefaultVal();
+            }
+        }
+
 
         public override void Awake() {
             base.Awake();
-            atlas = PAUtils.GetAtlas(@"Ingame");
-            backgroundSprite = @"MenuPanel2";
-            size = new Vector2(OPTIONPANEL_WIDTH, OPTIONPANEL_HEIGHT);
-            UIDragHandle titleBar = AddUIComponent<UIDragHandle>();
-            titleBar.width = width;
-            titleBar.height = TITLEBAR_HEIGHT;
-            titleBar.target = this;
-            titleBar.relativePosition = new Vector3(0f, 0f);
-            UITabstrip tabstrip = titleBar.AddUIComponent<UITabstrip>();
-            tabstrip.width = width - (2f * PADDING_TABSTRIP_SIDES);
-            tabstrip.height = TABSTRIP_HEIGHT;
-            tabstrip.padding = new RectOffset(0, 0, 0, 0);
-            tabstrip.relativePosition = new Vector3(PADDING_TABSTRIP_SIDES, PADDING_PANEL);
-            UITabContainer tabContainer = AddUIComponent<UITabContainer>();
-            tabContainer.size = new Vector2(OPTIONPANEL_WIDTH, OPTIONPANEL_HEIGHT - TITLEBAR_HEIGHT);
-            tabContainer.relativePosition = new Vector3(0f, TITLEBAR_HEIGHT);
-            tabstrip.tabPages = tabContainer;
-            UIPanel paramsPanel = AddTab(this, tabstrip, PALocale.GetLocale(@"PLTParameters"), 0);
-            PopulateParams(paramsPanel);
-            UIPanel optionsPanel = AddTab(this, tabstrip, PALocale.GetLocale(@"PLTOptions"), 1);
-            PopulateOptions(optionsPanel);
-            titleBar.relativePosition = new Vector3(0f, 0f);
-            tabstrip.relativePosition = new Vector3(PADDING_TABSTRIP_SIDES, PADDING_PANEL);
-            tabstrip.tabPages.relativePosition = new Vector3(0f, TITLEBAR_HEIGHT);
-            UILabel mainTitleBar = CreateLabel(this, PALocale.GetLocale(@"PLTTitleBar"), 0.85f, UIHorizontalAlignment.Right, new RectOffset(2, 7, 2, 5), new Vector2(180f, 30f), new Vector3(187f, 7f));
-            mainTitleBar.textColor = new Color32(164, 164, 164, 255);
-            mainTitleBar.disabledTextColor = new Color32(82, 82, 82, 255);
-            mainTitleBar.relativePosition = new Vector3(187f, 7f);
-            paramsPanel.isVisible = true;
-            titleBar.BringToFront();
-            eventOnOptionClose += (mode) => {
-                Hide();
-                tabstrip.selectedIndex = 0;
+            atlas = ToolBar.m_sharedTextures;
+            autoSize = true;
+            numericalOnly = true;
+            maxLength = 8;
+            allowFloats = true;
+            padding = new RectOffset(23, 2, 2, 2);
+            builtinKeyNavigation = true;
+            isInteractive = true;
+            readOnly = false;
+            selectionSprite = @"EmptySprite";
+            selectionBackgroundColor = new Color32(0, 172, 234, 255);
+            normalBgSprite = @"TextBorder";
+            disabledBgSprite = @"TextBorder";
+            hoveredBgSprite = @"TextBorder";
+            focusedBgSprite = @"TextBorder";
+            horizontalAlignment = UIHorizontalAlignment.Left;
+            verticalAlignment = UIVerticalAlignment.Middle;
+            textScale = 0.90f;
+            textColor = new Color32(0, 0, 0, 255);
+            disabledTextColor = new Color32(0, 0, 0, 128);
+            color = new Color32(255, 255, 255, 255);
+            disabledColor = new Color32(180, 180, 180, 255);
+            eventTextSubmitted += (c, text) => {
+                if (float.TryParse(text, NumberStyles.Number, LocaleManager.cultureInfo, out float result)) Value = result;
             };
-            eventOnOptionOpen += (mode) => Show();
         }
+    }
+
+    internal sealed class MultiStateBtn : UIMultiStateButton {
+        public override bool canFocus { get; set; }
+    }
+
+    internal sealed class OptionPanel : UIPanel {
+        private const float TITLEBAR_HEIGHT = 30f;
+        private const float PANEL_PADDING = 8f;
+        private const float PANEL_MINWIDTH = 110f;
+        private const float BTN_SIZEX = 45f;
+        private const float BTN_SIZEY = 45f;
+        private float m_delta = 1f;
+        private delegate void OptionPanelHandler(ItemType mode);
+        private static OptionPanelHandler CloseOption;
+        private static OptionPanelHandler OpenOption;
+        private Action<Event> UpdateUnit;
+        internal static Action<ItemType> OnAnglePanelToggle;
+
+        public static void Open(ItemType mode) => OpenOption(mode);
+
+        public static void Close() => CloseOption(ItemType.Undefined);
 
         public override void Start() {
             base.Start();
-            absolutePosition = new Vector3(Mathf.Floor(GetUIView().GetScreenResolution().x - width - 50f), Mathf.Floor(GetUIView().GetScreenResolution().y - height - 300f));
-            Hide();
-        }
-
-        public static void Open(PropLineTool.ItemType mode) => eventOnOptionOpen?.Invoke(mode);
-
-        public static void Close() => eventOnOptionClose?.Invoke(PropLineTool.ItemType.Undefined);
-
-        public static void ToggleAnglePanel(PropLineTool.ItemType mode) => eventOnAnglePanelToggle?.Invoke(mode);
-
-        private static void PopulateParams(UIPanel parent) {
-            const float SPACING_OFFSETY = 83f;
-            const float ANGLE_OFFSETY = 230f;
-            const float BUTTON_WIDTH = 80f;
-            const float BUTTON_HEIGHT = 30f;
-            const float TABSTRIP_WIDTH = 175f;
-            const float TABSTRIP_HEIGHT = 30f;
-            const float TAB_HORIZONTAL_SPACING = 5f;
-            const float VERTICAL_PADDING = 15f;
-            const int TAB_PADDING_LEFT = 0;
-            const int TAB_PADDING_RIGHT = 5;
-            parent.autoLayout = false;
-            UITabstrip controlMode = parent.AddUIComponent<UITabstrip>();
-            controlMode.relativePosition = new Vector2(62f, 7f);
-            controlMode.size = new Vector2(TABSTRIP_WIDTH, TABSTRIP_HEIGHT);
-            controlMode.padding.left = TAB_PADDING_LEFT;
-            controlMode.padding.right = TAB_PADDING_RIGHT;
-            UIButton itemwiseBtn = controlMode.AddTab();
-            itemwiseBtn.size = new Vector2(BUTTON_WIDTH, BUTTON_HEIGHT);
-            itemwiseBtn.relativePosition = Vector2.zero;
-            SetButtonSprite(itemwiseBtn, @"", @"PLT_ItemwiseZero");
-            UIButton spacingBtn = controlMode.AddTab("Spacing", itemwiseBtn, false);
-            spacingBtn.size = new Vector2(BUTTON_WIDTH, BUTTON_HEIGHT);
-            spacingBtn.relativePosition = new Vector2(BUTTON_WIDTH + TAB_HORIZONTAL_SPACING, BUTTON_HEIGHT);
-            SetButtonSprite(spacingBtn, @"", @"PLT_SpacingwiseZero");
-            itemwiseBtn.focusedBgSprite = @"PLT_ItemwiseOneFocused";
-            itemwiseBtn.tooltip = PALocale.GetLocale(@"PLTItemWiseTooltip");
-            spacingBtn.focusedBgSprite = @"PLT_SpacingwiseOneFocused";
-            spacingBtn.tooltip = PALocale.GetLocale(@"PLTSpacingTooltip");
-            controlMode.selectedIndex = controlMode.startSelectedIndex = (int)Settings.ControlMode;
-            controlMode.eventSelectedIndexChanged += (c, index) => {
-                Settings.ControlMode = (PropLineTool.ControlMode)index;
+            atlas = PAUtils.GetAtlas(@"Ingame");
+            backgroundSprite = @"SubcategoriesPanel"; //@"GenericPanel"; //@"MenuPanel2";
+            opacity = 0.65f;
+            autoLayout = false;
+            UIDragHandle titleBar = AddUIComponent<UIDragHandle>();
+            #region titleBar
+            titleBar.size = new Vector2(0f, TITLEBAR_HEIGHT);
+            titleBar.target = this;
+            titleBar.relativePosition = new Vector3(0f, 0f);
+            #endregion titleBar
+            UILabel titleLabel = AddUIComponent<UILabel>();
+            #region titleLabel
+            titleLabel.autoSize = true;
+            titleLabel.autoHeight = false;
+            titleLabel.size = new Vector2(0f, TITLEBAR_HEIGHT);
+            titleLabel.relativePosition = new Vector3(0f, 0f);
+            titleLabel.textScale = 0.85f;
+            titleLabel.verticalAlignment = UIVerticalAlignment.Middle;
+            titleLabel.textAlignment = UIHorizontalAlignment.Center;
+            titleLabel.textColor = new Color32(0xe8, 0xe8, 0xe8, 0xee);
+            titleLabel.disabledTextColor = new Color32(0x40, 0x40, 0x40, 0xee);
+            titleLabel.padding = new RectOffset(10, 7, 5, 2);
+            titleLabel.text = PALocale.GetLocale(@"PLTTitleBar");
+            titleLabel.relativePosition = new Vector3(0f, 0f);
+            #endregion titleLabel
+            UISlicedSprite spacingContainerBG = AddUIComponent<UISlicedSprite>();
+            #region spacingContainerBG
+            spacingContainerBG.autoSize = false;
+            spacingContainerBG.opacity = 0.43f;
+            spacingContainerBG.spriteName = @"GenericPanel";
+            spacingContainerBG.relativePosition = new Vector3(PANEL_PADDING, TITLEBAR_HEIGHT);
+            spacingContainerBG.fillDirection = UIFillDirection.Horizontal;
+            #endregion spacingContainerBG
+            UISlicedSprite spacingPanelBG = AddUIComponent<UISlicedSprite>();
+            #region spacingPanelBG
+            spacingPanelBG.size = new Vector2(100f, spacingContainerBG.size.y);
+            spacingPanelBG.opacity = 0.65f;
+            spacingPanelBG.color = new Color32(0x97, 0xcf, 0xff, 0x9a);
+            spacingPanelBG.spriteName = @"GenericPanel";
+            spacingPanelBG.relativePosition = new Vector3(PANEL_PADDING, TITLEBAR_HEIGHT);
+            #endregion spacingPanelBG
+            UISprite spacingIcon = AddUIComponent<UISprite>();
+            #region spacingIcon
+            spacingIcon.atlas = ToolBar.m_sharedTextures;
+            spacingIcon.spriteName = @"SpacingTitle";
+            spacingIcon.size = new Vector2(21f, 16f);
+            spacingIcon.relativePosition = new Vector3(spacingPanelBG.relativePosition.x + 5f, spacingPanelBG.relativePosition.y + 5f);
+            #endregion spacingIcon
+            UILabel spacingLabel = AddUIComponent<UILabel>();
+            #region spacingLabel
+            spacingLabel.verticalAlignment = UIVerticalAlignment.Middle;
+            spacingLabel.textAlignment = UIHorizontalAlignment.Left;
+            spacingLabel.textColor = new Color32(0xff, 0xff, 0xff, 0xff);
+            spacingLabel.autoSize = false;
+            spacingLabel.autoHeight = false;
+            spacingLabel.textScale = 0.92f;
+            using (UIFontRenderer renderer = spacingLabel.font.ObtainRenderer()) {
+                string text = PALocale.GetLocale(@"PLTSpacingTitle");
+                Vector2 textSize = renderer.MeasureString(text);
+                spacingLabel.size = new Vector2(EMath.Max(textSize.x, PANEL_MINWIDTH), textSize.y);
+                spacingLabel.text = text;
+                spacingLabel.relativePosition = new Vector3(spacingIcon.relativePosition.x + spacingIcon.size.x + 5f, spacingIcon.relativePosition.y);
+            }
+            #endregion spacingLabel
+            FieldInput spacingField = AddUIComponent<FieldInput>();
+            #region spacingField
+            spacingField.tooltip = PALocale.GetLocale(@"SpacingFieldTooltip");
+            spacingField.GetDefaultVal = () => {
+                ItemInfo.SetDefaultSpacing();
+                return ItemInfo.Spacing;
             };
-            CreateBlueBtn(parent, PALocale.GetLocale(@"PLTDecouplePrevSegment"), 0.8f, new Vector2(250f, 24f), new Vector3(62f, 45f)).eventClick += (c, p) => {
-                SegmentState.ResetLastContinueParameters();
-            };
-            _ = CreateDivider(parent, new Vector3(12f, SPACING_OFFSETY - 8f));
-            _ = CreateDivider(parent, new Vector3(12f, ANGLE_OFFSETY - 8f));
-            UILabel spacingLabel = CreateLabel(parent, PALocale.GetLocale(@"PLTSpacingTitle"), 1.25f, UIHorizontalAlignment.Left, new RectOffset(5, 5, 5, 5), Vector2.zero, new Vector3(12f, SPACING_OFFSETY + 2f));
-            UIPLTCheckbox autoDefaultCB = parent.AddUIComponent<UIPLTCheckbox>();
-            autoDefaultCB.text = PALocale.GetLocale(@"PLTAutoDefaultSpacing");
-            autoDefaultCB.tooltip = PALocale.GetLocale(@"PLTAutoDefaultSpacingTooltip");
-            autoDefaultCB.isChecked = Settings.AutoDefaultSpacing;
-            autoDefaultCB.relativePosition = new Vector3(parent.width - autoDefaultCB.width - 20f, (spacingLabel.height - autoDefaultCB.height) / 2f + SPACING_OFFSETY + 2f);
-            autoDefaultCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
+            spacingField.size = new Vector2(spacingIcon.size.x + spacingLabel.size.x + 6f, spacingField.size.y);
+            spacingField.relativePosition = new Vector3(spacingIcon.relativePosition.x - 1f, spacingIcon.relativePosition.y + spacingIcon.size.y + 10f);
+            #endregion spacingField
+            UILabel spacingUnit = spacingField.AddUIComponent<UILabel>();
+            spacingUnit.verticalAlignment = UIVerticalAlignment.Middle;
+            spacingUnit.textAlignment = UIHorizontalAlignment.Left;
+            spacingUnit.autoSize = true;
+            spacingUnit.textColor = new Color32(0, 0, 0, 255);
+            spacingUnit.textScale = 0.90f;
+            spacingUnit.padding = new RectOffset(0, 3, 2, 0);
+            spacingUnit.text = "±" + m_delta;
+            spacingUnit.relativePosition = new Vector3(spacingField.size.x - spacingUnit.size.x - 15f, 0f);
+
+            float spacingHeight = spacingField.relativePosition.y + spacingField.size.y - spacingIcon.relativePosition.y + 10f;
+            spacingPanelBG.size = new Vector2(spacingField.size.x + 10f, spacingHeight);
+
+            MultiStateBtn autoSpacing = AddToggleBtn(this, @"AutoSpacing");
+            autoSpacing.tooltip = PALocale.GetLocale(@"PLTAutoDefaultSpacingTooltip");
+            autoSpacing.activeStateIndex = Settings.AutoDefaultSpacing ? 1 : 0;
+            UIButton defaultSpacing = AddButton(this, @"Default");
+            defaultSpacing.tooltip = PALocale.GetLocale(@"PLTDefaultTooltip");
+            UIButton widthSpacing = AddButton(this, @"Width");
+            widthSpacing.tooltip = PALocale.GetLocale(@"PLTWidthTooltip");
+            UIButton lengthSpacing = AddButton(this, @"Length");
+            lengthSpacing.tooltip = PALocale.GetLocale(@"PLTLengthTooltip");
+            if (Settings.VerticalLayout) {
+
+            } else {
+                autoSpacing.relativePosition = new Vector3(spacingPanelBG.relativePosition.x + spacingPanelBG.size.x + 5f, spacingPanelBG.relativePosition.y + (spacingHeight - autoSpacing.size.y) / 2f);
+                defaultSpacing.relativePosition = new Vector3(autoSpacing.relativePosition.x + autoSpacing.size.x + 5f, autoSpacing.relativePosition.y);
+                widthSpacing.relativePosition = new Vector3(defaultSpacing.relativePosition.x + defaultSpacing.size.x + 5f, defaultSpacing.relativePosition.y);
+                lengthSpacing.relativePosition = new Vector3(widthSpacing.relativePosition.x + widthSpacing.size.x + 5f, widthSpacing.relativePosition.y);
+                spacingContainerBG.size = new Vector2(spacingPanelBG.size.x + autoSpacing.size.x + defaultSpacing.size.x + widthSpacing.size.x + lengthSpacing.size.x + 40f - PANEL_PADDING * 2f, spacingHeight);
+            }
+
+            UISlicedSprite angleContainerBG = AddUIComponent<UISlicedSprite>();
+            #region angleContainerBG
+            angleContainerBG.autoSize = false;
+            angleContainerBG.opacity = 0.43f;
+            angleContainerBG.spriteName = @"GenericPanel";
+            angleContainerBG.relativePosition = new Vector3(PANEL_PADDING, TITLEBAR_HEIGHT + spacingContainerBG.size.y + PANEL_PADDING);
+            angleContainerBG.fillDirection = UIFillDirection.Horizontal;
+            #endregion angleContainerBG
+            UISlicedSprite anglePanelBG = AddUIComponent<UISlicedSprite>();
+            #region anglePanelBG
+            anglePanelBG.size = new Vector2(100f, spacingContainerBG.size.y);
+            anglePanelBG.opacity = 0.65f;
+            anglePanelBG.color = new Color32(0x97, 0xcf, 0xff, 0x9a);
+            anglePanelBG.spriteName = @"GenericPanel";
+            anglePanelBG.relativePosition = new Vector3(PANEL_PADDING, TITLEBAR_HEIGHT + spacingContainerBG.size.y + PANEL_PADDING);
+            #endregion anglePanelBG
+            UISprite angleIcon = AddUIComponent<UISprite>();
+            #region angleIcon
+            angleIcon.atlas = ToolBar.m_sharedTextures;
+            angleIcon.spriteName = @"Angle";
+            angleIcon.size = new Vector2(21f, 16f);
+            angleIcon.relativePosition = new Vector3(anglePanelBG.relativePosition.x + 5f, anglePanelBG.relativePosition.y + 5f);
+            #endregion angleIcon
+            UILabel angleLabel = AddUIComponent<UILabel>();
+            #region spacingLabel
+            angleLabel.verticalAlignment = UIVerticalAlignment.Middle;
+            angleLabel.textAlignment = UIHorizontalAlignment.Left;
+            angleLabel.textColor = new Color32(0xff, 0xff, 0xff, 0xff);
+            angleLabel.autoSize = false;
+            angleLabel.autoHeight = false;
+            angleLabel.textScale = 0.92f;
+            using (UIFontRenderer renderer = angleLabel.font.ObtainRenderer()) {
+                string text = PALocale.GetLocale(@"PLTAngleTitle");
+                Vector2 textSize = renderer.MeasureString(text);
+                angleLabel.size = new Vector2(EMath.Max(textSize.x, PANEL_MINWIDTH), textSize.y);
+                angleLabel.text = text;
+                angleLabel.relativePosition = new Vector3(angleIcon.relativePosition.x + angleIcon.size.x + 5f, angleIcon.relativePosition.y);
+            }
+            #endregion spacingLabel
+            FieldInput angleField = AddUIComponent<FieldInput>();
+            #region angleField
+            angleField.tooltip = PALocale.GetLocale(@"AnglefieldTooltip");
+            angleField.GetDefaultVal = () => 0f;
+            angleField.size = new Vector2(angleIcon.size.x + angleLabel.size.x + 6f, spacingField.size.y);
+            angleField.relativePosition = new Vector3(angleIcon.relativePosition.x - 1f, angleIcon.relativePosition.y + angleIcon.size.y + 10f);
+            #endregion angleField
+            UILabel angleUnit = angleField.AddUIComponent<UILabel>();
+            angleUnit.verticalAlignment = UIVerticalAlignment.Middle;
+            angleUnit.textAlignment = UIHorizontalAlignment.Left;
+            angleUnit.autoSize = true;
+            angleUnit.textColor = new Color32(0, 0, 0, 255);
+            angleUnit.textScale = 0.90f;
+            angleUnit.padding = new RectOffset(0, 3, 2, 0);
+            angleUnit.text = Settings.AngleMode == AngleMode.Dynamic ? "±" + m_delta + @"Δ°" : "±" + m_delta + @"°";
+            angleUnit.relativePosition = new Vector3(angleField.size.x - angleUnit.size.x - 15f, 0f);
+            float angleHeight = angleField.relativePosition.y + angleField.size.y - angleIcon.relativePosition.y + 10f;
+            anglePanelBG.size = new Vector2(angleField.size.x + 10f, angleHeight);
+
+            MultiStateBtn angleDynamic = AddToggleBtn(this, @"AngleDynamic");
+            angleDynamic.tooltip = PALocale.GetLocale(@"PLTAngleDynamicTooltip");
+            MultiStateBtn angleSingle = AddToggleBtn(this, @"AngleSingle");
+            angleSingle.tooltip = PALocale.GetLocale(@"PLTAngleSingleTooltip");
+            MultiStateBtn flip180 = AddToggleBtn(this, @"Flip180");
+            flip180.tooltip = PALocale.GetLocale(@"PLTFlip180Tooltip");
+            MultiStateBtn flip90 = AddToggleBtn(this, @"Flip90");
+            flip90.tooltip = PALocale.GetLocale(@"PLTFlip90Tooltip");
+
+            if (Settings.VerticalLayout) {
+
+            } else {
+                angleDynamic.relativePosition = new Vector3(anglePanelBG.relativePosition.x + anglePanelBG.size.x + 5f, anglePanelBG.relativePosition.y + (angleHeight - angleDynamic.size.y) / 2f);
+                angleSingle.relativePosition = new Vector3(angleDynamic.relativePosition.x + angleDynamic.size.x + 5f, angleDynamic.relativePosition.y);
+                flip180.relativePosition = new Vector3(angleSingle.relativePosition.x + angleSingle.size.x + 5f, angleSingle.relativePosition.y);
+                flip90.relativePosition = new Vector3(flip180.relativePosition.x + flip180.size.x + 5f, flip180.relativePosition.y);
+                angleContainerBG.size = new Vector2(anglePanelBG.size.x + angleDynamic.size.x + angleSingle.size.x + flip180.size.x + flip90.size.x + 40f - PANEL_PADDING * 2f, spacingHeight);
+            }
+
+            UISlicedSprite settingContainerBG = AddUIComponent<UISlicedSprite>();
+            #region settingContainerBG
+            settingContainerBG.autoSize = false;
+            settingContainerBG.opacity = 0.43f;
+            settingContainerBG.spriteName = @"GenericPanel";
+            settingContainerBG.relativePosition = new Vector3(PANEL_PADDING, TITLEBAR_HEIGHT + angleContainerBG.size.y + angleContainerBG.size.y + PANEL_PADDING * 2f);
+            settingContainerBG.fillDirection = UIFillDirection.Horizontal;
+            settingContainerBG.size = angleContainerBG.size;
+            #endregion settingContainerBG
+            UISlicedSprite settingPanelBG = AddUIComponent<UISlicedSprite>();
+            #region settingPanelBG
+            settingPanelBG.size = anglePanelBG.size;
+            settingPanelBG.opacity = 0.65f;
+            settingPanelBG.color = new Color32(0x97, 0xcf, 0xff, 0x9a);
+            settingPanelBG.spriteName = @"GenericPanel";
+            settingPanelBG.relativePosition = new Vector3(PANEL_PADDING, settingContainerBG.relativePosition.y);
+            #endregion settingPanelBG
+
+            MultiStateBtn spacingMode = AddToggleBtn(this, @"Spacing", EMath.Floor((settingPanelBG.size.x - 15f) / 2f), BTN_SIZEY);
+            spacingMode.tooltip = PALocale.GetLocale(@"PLTSpacingTooltip");
+            spacingMode.activeStateIndex = Settings.ControlMode == ControlMode.Spacing ? 1 : 0;
+            MultiStateBtn itemwiseMode = AddToggleBtn(this, @"ItemWise", spacingMode.size.x, BTN_SIZEY);
+            itemwiseMode.tooltip = PALocale.GetLocale(@"PLTItemWiseTooltip");
+            itemwiseMode.activeStateIndex = Settings.ControlMode == ControlMode.ItemWise ? 1 : 0;
+            MultiStateBtn meshCenter = AddToggleBtn(this, @"MeshCenter");
+            meshCenter.tooltip = PALocale.GetLocale(@"PLTMeshCenterCorrectionTooltip");
+            meshCenter.activeStateIndex = Settings.UseMeshCenterCorrection ? 1 : 0;
+            MultiStateBtn perfectCircle = AddToggleBtn(this, @"PerfectCircle");
+            perfectCircle.tooltip = PALocale.GetLocale(@"PLTPerfectCircleTooltip");
+            perfectCircle.activeStateIndex = Settings.PerfectCircles ? 1 : 0;
+            MultiStateBtn linearFence = AddToggleBtn(this, @"LinearFence");
+            linearFence.tooltip = PALocale.GetLocale(@"PLTLinearFenceTooltip");
+            linearFence.activeStateIndex = Settings.LinearFenceFill ? 1 : 0;
+
+            if (Settings.VerticalLayout) {
+
+            } else {
+                spacingMode.relativePosition = new Vector3(settingPanelBG.relativePosition.x + 5f, settingPanelBG.relativePosition.y + 5f);
+                itemwiseMode.relativePosition = new Vector3(spacingMode.relativePosition.x + spacingMode.size.x + 4f, spacingMode.relativePosition.y);
+                meshCenter.relativePosition = new Vector3(settingPanelBG.relativePosition.x + settingPanelBG.size.x + 5f, spacingMode.relativePosition.y);
+                perfectCircle.relativePosition = new Vector3(meshCenter.relativePosition.x + meshCenter.size.x + 5f, meshCenter.relativePosition.y);
+                linearFence.relativePosition = new Vector3(perfectCircle.relativePosition.x + perfectCircle.size.x + 5f, perfectCircle.relativePosition.y);
+                size = new Vector2(spacingContainerBG.size.x + PANEL_PADDING * 2f, TITLEBAR_HEIGHT + spacingHeight + angleHeight + angleHeight + PANEL_PADDING * 4f);
+                titleBar.width = size.x;
+                titleLabel.width = size.x;
+            }
+            absolutePosition = new Vector3(Screen.width - size.x - 40f, 200f);
+            isVisible = false;
+
+            CloseOption = (mode) => Hide();
+            OpenOption = (mode) => Show();
+
+            autoSpacing.eventActiveStateIndexChanged += (c, index) => {
                 if (index != 0) {
                     Settings.AutoDefaultSpacing = true;
-                    PropLineTool.ItemInfo.SetDefaultSpacing();
+                    ItemInfo.SetDefaultSpacing();
                 } else {
                     Settings.AutoDefaultSpacing = false;
                 }
                 DrawMode.CurActiveMode.UpdatePlacement();
             };
-            PropLineTool.SetAutoSpacing = (state) => autoDefaultCB.isChecked = state;
-            UINumEditbox spacingField = CreateNumboxField(parent, PALocale.GetLocale(@"PLTSpacingTitle"), @"m", out _);
-            spacingField.parent.relativePosition = new Vector2(parent.width - spacingField.parent.width - 20f, SPACING_OFFSETY + spacingLabel.height + 5f);
-            spacingField.Value = 1f;
-            spacingField.eventValueChanged += (c, value) => SegmentState.m_pendingPlacementUpdate = true;
-            PropLineTool.SetSpacingValue = (value) => spacingField.Value = value;
-            PropLineTool.GetSpacingValue = () => spacingField.Value;
-            UIBasicSpacingCalculator spacingCalculator = parent.AddUIComponent<UIBasicSpacingCalculator>();
-            spacingCalculator.relativePosition = new Vector3(26f, SPACING_OFFSETY + spacingLabel.height + spacingField.height + VERTICAL_PADDING);
-            UIPanel anglePanel = parent.AddUIComponent<UIPanel>();
-            anglePanel.size = new Vector2(parent.width, parent.height - ANGLE_OFFSETY);
-            anglePanel.relativePosition = new Vector2(0f, ANGLE_OFFSETY);
-            UILabel angleLabel = CreateLabel(anglePanel, PALocale.GetLocale(@"PLTAngleTitle"), 1.25f, UIHorizontalAlignment.Left, new RectOffset(5, 5, 5, 5), Vector2.zero, new Vector3(12f, 2f));
-            UITabstrip angleMode = anglePanel.AddUIComponent<UITabstrip>();
-            UIButton angleDynamicBtn = angleMode.AddTab();
-            RectOffset btnPadding = new RectOffset(8, 5, 5, 3);
-            angleDynamicBtn.autoSize = true;
-            angleDynamicBtn.textPadding = btnPadding;
-            angleDynamicBtn.textVerticalAlignment = UIVerticalAlignment.Middle;
-            angleDynamicBtn.textHorizontalAlignment = UIHorizontalAlignment.Center;
-            angleDynamicBtn.textScale = 0.875f;
-            angleDynamicBtn.text = PALocale.GetLocale(@"PLTAngleDynamic");
-            angleDynamicBtn.normalBgSprite = @"SubBarButtonBase";
-            angleDynamicBtn.disabledBgSprite = @"SubBarButtonBaseDisabled";
-            angleDynamicBtn.focusedBgSprite = @"SubBarButtonBaseFocused";
-            angleDynamicBtn.hoveredBgSprite = @"SubBarButtonBaseHovered";
-            angleDynamicBtn.pressedBgSprite = @"SubBarButtonBasePressed";
-            UIButton angleSingleBtn = angleMode.AddTab(PALocale.GetLocale(@"PLTAngleSingle"), angleDynamicBtn, false);
-            angleSingleBtn.autoSize = false;
-            angleSingleBtn.textPadding = btnPadding;
-            angleSingleBtn.textVerticalAlignment = UIVerticalAlignment.Middle;
-            angleSingleBtn.textHorizontalAlignment = UIHorizontalAlignment.Center;
-            angleSingleBtn.textScale = 0.875f;
-            angleSingleBtn.text = PALocale.GetLocale(@"PLTAngleSingle");
-            angleSingleBtn.size = angleDynamicBtn.size;
-            angleSingleBtn.normalBgSprite = @"SubBarButtonBase";
-            angleSingleBtn.disabledBgSprite = @"SubBarButtonBaseDisabled";
-            angleSingleBtn.focusedBgSprite = @"SubBarButtonBaseFocused";
-            angleSingleBtn.hoveredBgSprite = @"SubBarButtonBaseHovered";
-            angleSingleBtn.pressedBgSprite = @"SubBarButtonBasePressed";
-            angleMode.startSelectedIndex = (int)Settings.AngleMode;
-            angleMode.selectedIndex = (int)Settings.AngleMode;
-            angleMode.size = new Vector2(angleDynamicBtn.width + angleSingleBtn.width, angleDynamicBtn.height);
-            angleMode.relativePosition = new Vector2(anglePanel.width - angleMode.width - 20f, angleLabel.relativePosition.y + (angleLabel.height - angleMode.height) / 2f);
-            PropLineTool.SetAngleModeState = (state) => {
-                if (state) angleMode.Enable();
-                else angleMode.Disable();
+            SetAutoSpacing = (state) => autoSpacing.activeStateIndex = state ? 1 : 0;
+            defaultSpacing.eventClicked += (c, p) => {
+                ItemInfo.SetDefaultSpacing();
+                DrawMode.CurActiveMode.UpdatePlacement();
             };
-            angleDynamicBtn.relativePosition = Vector2.zero;
-            angleSingleBtn.relativePosition = new Vector2(angleDynamicBtn.width, 0f);
-            UIPLTCheckbox flip180CB = anglePanel.AddUIComponent<UIPLTCheckbox>();
-            flip180CB.text = PALocale.GetLocale(@"PLTFlip180");
-            flip180CB.tooltip = PALocale.GetLocale(@"PLTFlip180Tooltip");
-            flip180CB.isChecked = Settings.AngleFlip180;
-            flip180CB.relativePosition = new Vector2(angleLabel.relativePosition.x + 5f, angleLabel.height + 10f);
-            flip180CB.m_checkbox.eventActiveStateIndexChanged += (c, index) => {
+            lengthSpacing.eventClicked += (c, p) => {
+                SetSpacingValue(ItemInfo.Height);
+                DrawMode.CurActiveMode.UpdatePlacement();
+            };
+            widthSpacing.eventClicked += (c, p) => {
+                SetSpacingValue(ItemInfo.Width);
+                DrawMode.CurActiveMode.UpdatePlacement();
+            };
+            spacingField.Value = 1f;
+            spacingField.MinValue = 0.1f;
+            spacingField.eventValueChanged += (c, value) => SegmentState.m_pendingPlacementUpdate = true;
+            spacingField.eventMouseWheel += (c, p) => autoSpacing.activeStateIndex = 0;
+            spacingField.eventKeyDown += (c, p) => autoSpacing.activeStateIndex = 0;
+            SetSpacingValue = (value) => spacingField.Value = value;
+            GetSpacingValue = () => spacingField.Value;
+
+            switch (Settings.AngleMode) {
+            case AngleMode.Dynamic:
+                angleDynamic.activeStateIndex = 1;
+                angleSingle.activeStateIndex = 0;
+                break;
+            case AngleMode.Single:
+                angleDynamic.activeStateIndex = 0;
+                angleSingle.activeStateIndex = 1;
+                break;
+            }
+            angleDynamic.eventActiveStateIndexChanged += (c, index) => {
+                if (index != 0) {
+                    Settings.AngleMode = AngleMode.Dynamic;
+                    angleUnit.text = "±" + m_delta + @"Δ°";
+                    angleSingle.activeStateIndex = 0;
+                    SegmentState.m_pendingPlacementUpdate = true;
+                }
+            };
+            angleSingle.eventActiveStateIndexChanged += (c, index) => {
+                if (index != 0) {
+                    Settings.AngleMode = AngleMode.Single;
+                    angleUnit.text = "±" + m_delta + @"°";
+                    angleDynamic.activeStateIndex = 0;
+                    SegmentState.m_pendingPlacementUpdate = true;
+                }
+            };
+            UpdateUnit = (e) => {
+                if ((e.modifiers & EventModifiers.Control) == EventModifiers.Control) {
+                    m_delta = 5f;
+                } else if ((e.modifiers & EventModifiers.Alt) == EventModifiers.Alt) {
+                    m_delta = 0.1f;
+                } else {
+                    m_delta = 1f;
+                }
+                switch (Settings.AngleMode) {
+                case AngleMode.Dynamic:
+                    angleUnit.text = "±" + m_delta + @"Δ°";
+                    break;
+                case AngleMode.Single:
+                    angleUnit.text = "±" + m_delta + @"°";
+                    break;
+                }
+                spacingUnit.text = "±" + m_delta;
+            };
+
+            flip180.eventActiveStateIndexChanged += (c, index) => {
                 Settings.AngleFlip180 = index != 0;
                 DrawMode.CurActiveMode.UpdatePlacement();
             };
-            UINumEditbox angleField = CreateNumboxField(anglePanel, PALocale.GetLocale(@"PLTRelativeAngle"), angleMode.selectedIndex == 0 ? @"Δ°" : @"°", out UILabel angleUnit);
-            angleField.parent.relativePosition = new Vector2(anglePanel.width - angleField.parent.width - 20f, angleLabel.height + 5f);
+            flip90.eventActiveStateIndexChanged += (c, index) => {
+                Settings.AngleFlip90 = index != 0;
+                DrawMode.CurActiveMode.UpdatePlacement();
+            };
+
+            SetAngleMode = (value) => {
+                switch (value) {
+                case AngleMode.Dynamic:
+                    angleDynamic.activeStateIndex = 1;
+                    break;
+                case AngleMode.Single:
+                    angleSingle.activeStateIndex = 0;
+                    break;
+                }
+            };
+            float normalHeight = TITLEBAR_HEIGHT + spacingHeight + angleHeight + angleHeight + PANEL_PADDING * 4f;
+            float shortHeight = TITLEBAR_HEIGHT + spacingHeight + angleHeight + PANEL_PADDING * 3f;
+            SetAngleModeState = (state) => {
+                if (state != angleContainerBG.isVisibleSelf) {
+                    if (!state) {
+                        angleContainerBG.Hide();
+                        anglePanelBG.Hide();
+                        angleIcon.Hide();
+                        angleLabel.Hide();
+                        angleField.Hide();
+                        angleUnit.Hide();
+                        angleDynamic.Hide();
+                        angleSingle.Hide();
+                        flip180.Hide();
+                        flip90.Hide();
+                        settingContainerBG.relativePosition = new Vector3(PANEL_PADDING, TITLEBAR_HEIGHT + spacingContainerBG.size.y + PANEL_PADDING);
+                        settingPanelBG.relativePosition = new Vector3(PANEL_PADDING, settingContainerBG.relativePosition.y);
+                        spacingMode.relativePosition = new Vector3(settingPanelBG.relativePosition.x + 5f, settingPanelBG.relativePosition.y + 5f);
+                        itemwiseMode.relativePosition = new Vector3(spacingMode.relativePosition.x + spacingMode.size.x + 4f, spacingMode.relativePosition.y);
+                        meshCenter.relativePosition = new Vector3(settingPanelBG.relativePosition.x + settingPanelBG.size.x + 5f, spacingMode.relativePosition.y);
+                        perfectCircle.relativePosition = new Vector3(meshCenter.relativePosition.x + meshCenter.size.x + 5f, meshCenter.relativePosition.y);
+                        linearFence.relativePosition = new Vector3(perfectCircle.relativePosition.x + perfectCircle.size.x + 5f, perfectCircle.relativePosition.y);
+                        size = new Vector2(spacingContainerBG.size.x + PANEL_PADDING * 2f, shortHeight);
+                    } else {
+                        angleContainerBG.Show();
+                        anglePanelBG.Show();
+                        angleIcon.Show();
+                        angleLabel.Show();
+                        angleField.Show();
+                        angleUnit.Show();
+                        angleDynamic.Show();
+                        angleSingle.Show();
+                        flip180.Show();
+                        flip90.Show();
+                        settingContainerBG.relativePosition = new Vector3(PANEL_PADDING, TITLEBAR_HEIGHT + angleContainerBG.size.y + angleContainerBG.size.y + PANEL_PADDING * 2f);
+                        settingPanelBG.relativePosition = new Vector3(PANEL_PADDING, settingContainerBG.relativePosition.y);
+                        spacingMode.relativePosition = new Vector3(settingPanelBG.relativePosition.x + 5f, settingPanelBG.relativePosition.y + 5f);
+                        itemwiseMode.relativePosition = new Vector3(spacingMode.relativePosition.x + spacingMode.size.x + 4f, spacingMode.relativePosition.y);
+                        meshCenter.relativePosition = new Vector3(settingPanelBG.relativePosition.x + settingPanelBG.size.x + 5f, spacingMode.relativePosition.y);
+                        perfectCircle.relativePosition = new Vector3(meshCenter.relativePosition.x + meshCenter.size.x + 5f, meshCenter.relativePosition.y);
+                        linearFence.relativePosition = new Vector3(perfectCircle.relativePosition.x + perfectCircle.size.x + 5f, perfectCircle.relativePosition.y);
+                        size = new Vector2(spacingContainerBG.size.x + PANEL_PADDING * 2f, normalHeight);
+                    }
+
+                }
+            };
             angleField.Value = 0f;
             angleField.eventValueChanged += (c, value) => SegmentState.m_pendingPlacementUpdate = true;
-            PropLineTool.SetAngleMode = (val) => angleMode.selectedIndex = val;
-            PropLineTool.GetAngleValue = () => angleField.Value;
-            PropLineTool.SetAngleValue = (val) => angleField.Value = val;
-            angleMode.eventSelectedIndexChanged += (c, index) => {
-                Settings.AngleMode = (PropLineTool.AngleMode)index;
-                angleUnit.text = index == 0 ? @"Δ°" : @"°";
-                SegmentState.m_pendingPlacementUpdate = true;
-            };
-            UIBasicAngleCalculator angleCalculator = anglePanel.AddUIComponent<UIBasicAngleCalculator>();
-            angleCalculator.relativePosition = new Vector2(26f, angleLabel.height + angleField.height + VERTICAL_PADDING);
-            eventOnAnglePanelToggle += (mode) => {
+            GetAngleValue = () => angleField.Value;
+            SetAngleValue = (value) => angleField.Value = value;
+            OnAnglePanelToggle += (mode) => {
                 switch (mode) {
-                case PropLineTool.ItemType.Prop: anglePanel.isVisible = true; break;
-                case PropLineTool.ItemType.Tree: anglePanel.isVisible = false; break;
+                case ItemType.Prop: SetAngleModeState(true); break;
+                case ItemType.Tree: SetAngleModeState(false); break;
                 }
             };
-            eventOnOptionOpen += eventOnAnglePanelToggle;
+
+            spacingMode.eventActiveStateIndexChanged += (c, index) => {
+                if (index == 1) {
+                    itemwiseMode.activeStateIndex = 0;
+                    Settings.ControlMode = ControlMode.Spacing;
+                }
+            };
+            itemwiseMode.eventActiveStateIndexChanged += (c, index) => {
+                if (index == 1) {
+                    spacingMode.activeStateIndex = 0;
+                    Settings.ControlMode = ControlMode.ItemWise;
+                }
+            };
+            meshCenter.eventActiveStateIndexChanged += (c, index) => Settings.UseMeshCenterCorrection = index == 1;
+            perfectCircle.eventActiveStateIndexChanged += (c, index) => Settings.PerfectCircles = index == 1;
+            linearFence.eventActiveStateIndexChanged += (c, index) => Settings.LinearFenceFill = index == 1;
         }
 
-        private static void PopulateOptions(UIPanel parent) {
-            const float OFFSETX = 24f;
-            const float STARTY = 15f;
-            const float PADDINGY = 10f;
-            const float DIVIDERHEIGHT = 5f;
-            parent.autoLayout = false;
-            UIPLTCheckbox showUndoPreviewCB = parent.AddUIComponent<UIPLTCheckbox>();
-            showUndoPreviewCB.text = PALocale.GetLocale(@"PLTShowUndoPreview");
-            showUndoPreviewCB.tooltip = PALocale.GetLocale(@"PLTShowUndoPreviewTooltip");
-            showUndoPreviewCB.isChecked = Settings.ShowUndoPreviews;
-            showUndoPreviewCB.relativePosition = new Vector3(OFFSETX, STARTY);
-            showUndoPreviewCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.ShowUndoPreviews = index != 0;
-            _ = CreateDivider(parent, new Vector3(12f, showUndoPreviewCB.relativePosition.y + showUndoPreviewCB.height + PADDINGY));
-            UIPLTCheckbox meshCenterCorrectionCB = parent.AddUIComponent<UIPLTCheckbox>();
-            meshCenterCorrectionCB.text = PALocale.GetLocale(@"PLTMeshCenterCorrection");
-            meshCenterCorrectionCB.tooltip = PALocale.GetLocale(@"PLTMeshCenterCorrectionTooltip");
-            meshCenterCorrectionCB.isChecked = Settings.UseMeshCenterCorrection;
-            meshCenterCorrectionCB.relativePosition = new Vector3(OFFSETX, showUndoPreviewCB.relativePosition.y + showUndoPreviewCB.height + DIVIDERHEIGHT * 2f + PADDINGY);
-            meshCenterCorrectionCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.UseMeshCenterCorrection = index != 0;
-            UIPLTCheckbox perfectCircleCB = parent.AddUIComponent<UIPLTCheckbox>();
-            perfectCircleCB.text = PALocale.GetLocale(@"PLTPerfectCircle");
-            perfectCircleCB.tooltip = PALocale.GetLocale(@"PLTPerfectCircleTooltip");
-            perfectCircleCB.isChecked = Settings.PerfectCircles;
-            perfectCircleCB.relativePosition = new Vector3(OFFSETX, meshCenterCorrectionCB.relativePosition.y + meshCenterCorrectionCB.height + PADDINGY);
-            perfectCircleCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.PerfectCircles = index != 0;
-            UIPLTCheckbox linearFenceFillCB = parent.AddUIComponent<UIPLTCheckbox>();
-            linearFenceFillCB.text = PALocale.GetLocale(@"PLTLinearFence");
-            linearFenceFillCB.tooltip = PALocale.GetLocale(@"PLTLinearFenceTooltip");
-            linearFenceFillCB.isChecked = Settings.LinearFenceFill;
-            linearFenceFillCB.relativePosition = new Vector3(OFFSETX, perfectCircleCB.relativePosition.y + perfectCircleCB.height + PADDINGY);
-            linearFenceFillCB.m_checkbox.eventActiveStateIndexChanged += (c, index) => Settings.LinearFenceFill = index != 0;
+        public override void Update() {
+            base.Update();
+            UpdateUnit(Event.current);
         }
 
-        private static void SetButtonSprite(UIButton button, string fgSpriteName, string bgSpriteName) {
-            button.autoSize = false;
-            button.playAudioEvents = true;
-            button.atlas = ToolBar.m_sharedTextures;
-            button.normalBgSprite = bgSpriteName;
-            button.focusedBgSprite = bgSpriteName + @"Focused";
-            button.hoveredBgSprite = bgSpriteName + @"Hovered";
-            button.pressedBgSprite = bgSpriteName + @"Pressed";
-            button.disabledBgSprite = bgSpriteName + @"Disabled";
-            button.normalFgSprite = fgSpriteName;
-            button.focusedFgSprite = fgSpriteName + @"Focused";
-            button.hoveredFgSprite = fgSpriteName + @"Hovered";
-            button.pressedFgSprite = fgSpriteName + @"Pressed";
-            button.disabledFgSprite = fgSpriteName + @"Disabled";
+        private static UIButton AddButton(UIComponent parent, string name) {
+            UIButton btn = parent.AddUIComponent<UIButton>();
+            btn.atlas = ToolBar.m_sharedTextures;
+            btn.autoSize = false;
+            btn.height = BTN_SIZEY;
+            btn.width = BTN_SIZEX;
+            btn.name = name;
+            btn.normalFgSprite = name;
+            btn.focusedFgSprite = name;
+            btn.hoveredFgSprite = name + @"Hovered";
+            btn.pressedFgSprite = name + @"Pressed";
+            btn.disabledFgSprite = name;
+            btn.playAudioEvents = true;
+            return btn;
         }
 
-        private static UIPanel AddTab(UIPanel parent, UITabstrip tabStrip, string tabName, int tabIndex) {
-            UIButton tabButton = tabStrip.AddTab(tabName);
-            tabButton.normalBgSprite = @"SubBarButtonBase";
-            tabButton.disabledBgSprite = @"SubBarButtonBaseDisabled";
-            tabButton.focusedBgSprite = @"SubBarButtonBaseFocused";
-            tabButton.hoveredBgSprite = @"SubBarButtonBaseHovered";
-            tabButton.pressedBgSprite = @"SubBarButtonBasePressed";
-            tabButton.tooltip = tabName;
-            tabButton.textPadding = new RectOffset(TAB_PADDING_HORIZONTAL, TAB_PADDING_HORIZONTAL, TAB_PADDING_VERTICAL, TAB_PADDING_VERTICAL);
-            tabButton.autoSize = true;
-            tabButton.textScale = 0.85f;
-            tabButton.playAudioEvents = true;
-            tabButton.pressedTextColor = new Color32(255, 255, 255, 255);
-            tabButton.focusedTextColor = new Color32(230, 230, 230, 255);
-            tabButton.focusedColor = new Color32(205, 220, 255, 255);
-            tabButton.disabledTextColor = new Color32(230, 230, 230, 140);
-            tabStrip.selectedIndex = tabIndex;
-            UIPanel rootPanel = tabStrip.tabContainer.components[tabIndex] as UIPanel;
-            rootPanel.atlas = parent.atlas;
-            rootPanel.width = parent.width;
-            rootPanel.autoLayout = true;
-            rootPanel.autoLayoutDirection = LayoutDirection.Vertical;
-            rootPanel.autoLayoutPadding = new RectOffset(0, 0, 0, 0);
-            rootPanel.isVisible = false;
-            return rootPanel;
-        }
-
-        public static UILabel CreateLabel(UIComponent parent, string text, float textScale, UIHorizontalAlignment textAlignment, RectOffset padding, Vector2 size, Vector3 relativePosition) {
-            UILabel label = parent.AddUIComponent<UILabel>();
-            if (size == Vector2.zero) {
-                label.autoSize = true;
+        private static MultiStateBtn AddToggleBtn(UIComponent parent, string spriteName, float btnWidth = 0f, float btnHeight = 0f) {
+            MultiStateBtn toggleBtn = parent.AddUIComponent<MultiStateBtn>();
+            toggleBtn.name = spriteName;
+            toggleBtn.cachedName = spriteName;
+            toggleBtn.atlas = ToolBar.m_sharedTextures;
+            UIMultiStateButton.SpriteSetState fgSpriteSetState = toggleBtn.foregroundSprites;
+            UIMultiStateButton.SpriteSetState bgSpriteSetState = toggleBtn.backgroundSprites;
+            UIMultiStateButton.SpriteSet fgSpriteSet0 = fgSpriteSetState[0];
+            UIMultiStateButton.SpriteSet bgSpriteSet0 = bgSpriteSetState[0];
+            if (fgSpriteSet0 is null) {
+                fgSpriteSetState.AddState();
+                fgSpriteSet0 = fgSpriteSetState[0];
+            }
+            if (bgSpriteSet0 is null) {
+                bgSpriteSetState.AddState();
+                bgSpriteSet0 = bgSpriteSetState[0];
+            }
+            fgSpriteSetState.AddState();
+            bgSpriteSetState.AddState();
+            UIMultiStateButton.SpriteSet fgSpriteSet1 = fgSpriteSetState[1];
+            UIMultiStateButton.SpriteSet bgSpriteSet1 = bgSpriteSetState[1];
+            if (!spriteName.IsNullOrWhiteSpace()) {
+                bgSpriteSet0.normal = spriteName;
+                bgSpriteSet0.disabled = spriteName;
+                bgSpriteSet1.disabled = spriteName;
+                bgSpriteSet0.hovered = spriteName + @"Hovered";
+                string sprite = spriteName + @"Pressed";
+                bgSpriteSet0.focused = sprite;
+                bgSpriteSet0.pressed = sprite;
+                bgSpriteSet1.normal = sprite;
+                bgSpriteSet1.hovered = sprite;
+                bgSpriteSet1.focused = sprite;
+                bgSpriteSet1.pressed = sprite;
+            }
+            if (btnWidth == 0) {
+                toggleBtn.width = BTN_SIZEX;
+                toggleBtn.height = BTN_SIZEY;
             } else {
-                label.autoSize = false;
-                label.size = size;
+                toggleBtn.width = btnWidth;
+                toggleBtn.height = btnHeight;
             }
-            label.textScale = textScale;
-            label.textAlignment = textAlignment;
-            label.verticalAlignment = UIVerticalAlignment.Bottom;
-            label.textColor = new Color32(255, 255, 255, 255);
-            label.disabledTextColor = new Color32(128, 128, 128, 255);
-            label.text = text;
-            label.padding = padding;
-            label.relativePosition = relativePosition;
-            return label;
-        }
-
-        private static UIButton CreateBlueBtn(UIPanel parent, string text, float textScale, Vector2 size, Vector3 relativePosition) {
-            UIButton button = parent.AddUIComponent<UIButton>();
-            button.normalBgSprite = @"ButtonMenu";
-            button.focusedBgSprite = @"ButtonMenu";
-            button.hoveredBgSprite = @"ButtonMenuHovered";
-            button.pressedBgSprite = @"ButtonMenuPressed";
-            button.disabledBgSprite = @"ButtonMenuDisabled";
-            button.text = text;
-            button.textScale = textScale;
-            button.textPadding = new RectOffset(6, 6, 2, 0);
-            button.textHorizontalAlignment = UIHorizontalAlignment.Center;
-            button.textVerticalAlignment = UIVerticalAlignment.Middle;
-            button.textColor = new Color32(255, 255, 255, 255);
-            button.disabledTextColor = new Color32(255, 255, 255, 128);
-            button.color = new Color32(255, 255, 255, 200);
-            button.wordWrap = true;
-            button.playAudioEvents = true;
-            button.size = size;
-            button.relativePosition = relativePosition;
-            return button;
-        }
-
-        private static UITiledSprite CreateDivider(UIPanel parent, Vector3 relativePosition) {
-            UITiledSprite divider = parent.AddUIComponent<UITiledSprite>();
-            divider.atlas = ToolBar.m_sharedTextures;
-            divider.spriteName = @"PLT_BasicDividerTile02x02";
-            divider.tileScale = new Vector2(1f, 1f);
-            divider.tileOffset = new Vector2(0f, 0f);
-            divider.size = new Vector2(350f, 2f);
-            divider.relativePosition = relativePosition;
-            return divider;
-        }
-
-        private static UINumEditbox CreateNumboxField(UIComponent parent, string name, string unitName, out UILabel unitLabel) {
-            const float NUMBOXWIDTH = 90f;
-            const float NUMBOXHEIGHT = 30f;
-            UIPanel container = parent.AddUIComponent<UIPanel>();
-            container.autoLayout = false;
-            UILabel nameLabel = CreateLabel(container, name, 1f, UIHorizontalAlignment.Right, new RectOffset(2, 6, 2, 4), Vector2.zero, Vector2.zero);
-            UINumEditbox numbox = container.AddUIComponent<UINumEditbox>();
-            numbox.size = new Vector2(NUMBOXWIDTH, NUMBOXHEIGHT);
-            numbox.Value = 1f;
-            numbox.DecimalPlaces = 2;
-            numbox.relativePosition = new Vector3(nameLabel.width, 0);
-            numbox.disabledColor = new Color32(255, 255, 255, 128);
-            nameLabel.relativePosition = new Vector2(0f, NUMBOXHEIGHT - nameLabel.height);
-            unitLabel = CreateLabel(container, unitName, 1f, UIHorizontalAlignment.Left, new RectOffset(4, 2, 2, 4), Vector2.zero,
-                                            new Vector3(nameLabel.width + numbox.width, NUMBOXHEIGHT - nameLabel.height));
-            container.size = new Vector2(nameLabel.width + NUMBOXWIDTH + unitLabel.width, NUMBOXHEIGHT);
-            return numbox;
-        }
-
-        public class UINumEditbox : UITextField {
-            private float m_rawValue = 1f;
-            private int m_decimalPlaces = 0;
-#pragma warning disable IDE1006
-            public event PropertyChangedEventHandler<float> eventValueChanged;
-#pragma warning restore IDE1006
-            public float Value {
-                get => m_rawValue;
-                set {
-                    if (m_rawValue != value) {
-                        m_rawValue = value;
-                        text = value.ToString(@"F" + m_decimalPlaces, LocaleManager.cultureInfo);
-                        eventValueChanged?.Invoke(this, value);
-                    }
-                }
-            }
-            public int DecimalPlaces {
-                get => m_decimalPlaces;
-                set {
-                    m_decimalPlaces = Mathf.Clamp(value, 0, 7);
-                    text = value.ToString(@"F" + m_decimalPlaces, LocaleManager.cultureInfo);
-                }
-            }
-
-            public override void Awake() {
-                base.Awake();
-                numericalOnly = true;
-                maxLength = 8;
-                allowFloats = true;
-                padding = new RectOffset(6, 6, 8, 6);
-                builtinKeyNavigation = true;
-                isInteractive = true;
-                readOnly = false;
-                horizontalAlignment = UIHorizontalAlignment.Center;
-                selectionSprite = @"EmptySprite";
-                selectionBackgroundColor = new Color32(0, 172, 234, 255);
-                normalBgSprite = @"TextFieldPanelHovered";
-                disabledBgSprite = @"TextFieldPanel";
-                textColor = new Color32(0, 0, 0, 255);
-                disabledTextColor = new Color32(0, 0, 0, 128);
-                color = new Color32(255, 255, 255, 255);
-                disabledColor = new Color32(180, 180, 180, 255);
-                eventTextSubmitted += (c, text) => {
-                    if (float.TryParse(text, NumberStyles.Number, LocaleManager.cultureInfo, out float result)) Value = result;
-                };
-            }
-        }
-
-        public class UIPLTCheckbox : UIComponent {
-            public UIMultiStateButton m_checkbox;
-            public UILabel m_label;
-#pragma warning disable IDE1006 // Naming Styles
-            public bool isChecked {
-                get => m_checkbox.activeStateIndex != 0;
-                set => m_checkbox.activeStateIndex = value ? 1 : 0;
-            }
-            public string text {
-                get => m_label.text;
-                set {
-                    m_label.text = value;
-                    size = new Vector2(m_checkbox.width + m_label.width, m_checkbox.height);
-                }
-            }
-#pragma warning restore IDE1006 // Naming Styles
-            public override void Awake() {
-                base.Awake();
-                m_checkbox = ToolBar.AddToggleBtn(this, @"", ToolBar.m_sharedTextures, @"PLT_MultiStateZero", @"PLT_MultiStateOne", @"", @"");
-                m_checkbox.size = new Vector2(20f, 20f);
-                m_checkbox.relativePosition = new Vector3(0f, 0f);
-                m_label = CreateLabel(this, @"", 1f, UIHorizontalAlignment.Left, new RectOffset(6, 6, 6, 0), Vector2.zero, new Vector3(20f, 0f));
-                m_label.verticalAlignment = UIVerticalAlignment.Top;
-                m_label.padding = new RectOffset(4, 4, 5, 0);
-                m_label.textScale = 0.75f;
-                m_label.wordWrap = false;
-            }
-        }
-
-        public abstract class UICalculator : UIComponent {
-            protected const float TEXTSCALE = 0.6875f;
-            protected UIPanel m_setPanel;
-            protected UIPanel m_adjustPanel;
-            public override void Awake() {
-                base.Awake();
-                m_setPanel = AddUIComponent<UIPanel>();
-                m_setPanel.backgroundSprite = @"GenericPanelLight";
-                m_setPanel.color = new Color32(90, 100, 105, 255);
-                m_adjustPanel = AddUIComponent<UIPanel>();
-                m_adjustPanel.backgroundSprite = @"GenericPanelLight";
-                m_adjustPanel.color = new Color32(74, 83, 88, 255);
-            }
-
-            protected static UIButton AddButton(UIComponent parent, string text, float textScale, Vector2 size, Vector3 relativePosition) {
-                UIButton button = parent.AddUIComponent<UIButton>();
-                button.canFocus = false;
-                button.normalBgSprite = @"ButtonMenu";
-                button.focusedBgSprite = @"ButtonMenu"; // @"ButtonMenuFocused";
-                button.hoveredBgSprite = @"ButtonMenuHovered";
-                button.pressedBgSprite = @"ButtonMenuPressed";
-                button.disabledBgSprite = @"ButtonMenuDisabled";
-                button.text = text;
-                button.textScale = textScale;
-                button.textPadding = new RectOffset(1, 1, 3, 0);
-                button.textHorizontalAlignment = UIHorizontalAlignment.Center;
-                button.textVerticalAlignment = UIVerticalAlignment.Middle;
-                button.textColor = new Color32(255, 255, 255, 255);
-                button.disabledTextColor = new Color32(255, 255, 255, 128);
-                button.wordWrap = true;
-                button.playAudioEvents = true;
-                button.size = size;
-                button.relativePosition = relativePosition;
-                return button;
-            }
-        }
-
-        public class UIBasicSpacingCalculator : UICalculator {
-            public override void Awake() {
-                base.Awake();
-                Vector2 longsize = new Vector2(50f, 14f);
-                Vector2 shortSize = new Vector2(25f, 14f);
-                m_setPanel.size = new Vector2(112f, 40f);
-                m_setPanel.relativePosition = new Vector3(0f, 0f);
-                m_adjustPanel.size = new Vector2(203f, 40f);
-                m_adjustPanel.relativePosition = new Vector3(120f, 0f);
-
-                AddButton(m_setPanel, PALocale.GetLocale(@"PLTDefault"), TEXTSCALE, new Vector2(50f, 32f), new Vector3(4f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.SetDefaultSpacing();
-                    }
-                };
-                AddButton(m_setPanel, PALocale.GetLocale(@"PLTLength"), TEXTSCALE, longsize, new Vector3(58f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.SetSpacingValue(PropLineTool.ItemInfo.Height);
-                    }
-                };
-                AddButton(m_setPanel, PALocale.GetLocale(@"PLTWidth"), TEXTSCALE, longsize, new Vector3(58f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.SetSpacingValue(PropLineTool.ItemInfo.Width);
-                    }
-                };
-                AddButton(m_adjustPanel, "+0.1", 0.625f, shortSize, new Vector3(4f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Spacing += 0.1f;
-                    }
-                };
-                AddButton(m_adjustPanel, "-0.1", 0.625f, shortSize, new Vector3(4f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Spacing -= 0.1f;
-                    }
-                };
-                AddButton(m_adjustPanel, "+ 1", TEXTSCALE, shortSize, new Vector3(33f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Spacing += 1f;
-                    }
-                };
-                AddButton(m_adjustPanel, "- 1", TEXTSCALE, shortSize, new Vector3(33f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Spacing -= 1f;
-                    }
-                };
-                AddButton(m_adjustPanel, "+10", TEXTSCALE, shortSize, new Vector3(62f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Spacing += 10f;
-                    }
-                };
-                AddButton(m_adjustPanel, "-10", TEXTSCALE, shortSize, new Vector3(62f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Spacing -= 10f;
-                    }
-                };
-                AddButton(m_adjustPanel, "+100", TEXTSCALE, new Vector2(31f, 14f), new Vector3(91f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Spacing += 100f;
-                    }
-                };
-                AddButton(m_adjustPanel, "-100", TEXTSCALE, new Vector2(31f, 14f), new Vector3(91f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Spacing -= 100f;
-                    }
-                };
-                AddButton(m_adjustPanel, PALocale.GetLocale(@"PLTRound"), TEXTSCALE, new Vector2(73f, 32f), new Vector3(126f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Spacing = (int)(PropLineTool.ItemInfo.Spacing);
-                    }
-                };
-            }
-        }
-
-        public class UIBasicAngleCalculator : UICalculator {
-            public override void Awake() {
-                Vector2 longsize = new Vector2(50f, 14f);
-                Vector2 shortSize = new Vector2(25f, 14f);
-                base.Awake();
-                UIPanel setPanel = m_setPanel;
-                setPanel.size = new Vector2(58f, 40f);
-                setPanel.relativePosition = new Vector3(0f, 0f);
-                UIPanel adjustPanel = m_adjustPanel;
-                adjustPanel.size = new Vector2(255f, 40f);
-                adjustPanel.relativePosition = new Vector3(68f, 0f);
-                AddButton(setPanel, PALocale.GetLocale(@"PLTZero"), TEXTSCALE, new Vector2(50f, 32f), new Vector3(4f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle = 0f;
-                    }
-                };
-                AddButton(adjustPanel, "+0.1", 0.625f, shortSize, new Vector3(4f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle += (0.1f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "-0.1", 0.625f, shortSize, new Vector3(4f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle -= (0.1f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "+ 1", TEXTSCALE, shortSize, new Vector3(33f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle += (1f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "- 1", TEXTSCALE, shortSize, new Vector3(33f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle -= (1f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "+10", TEXTSCALE, shortSize, new Vector3(62f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle += (10f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "-10", TEXTSCALE, shortSize, new Vector3(62f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle -= (10f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "+30", TEXTSCALE, shortSize, new Vector3(91f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle += (30f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "-30", TEXTSCALE, shortSize, new Vector3(91f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle -= (30f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "+45", TEXTSCALE, shortSize, new Vector3(120f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle += (45f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "-45", TEXTSCALE, shortSize, new Vector3(120f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle -= (45f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "+90", TEXTSCALE, shortSize, new Vector3(149f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle += (90f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, "-90", TEXTSCALE, shortSize, new Vector3(149f, 22f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle -= (90f * Mathf.Deg2Rad);
-                    }
-                };
-                AddButton(adjustPanel, PALocale.GetLocale(@"PLTRound"), TEXTSCALE, new Vector2(73f, 32f), new Vector3(178f, 4f)).eventClick += (c, p) => {
-                    if (p.buttons == UIMouseButton.Left) {
-                        PropLineTool.ItemInfo.Angle = Mathf.Round(PropLineTool.ItemInfo.Angle * Mathf.Rad2Deg) * Mathf.Deg2Rad;
-                    }
-                };
-            }
+            toggleBtn.playAudioEvents = true;
+            toggleBtn.state = UIMultiStateButton.ButtonState.Normal;
+            toggleBtn.activeStateIndex = 0;
+            toggleBtn.foregroundSpriteMode = UIForegroundSpriteMode.Fill;
+            toggleBtn.spritePadding = new RectOffset(0, 0, 0, 0);
+            toggleBtn.autoSize = false;
+            toggleBtn.canFocus = false;
+            toggleBtn.enabled = true;
+            toggleBtn.isInteractive = true;
+            toggleBtn.isVisible = true;
+            return toggleBtn;
         }
     }
 }

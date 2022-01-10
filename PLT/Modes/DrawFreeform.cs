@@ -588,7 +588,7 @@ label_endpointsFinish:
                     items[i].Position = mainBezier.Position(t);
                     mainBezier.StepDistanceCurve(t, spacing, BEZIERTOLERANCE, out t);
                 }
-                if (numItems - 1 >= 0) {
+                if (numItems > 0) {
                     finalT = items[numItems - 1].m_t;
                     if (SegmentState.IsReadyForMaxContinue) {
                         SegmentState.NewFinalOffset = spacing + mainBezier.CubicBezierArcLengthXZGauss12(0f, finalT);
@@ -600,6 +600,9 @@ label_endpointsFinish:
                     SegmentState.LastFinalOffset = 0f;
                     //UpdatePlacement();
                 }
+            }
+            if (numItems > 0) {
+                UpdateFinalPrefab(items, numItems);
             }
             ItemInfo.Count = numItems;
             if (EMath.FloorToInt(numItemsRaw) > MAX_ITEM_ARRAY_LENGTH) {

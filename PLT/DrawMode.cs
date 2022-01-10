@@ -1,5 +1,7 @@
-﻿using ColossalFramework.Math;
+﻿using ColossalFramework;
+using ColossalFramework.Math;
 using EManagersLib;
+using PropAnarchy.PLT.Extensions;
 using PropAnarchy.PLT.MathUtils;
 using PropAnarchy.PLT.Modes;
 using UnityEngine;
@@ -132,10 +134,31 @@ namespace PropAnarchy.PLT {
             SegmentState.m_segmentInfo.m_isContinueDrawing = forceContinueDrawing;
             return result;
         }
+        protected void UpdateFinalPrefab(ItemInfo.ItemData[] items, int numItems) {
+            PrefabInfo prefab = ItemInfo.Prefab;
+            int itemIndex = 0;
+            Randomizer randomizer;
+            if (prefab is PropInfo propInfo) {
+                foreach (uint likelyID in EPropManager.m_props.NextFreeItems(numItems)) {
+                    randomizer = new Randomizer((int)likelyID);
+                    items[itemIndex].m_finalPrefab = propInfo.GetVariation(ref randomizer);
+                    items[itemIndex].m_color = propInfo.GetColor(ref randomizer);
+                    items[itemIndex++].m_scale = propInfo.m_minScale + randomizer.Int32(10000u) * (propInfo.m_maxScale - propInfo.m_minScale) * 0.0001f;
+                }
+            } else if (prefab is TreeInfo treeInfo) {
+                foreach (uint likelyID in Singleton<TreeManager>.instance.m_trees.NextFreeItems(numItems)) {
+                    randomizer = new Randomizer((int)likelyID);
+                    int random = randomizer.Int32(10000u);
+                    items[itemIndex].m_finalPrefab = treeInfo.GetVariation(ref randomizer);
+                    items[itemIndex].m_scale = treeInfo.m_minScale + random * (treeInfo.m_maxScale - treeInfo.m_minScale) * 0.0001f;
+                    items[itemIndex++].m_brightness = treeInfo.m_minBrightness + random * (treeInfo.m_maxBrightness - treeInfo.m_minBrightness) * 0.0001f;
+                }
+            }
+        }
+
         private bool CalculateAll(bool continueDrawing) {
             bool fenceMode = ItemInfo.FenceMode;
             ItemInfo.ItemData[] itemDatas = ItemInfo.Datas;
-            //m_itemCount = MAX_ITEM_ARRAY_LENGTH;   //not sure about setting m_itemCount here, before CalculateAllPositions
             if (CalculateAllPositions(continueDrawing, fenceMode, itemDatas)) {
                 CalculateAllDirections(itemDatas, fenceMode);
                 CalculateAllAnglesBase(itemDatas, fenceMode);
