@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE resources [
+  <!ELEMENT resources ANY>
+  <!ELEMENT string ANY>
+  <!ATTLIST string name ID #REQUIRED>
+]>
+<!-- PropAnarchy Default Locale Template -->
+<resources>
+  <!-- Painter Translation -->
+  <string name="PropPainter">Prop Painter</string>
+  <string name="PainterTooltip">Prop Kleur aanpassen</string>
+  <!-- PLT Specific Translation -->
+  <string name="PropLineTool">Prop Line Tool</string>
+  <string name="SpacingFieldTooltip">Scrol muiswiel om de waarde aan te passen. Houd ALT ingedrukt voor ±0.1, CTRL voor ±5.&#xA;Rechtsklik om de onderlinge afstand terug te zetten naar de standaard</string>
+  <string name="AnglefieldTooltip">Scrol muiswiel om de waarde aan te passen. Houd ALT ingedrukt voor ±0.1, CTRL voor ±5.&#xA;Rechtsklik om terug te zetten naar 0&#xb0;</string>
+  <string name="PLTToggleFenceMode">Schakel omheiningsmodus in</string>
+  <string name="PLTToggleSingleMode">Schakel afzonderlijke modus in</string>
+  <string name="PLTToggleStraightMode">Schakel Rechte modus in</string>
+  <string name="PLTToggleCircleMode">Schakel Cirkelmodus in</string>
+  <string name="PLTToggleCurveMode">Schakel Curvemodus in</string>
+  <string name="PLTToggleFreeformMode">Schakel Vrije vorm modus in</string>
+  <string name="PLTToggleControlPanel">Toon/Verberg Optiepaneel</string>
+  <string name="PLTTitleBar">Instellingen Prop Line Tool</string>
+  <string name="PLTParameters">Parameters</string>
+  <string name="PLTOptions">Opties</string>
+  <string name="PLTItemWiseTooltip">Sturing op basis van items&#xA;Plaats één item per keer langs de curve</string>
+  <string name="PLTSpacingTooltip">Sturing op basis van onderlinge afstand&#xA;Plaats items met bepaalde intervallen</string>
+  <string name="PLTDecouplePrevSegment">Loskoppelen Van Vorig Segment</string>
+  <string name="PLTSpacingTitle">Onderlinge afstand</string>
+  <string name="PLTAutoDefaultSpacing">Auto-standaard afstand</string>
+  <string name="PLTAutoDefaultSpacingTooltip">Indien ingeschakeld wordt automatisch de standaard afstand ingesteld bij het selecteren van een andere soort prop/boom.&#xA;Auto-standaard blijft geactiveerd bij het schakelen naar omheiningsmodus</string>
+  <string name="PLTAngleTitle">Hoek</string>
+  <string name="PLTAngleDynamicTooltip">Bereken hoeken dynamisch om richting van de curve te volgen</string>
+  <string name="PLTAngleSingleTooltip">Gebruikt statische hoeken voor elk voorwerp langs de curve</string>
+  <string name="PLTFlip180Tooltip">Roteer props met 180&#xb0; zonder de hoekaanpassing te draaien in Gesloten Modus</string>
+  <string name="PLTFlip90Tooltip">Roteer props met 90&#xb0; zonder de hoekaanpassing te draaien in Gesloten Modus</string>
+  <string name="PLTRelativeAngle">Relatieve Hoek</string>
+  <!-- PLT Calculator Specific Translation -->
+  <string name="PLTDefaultTooltip">Stelt de huidige afstand in op de standaardwaarde</string>
+  <string name="PLTLengthTooltip">Stelt de huidige afstand in op de voorwerplengte</string>
+  <string name="PLTWidthTooltip">Stelt de huidige afstand in op de voorwerpbreedte</string>
+  <!-- PLT Option Specific Translation -->
+  <string name="PLTShowUndoPreview">Toon Voorbeeld van Ongedaan Maken</string>
+  <string name="PLTShowUndoPreviewTooltip">Markeert welke items worden verwijderd in de volgende Ongedaan Maken opdracht wanneer [Ctrl] toets wordt ingedrukt</string>
+  <string name="PLTMeshCenterCorrection">Gebruik Mesh voor Centreer Correctie</string>
+  <string name="PLTMeshCenterCorrectionTooltip">Poging om items te centreren binnen de blauwdruk.&#xA;Handig voor props die niet binnen de grenzen zijn gecentreerd</string>
+  <string name="PLTPerfectCircle">Perfecte cirkel</string>
+  <string name="PLTPerfectCircleTooltip">Indien ingeschakeld zullen cirkels gecorrigeerd worden naar de minimale grootte waar alle items op de rand passen. &#xA;De minimale grootte is afhankelijk van de parameter voor onderlinge afstand</string>
+  <string name="PLTLinearFence">Opvulling Lineaire Omheining</string>
+  <string name="PLTLinearFenceTooltip">Overlapt het laatste stuk tot het einde op de exacte muispositie bij het ontwerpen van rechte omheiningen</string>
+  <!-- Misc Props -->
+  <string name="GroupProps">Groepeer Props</string>
+  <string name="UngroupProps">Degroepeer Props</string>
+  <!-- Indicator Messages -->
+  <string name="PropAnarchyIsOff">Prop Anarchie is UIT</string>
+  <string name="PropAnarchyIsOn">Prop Anarchie is AAN</string>
+  <!-- Terrain Conform -->
+  <string name="TerrainConform">Pas aan het landschap aan</string>
+  <!-- Prop Snapping -->
+  <string name="PropSnapping">Prop plaatsingscorrectie</string>
+  <string name="PropSnapIsOff">Prop Plaatsingscorrectie is UIT</string>
+  <string name="PropSnapIsOn">Prop Plaatsingscorrectie is AAN</string>
+  <!-- Decal Prop Fix -->
+  <string name="DecalPropFix">Decal Prop Fix</string>
+  <!-- Additive Shader -->
+  <string name="AdditiveShader">Additive Shader</string>
+  <!-- Transparency LOD Fix -->
+  <string name="TransparencyLODFix">Transparency LOD Fix</string>
+  <string name="HideCloud">Verberg Wolk</string>
+  <string name="LODFactorMultiplier">LOD Factor Vermenigvuldiger</string>
+  <string name="LODDistanceOffset">LOD Afstand Verschuiving</string>
+  <string name="LODDistanceMultiplier">LOD Afstand Vermenigvuldiger</string>
+  <string name="FallbackRenderDistance">Fallback Render Afstand</string>
+  <string name="PropLODFixSetting">Instellingen Prop LOD fix</string>
+  <string name="BuildingLODFixSetting">Instellingen Gebouw LOD fix</string>
+  <string name="DestroyAllClouds">Vernietig Alle Wolken (Irreversibel)</string>
+  <string name="Reset">Stel opnieuw in</string>
+  <!-- Adaptive Prop Visibility -->
+  <string name="AdaptivePropVisibility">Bijstellende Prop Zichtbaarheid</string>
+  <!-- Prop Anarchy -->
+  <string name="PropAnarchy">Prop Anarchie</string>
+  <string name="PropAnarchyDesc">Geeft je de mogelijkheid om props overal te plaatsen. Wanneer je netwerken of gebouwen plaatst kun je de volgende instellingen gebruiken om props te verbergen of te verwijderen</string>
+  <string name="PropAnarchyBehaviour">Gedrag bij overlapping</string>
+  <string name="AnarchyHideProp">Prop Verbergen</string>
+  <string name="AnarchyDeleteProp">Prop Verwijderen</string>
+  <!-- Prop Resize -->
+  <string name="IncreasePropSize">Vergroot prop</string>
+  <string name="DecreasePropSize">Verklein prop</string>
+  <string name="PressAnyKey">Druk op een willekeurige toets</string>
+  <!-- Tab Strips -->
+  <string name="MainOptionTab">Algemene instellingen</string>
+  <string name="ExtraFunctionsTab">Extra functies</string>
+  <string name="KeyboardShortcutTab">Sneltoetsen</string>
+  <string name="KeyBindDescription">Zorg er bij het instellen van sneltoetsen voor dat modificatietoetsen (SHIFT | CONTROL | ALT) gebruikt worden voor Prop Anarchie. De sneltoetsen voor vergroten en verkleinen worden anders benaderd dus daar hoeven geen modificatietoetsen voor te worden gebruikt, maak wel gebruik van een unieke sneltoets.</string>
+  <!-- Main options -->
+  <string name="EnableCustomLimit">Inschakelen Aangepast Proplimiet</string>
+  <string name="MaxPropLimitTitle">Configureer Aangepast Proplimiet</string>
+  <string name="MaxPropLimit">Maximum Proplimiet:  {0} props</string>
+  <string name="Important">Belangrijk! Moet worden ingesteld voor het starten/laden van een spel&#xA;Houd er rekening mee dat een hogere prop-limiet lichte consequenties voor de prestaties kan hebben. Hoewel EML is geoptimaliseerd om props sneller te renderen dan het vanilla spel, is deze optimalisatie voornamelijk gericht op het uitbalanceren van de hogere last bij een verhoogde proplimiet. Het is het beste om deze stukje bij beetje te verhogen naar gelang de noodzaak voor een hogere limiet toeneemt tijdens de voortgang van je spel</string>
+  <!-- Tree Snapping specific -->
+  <string name="PropSnap">Prop Plaatsingscorrectie</string>
+  <string name="PropSnapLabel">Met deze optie kunnen props vrij bewegen en wordt de locatie aan het gebouw aangepast</string>
+  <string name="PropSnapToBuilding">Schakel deze optie in om de locatie van props aan het gebouw aan te passen</string>
+  <string name="PropSnapToNetwork">Schakel deze optie in om de locatie van props aan het netwerk aan te passen</string>
+  <!-- Misc. -->
+  <string name="builtinFunction">Ingebouwde functie:</string>
+  <string name="isEnabled">is ingeschakeld</string>
+  <string name="isDisabled">is uitgeschakeld</string>
+</resources>

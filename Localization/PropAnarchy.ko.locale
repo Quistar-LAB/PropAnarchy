@@ -8,65 +8,44 @@
 <resources>
   <!-- Painter Translation -->
   <string name="PropPainter">Prop Painter</string>
-  <string name="PainterTooltip">Customize Prop Color</string>
+  <string name="PainterTooltip">프롭 색 커스텀</string>
   <!-- PLT Specific Translation -->
   <string name="PropLineTool">Prop Line Tool</string>
-  <string name="SpacingFieldTooltip">
-    Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.
-    Right click to reset to default spacing
-  </string>
-  <string name="AnglefieldTooltip">
-    Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.
-    Right click to reset to 0&#xb0;
-  </string>
-  <string name="PLTToggleFenceMode">Toggle Fence Mode</string>
-  <string name="PLTToggleSingleMode">Toggle Single Mode</string>
-  <string name="PLTToggleStraightMode">Toggle Straight Mode</string>
-  <string name="PLTToggleCircleMode">Toggle Circle Mode</string>
-  <string name="PLTToggleCurveMode">Toggle Curve Mode</string>
-  <string name="PLTToggleFreeformMode">Toggle Freeform Mode</string>
-  <string name="PLTToggleControlPanel">Show/Hide Option Panel</string>
-  <string name="PLTTitleBar">Prop Line Tool Settings</string>
+  <string name="SpacingFieldTooltip">마우스 휠 스크롤로 값을 조정합니다. ALT를 누른 채로 ±0.1, CTRL은 ±5.&#xA;우클릭으로 간격을 기본값으로 초기화</string>
+  <string name="AnglefieldTooltip">마우스 휠 스크롤로 값을 조정합니다. ALT를 누른 채로 ±0.1, CTRL은 ±5.&#xA;우클릭으로 0&#xb0;로 초기화</string>
+  <string name="PLTToggleFenceMode">울타리 모드 전환</string>
+  <string name="PLTToggleSingleMode">단일 모드 전환</string>
+  <string name="PLTToggleStraightMode">직선 모드 전환</string>
+  <string name="PLTToggleCircleMode">원 모드 전환</string>
+  <string name="PLTToggleCurveMode">곡선 모드 전환</string>
+  <string name="PLTToggleFreeformMode">자유형 모드 전환</string>
+  <string name="PLTToggleControlPanel">옵션 패널 표시/숨기기</string>
+  <string name="PLTTitleBar">Prop Line Tool 설정</string>
   <string name="PLTParameters">매개변수</string>
   <string name="PLTOptions">옵션</string>
-  <string name="PLTItemWiseTooltip">
-    항목별 조정
-    커브를 따라 한 번에 하나씩 배치
-  </string>
-  <string name="PLTSpacingTooltip">
-    간격별 조정
-    이산 간격으로 아이템 배치
-  </string>
+  <string name="PLTItemWiseTooltip">항목별 조정&#xA;커브를 따라 한 번에 하나씩 배치</string>
+  <string name="PLTSpacingTooltip">간격별 조정&#xA;이산 간격으로 아이템 배치</string>
   <string name="PLTDecouplePrevSegment">이전 세그먼트와 디커플링</string>
   <string name="PLTSpacingTitle">간격</string>
   <string name="PLTAutoDefaultSpacing">자동 기본 간격</string>
-  <string name="PLTAutoDefaultSpacingTooltip">
-    활성화된 경우, 다른 프롭/나무 유형을 선택할 때마다 기본 간격을 자동으로 설정합니다.
-    울타리 모드를 전환할 때 역시 간격이 자동 지정됩니다
-  </string>
+  <string name="PLTAutoDefaultSpacingTooltip">활성화된 경우, 다른 프롭/나무 유형을 선택할 때마다 기본 간격을 자동으로 설정합니다.&#xA;울타리 모드를 전환할 때 역시 간격이 자동 지정됩니다</string>
   <string name="PLTAngleTitle">각도</string>
-  <string name="PLTAngleDynamicTooltip">Calculate angles dynamically to follow direction of the curve</string>
-  <string name="PLTAngleSingleTooltip">Uses static angle for every asset along the curve</string>
-  <string name="PLTFlip180Tooltip">Rotate props by 180&#xb0; without rotating the change-angle handle in Lock Mode</string>
-  <string name="PLTFlip90Tooltip">Rotate props by 90&#xb0; without rotating the change-angle handle in Lock Mode</string>
+  <string name="PLTAngleDynamicTooltip">커브의 방향을 따라 동적으로 각도를 계산합니다</string>
+  <string name="PLTAngleSingleTooltip">커브를 따라 모든 에셋에 정적 각도를 사용합니다</string>
+  <string name="PLTFlip180Tooltip">잠금 모드 안의 각도-변경 핸들에 대한 회전 없이 180&#xb0;로 프롭을 회전</string>
+  <string name="PLTFlip90Tooltip">잠금 모드 안의 각도-변경 핸들에 대한 회전 없이 90&#xb0;로 프롭을 회전</string>
   <string name="PLTRelativeAngle">상대적 각도</string>
   <!-- PLT Calculator Specific Translation -->
-  <string name="PLTDefaultTooltip">Sets current spacing to default value</string>
-  <string name="PLTLengthTooltip">Sets current spacing to asset length</string>
-  <string name="PLTWidthTooltip">Sets current spacing to asset width</string>
+  <string name="PLTDefaultTooltip">기본값으로 현재 간격 설정</string>
+  <string name="PLTLengthTooltip">에셋 길이로 현재 간격 설정</string>
+  <string name="PLTWidthTooltip">에셋 너비로 현재 간격 설정</string>
   <!-- PLT Option Specific Translation -->
   <string name="PLTShowUndoPreview">실행취소 미리보기 보이기</string>
   <string name="PLTShowUndoPreviewTooltip">[Ctrl] 키가 눌려있을 때 다음 실행취소 시 삭제될 항목을 강조 표시합니다</string>
   <string name="PLTMeshCenterCorrection">중심 보정에 메쉬 사용</string>
-  <string name="PLTMeshCenterCorrectionTooltip">
-    항목을 그 항목의 풋프린트에서 중심으로 하려는 시도.
-    자신의 경계 범위 안에서 중심화되지 않은 프롭에 좋습니다
-  </string>
+  <string name="PLTMeshCenterCorrectionTooltip">항목을 그 항목의 풋프린트에서 중심으로 하려는 시도.&#xA;자신의 경계 범위 안에서 중심화되지 않은 프롭에 좋습니다</string>
   <string name="PLTPerfectCircle">완벽한 원</string>
-  <string name="PLTPerfectCircleTooltip">
-    활성화된 경우, 원은 커브상의 모든 항목에 완벽하게 맞는 가장 가까운 크기로 스냅됩니다.
-    가장 가까운 크기는 간격 매개변수에 따라 달라집니다
-  </string>
+  <string name="PLTPerfectCircleTooltip">활성화된 경우, 원은 커브상의 모든 항목에 완벽하게 맞는 가장 가까운 크기로 스냅됩니다.&#xA;가장 가까운 크기는 간격 매개변수에 따라 달라집니다</string>
   <string name="PLTLinearFence">선형 울타리 채우기</string>
   <string name="PLTLinearFenceTooltip">울타리를 직선으로 그릴 때, 마우스 위치에서 정확히 끝나도록 마지막 조각을 겹칩니다</string>
   <!-- Misc Props -->
@@ -117,10 +96,7 @@
   <string name="EnableCustomLimit">사용자 정의 프롭 제한 활성화</string>
   <string name="MaxPropLimitTitle">사용자 정의 프롭 제한 구성</string>
   <string name="MaxPropLimit">최대 프롭 한도: {0} 프롭</string>
-  <string name="Important">
-    중요! 게임을 시작/로드하기 전에 설정해야 합니다.
-    프롭 제한을 늘리는 것은 성능에 사소한 영향을 미칠 수 있다는 점에 유의하십시오. 비록 EML은 바닐라 게임보다 더 빨리 프롭을 렌더링하도록 최적화되었지만, 이 최적화는 주로 늘어난 프롭 제한의 비용으로 교환하는 데 초점이 맞추어져 있습니다. 당신의 게임 진행 정도에 따라 늘어난 프롭 한도 요구에 따라 점진적으로 이것을 늘리는 것이 가장 좋습니다.
-  </string>
+  <string name="Important">중요! 게임을 시작/로드하기 전에 설정해야 합니다.&#xA;프롭 제한을 늘리는 것은 성능에 사소한 영향을 미칠 수 있다는 점에 유의하십시오. 비록 EML은 바닐라 게임보다 더 빨리 프롭을 렌더링하도록 최적화되었지만, 이 최적화는 주로 늘어난 프롭 제한의 비용으로 교환하는 데 초점이 맞추어져 있습니다. 당신의 게임 진행 정도에 따라 늘어난 프롭 한도 요구에 따라 점진적으로 이것을 늘리는 것이 가장 좋습니다.</string>
   <!-- Tree Snapping specific -->
   <string name="PropSnap">Prop Snapping</string>
   <string name="PropSnapLabel">이 옵션은 프롭의 자유 이동을 허용하며 건물 및 프롭에 프롭을 스냅할 수 있게 합니다</string>
