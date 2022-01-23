@@ -3,6 +3,7 @@ using ColossalFramework.Globalization;
 using ColossalFramework.UI;
 using EManagersLib;
 using System;
+using System.Collections;
 using System.Globalization;
 using UnityEngine;
 using static PropAnarchy.PLT.PropLineTool;
@@ -10,60 +11,20 @@ using static PropAnarchy.PLT.PropLineTool;
 namespace PropAnarchy.PLT {
     internal sealed class FieldInput : UITextField {
         private float m_rawValue = 1f;
-        private int m_decimalPlaces = 0;
 #pragma warning disable IDE1006
         public event PropertyChangedEventHandler<float> eventValueChanged;
 #pragma warning restore IDE1006
-        public Func<float> GetDefaultVal;
 
         public float Value {
             get => m_rawValue;
             set {
                 if (m_rawValue != value) {
-                    if (MinValue > 0) {
-                        value = value >= MinValue ? value : MinValue;
-                    }
                     m_rawValue = (float)Math.Round(value, 2);
                     text = m_rawValue.ToString();  // value.ToString(@"F" + m_decimalPlaces, LocaleManager.cultureInfo);
                     eventValueChanged?.Invoke(this, value);
                 }
             }
         }
-        public float MinValue { get; set; } = 0f;
-
-        public int DecimalPlaces {
-            get => m_decimalPlaces;
-            set {
-                m_decimalPlaces = Mathf.Clamp(value, 0, 7);
-                text = value.ToString(@"F" + m_decimalPlaces, LocaleManager.cultureInfo);
-            }
-        }
-
-        protected override void OnMouseWheel(UIMouseEventParameter p) {
-            float val = m_rawValue;
-            Event e = Event.current;
-            if ((e.modifiers & EventModifiers.Control) == EventModifiers.Control) {
-                val += p.wheelDelta * 5f;
-            } else if ((e.modifiers & EventModifiers.Alt) == EventModifiers.Alt) {
-                val += p.wheelDelta * 0.1f;
-            } else {
-                val += p.wheelDelta;
-            }
-            if (MinValue > 0) {
-                Value = val >= MinValue ? val : MinValue;
-            } else {
-                Value = val;
-            }
-            base.OnMouseWheel(p);
-        }
-
-        protected override void OnMouseDown(UIMouseEventParameter p) {
-            base.OnMouseDown(p);
-            if (p.buttons == UIMouseButton.Right) {
-                Value = GetDefaultVal();
-            }
-        }
-
 
         public override void Awake() {
             base.Awake();
@@ -105,7 +66,11 @@ namespace PropAnarchy.PLT {
         private const float PANEL_MINWIDTH = 110f;
         private const float BTN_SIZEX = 45f;
         private const float BTN_SIZEY = 45f;
+        private const float TEXTSIZE = 0.95f;
+        private const float SHADOWOFFSET = 0.75f;
         private float m_delta = 1f;
+        private bool m_startDrag;
+        private Vector3 m_lastPosition;
         private delegate void OptionPanelHandler(ItemType mode);
         private static OptionPanelHandler CloseOption;
         private static OptionPanelHandler OpenOption;
@@ -122,12 +87,6 @@ namespace PropAnarchy.PLT {
             backgroundSprite = @"SubcategoriesPanel"; //@"GenericPanel"; //@"MenuPanel2";
             opacity = 0.65f;
             autoLayout = false;
-            UIDragHandle titleBar = AddUIComponent<UIDragHandle>();
-            #region titleBar
-            titleBar.size = new Vector2(0f, TITLEBAR_HEIGHT);
-            titleBar.target = this;
-            titleBar.relativePosition = new Vector3(0f, 0f);
-            #endregion titleBar
             UILabel titleLabel = AddUIComponent<UILabel>();
             #region titleLabel
             titleLabel.autoSize = true;
@@ -185,10 +144,11 @@ namespace PropAnarchy.PLT {
             FieldInput spacingField = AddUIComponent<FieldInput>();
             #region spacingField
             spacingField.tooltip = PALocale.GetLocale(@"SpacingFieldTooltip");
-            spacingField.GetDefaultVal = () => {
-                ItemInfo.SetDefaultSpacing();
-                return ItemInfo.Spacing;
-            };
+            spacingField.textColor = new Color32(0, 0, 0, 255);
+            spacingField.textScale = TEXTSIZE;
+            spacingField.useDropShadow = true;
+            spacingField.dropShadowColor = new Color32(0, 0, 0, 255);
+            spacingField.dropShadowOffset = new Vector2(SHADOWOFFSET, SHADOWOFFSET);
             spacingField.size = new Vector2(spacingIcon.size.x + spacingLabel.size.x + 6f, spacingField.size.y);
             spacingField.relativePosition = new Vector3(spacingIcon.relativePosition.x - 1f, spacingIcon.relativePosition.y + spacingIcon.size.y + 10f);
             #endregion spacingField
@@ -197,11 +157,16 @@ namespace PropAnarchy.PLT {
             spacingUnit.textAlignment = UIHorizontalAlignment.Left;
             spacingUnit.autoSize = true;
             spacingUnit.textColor = new Color32(0, 0, 0, 255);
-            spacingUnit.textScale = 0.90f;
+            spacingUnit.textScale = TEXTSIZE;
+            spacingUnit.useDropShadow = true;
+            spacingUnit.dropShadowColor = new Color32(0, 0, 0, 255);
+            spacingUnit.dropShadowOffset = new Vector2(SHADOWOFFSET, SHADOWOFFSET);
             spacingUnit.padding = new RectOffset(0, 3, 2, 0);
             spacingUnit.text = "±" + m_delta;
             spacingUnit.relativePosition = new Vector3(spacingField.size.x - spacingUnit.size.x - 15f, 0f);
-
+            spacingUnit.eventTextChanged += (c, s) => {
+                spacingUnit.relativePosition = new Vector3(spacingField.size.x - spacingUnit.size.x - 15f, 0f);
+            };
             float spacingHeight = spacingField.relativePosition.y + spacingField.size.y - spacingIcon.relativePosition.y + 10f;
             spacingPanelBG.size = new Vector2(spacingField.size.x + 10f, spacingHeight);
 
@@ -252,6 +217,8 @@ namespace PropAnarchy.PLT {
             angleLabel.verticalAlignment = UIVerticalAlignment.Middle;
             angleLabel.textAlignment = UIHorizontalAlignment.Left;
             angleLabel.textColor = new Color32(0xff, 0xff, 0xff, 0xff);
+            angleLabel.useDropShadow = true;
+            angleLabel.dropShadowOffset = new Vector2(0.5f, 0.5f);
             angleLabel.autoSize = false;
             angleLabel.autoHeight = false;
             angleLabel.textScale = 0.92f;
@@ -266,7 +233,10 @@ namespace PropAnarchy.PLT {
             FieldInput angleField = AddUIComponent<FieldInput>();
             #region angleField
             angleField.tooltip = PALocale.GetLocale(@"AnglefieldTooltip");
-            angleField.GetDefaultVal = () => 0f;
+            angleField.textColor = new Color32(0, 0, 0, 255);
+            angleField.textScale = TEXTSIZE;
+            angleField.useDropShadow = true;
+            angleField.dropShadowOffset = new Vector2(SHADOWOFFSET, SHADOWOFFSET);
             angleField.size = new Vector2(angleIcon.size.x + angleLabel.size.x + 6f, spacingField.size.y);
             angleField.relativePosition = new Vector3(angleIcon.relativePosition.x - 1f, angleIcon.relativePosition.y + angleIcon.size.y + 10f);
             #endregion angleField
@@ -275,10 +245,15 @@ namespace PropAnarchy.PLT {
             angleUnit.textAlignment = UIHorizontalAlignment.Left;
             angleUnit.autoSize = true;
             angleUnit.textColor = new Color32(0, 0, 0, 255);
-            angleUnit.textScale = 0.90f;
+            angleUnit.useDropShadow = true;
+            angleUnit.dropShadowOffset = new Vector2(SHADOWOFFSET, SHADOWOFFSET);
+            angleUnit.textScale = TEXTSIZE;
             angleUnit.padding = new RectOffset(0, 3, 2, 0);
             angleUnit.text = Settings.AngleMode == AngleMode.Dynamic ? "±" + m_delta + @"Δ°" : "±" + m_delta + @"°";
             angleUnit.relativePosition = new Vector3(angleField.size.x - angleUnit.size.x - 15f, 0f);
+            angleUnit.eventTextChanged += (c, s) => {
+                angleUnit.relativePosition = new Vector3(angleField.size.x - angleUnit.size.x - 15f, 0f);
+            };
             float angleHeight = angleField.relativePosition.y + angleField.size.y - angleIcon.relativePosition.y + 10f;
             anglePanelBG.size = new Vector2(angleField.size.x + 10f, angleHeight);
 
@@ -344,10 +319,8 @@ namespace PropAnarchy.PLT {
                 perfectCircle.relativePosition = new Vector3(meshCenter.relativePosition.x + meshCenter.size.x + 5f, meshCenter.relativePosition.y);
                 linearFence.relativePosition = new Vector3(perfectCircle.relativePosition.x + perfectCircle.size.x + 5f, perfectCircle.relativePosition.y);
                 size = new Vector2(spacingContainerBG.size.x + PANEL_PADDING * 2f, TITLEBAR_HEIGHT + spacingHeight + angleHeight + angleHeight + PANEL_PADDING * 4f);
-                titleBar.width = size.x;
                 titleLabel.width = size.x;
             }
-            absolutePosition = new Vector3(Screen.width - size.x - 40f, 200f);
             isVisible = false;
 
             CloseOption = (mode) => Hide();
@@ -365,21 +338,35 @@ namespace PropAnarchy.PLT {
             SetAutoSpacing = (state) => autoSpacing.activeStateIndex = state ? 1 : 0;
             defaultSpacing.eventClicked += (c, p) => {
                 ItemInfo.SetDefaultSpacing();
-                DrawMode.CurActiveMode.UpdatePlacement();
             };
             lengthSpacing.eventClicked += (c, p) => {
                 SetSpacingValue(ItemInfo.Height);
-                DrawMode.CurActiveMode.UpdatePlacement();
             };
             widthSpacing.eventClicked += (c, p) => {
                 SetSpacingValue(ItemInfo.Width);
-                DrawMode.CurActiveMode.UpdatePlacement();
             };
             spacingField.Value = 1f;
-            spacingField.MinValue = 0.1f;
             spacingField.eventValueChanged += (c, value) => SegmentState.m_pendingPlacementUpdate = true;
-            spacingField.eventMouseWheel += (c, p) => autoSpacing.activeStateIndex = 0;
             spacingField.eventKeyDown += (c, p) => autoSpacing.activeStateIndex = 0;
+            spacingField.eventMouseWheel += (c, p) => {
+                float val = spacingField.Value;
+                Event e = Event.current;
+                if ((e.modifiers & EventModifiers.Control) == EventModifiers.Control) {
+                    val += p.wheelDelta * 5f;
+                } else if ((e.modifiers & EventModifiers.Alt) == EventModifiers.Alt) {
+                    val += p.wheelDelta * 0.1f;
+                } else {
+                    val += p.wheelDelta;
+                }
+                spacingField.Value = val;
+                autoSpacing.activeStateIndex = 0;
+            };
+            spacingField.eventMouseDown += (c, p) => {
+                if (p.buttons == UIMouseButton.Right) {
+                    ItemInfo.SetDefaultSpacing();
+                    spacingField.Unfocus();
+                }
+            };
             SetSpacingValue = (value) => spacingField.Value = value;
             GetSpacingValue = () => spacingField.Value;
 
@@ -429,10 +416,16 @@ namespace PropAnarchy.PLT {
             };
 
             flip180.eventActiveStateIndexChanged += (c, index) => {
+                if (index != 0) {
+                    flip90.activeStateIndex = 0;
+                }
                 Settings.AngleFlip180 = index != 0;
                 DrawMode.CurActiveMode.UpdatePlacement();
             };
             flip90.eventActiveStateIndexChanged += (c, index) => {
+                if (index != 0) {
+                    flip180.activeStateIndex = 0;
+                }
                 Settings.AngleFlip90 = index != 0;
                 DrawMode.CurActiveMode.UpdatePlacement();
             };
@@ -490,11 +483,28 @@ namespace PropAnarchy.PLT {
                         linearFence.relativePosition = new Vector3(perfectCircle.relativePosition.x + perfectCircle.size.x + 5f, perfectCircle.relativePosition.y);
                         size = new Vector2(spacingContainerBG.size.x + PANEL_PADDING * 2f, normalHeight);
                     }
-
                 }
             };
             angleField.Value = 0f;
             angleField.eventValueChanged += (c, value) => SegmentState.m_pendingPlacementUpdate = true;
+            angleField.eventMouseWheel += (c, p) => {
+                float val;
+                Event e = Event.current;
+                if ((e.modifiers & EventModifiers.Control) == EventModifiers.Control) {
+                    val = p.wheelDelta * 5f;
+                } else if ((e.modifiers & EventModifiers.Alt) == EventModifiers.Alt) {
+                    val = p.wheelDelta * 0.1f;
+                } else {
+                    val = p.wheelDelta;
+                }
+                angleField.Value += val;
+            };
+            angleField.eventMouseDown += (c, p) => {
+                if (p.buttons == UIMouseButton.Right) {
+                    angleField.Value = 0f;
+                    angleField.Unfocus();
+                }
+            };
             GetAngleValue = () => angleField.Value;
             SetAngleValue = (value) => angleField.Value = value;
             OnAnglePanelToggle += (mode) => {
@@ -519,11 +529,71 @@ namespace PropAnarchy.PLT {
             meshCenter.eventActiveStateIndexChanged += (c, index) => Settings.UseMeshCenterCorrection = index == 1;
             perfectCircle.eventActiveStateIndexChanged += (c, index) => Settings.PerfectCircles = index == 1;
             linearFence.eventActiveStateIndexChanged += (c, index) => Settings.LinearFenceFill = index == 1;
+
+            if (Settings.m_optionXPos == float.NaN && Settings.m_optionYPos == float.NaN) {
+                absolutePosition = new Vector3(Screen.width - size.x - 40f, 200f);
+            } else {
+                transform.position = Settings.OptionPosition;
+            }
         }
 
         public override void Update() {
             base.Update();
             UpdateUnit(Event.current);
+        }
+
+        private IEnumerator StartDragDelay() {
+            yield return new WaitForSeconds(0.1f);
+            m_startDrag = true;
+        }
+        protected override void OnMouseDown(UIMouseEventParameter p) {
+            p.Use();
+            Plane plane = new Plane(transform.TransformDirection(Vector3.back), transform.position);
+            Ray ray = p.ray;
+            plane.Raycast(ray, out float d);
+            m_lastPosition = ray.origin + ray.direction * d;
+            m_startDrag = false;
+            StartCoroutine(StartDragDelay());
+            base.OnMouseDown(p);
+        }
+
+        protected override void OnMouseMove(UIMouseEventParameter p) {
+            p.Use();
+            if (m_startDrag && p.buttons.IsFlagSet(UIMouseButton.Left)) {
+                Ray ray = p.ray;
+                Vector3 inNormal = GetUIView().uiCamera.transform.TransformDirection(Vector3.back);
+                Plane plane = new Plane(inNormal, m_lastPosition);
+                plane.Raycast(ray, out float d);
+                Vector3 vector = (ray.origin + ray.direction * d).Quantize(PixelsToUnits());
+                Vector3 b = vector - m_lastPosition;
+                Vector3[] corners = GetUIView().GetCorners();
+                Vector3 position = (transform.position + b).Quantize(PixelsToUnits());
+                Vector3 a = pivot.TransformToUpperLeft(size, arbitraryPivotOffset);
+                Vector3 a2 = a + new Vector3(size.x, -size.y);
+                a *= PixelsToUnits();
+                a2 *= PixelsToUnits();
+                if (position.x + a.x < corners[0].x) {
+                    position.x = corners[0].x - a.x;
+                }
+                if (position.x + a2.x > corners[1].x) {
+                    position.x = corners[1].x - a2.x;
+                }
+                if (position.y + a.y > corners[0].y) {
+                    position.y = corners[0].y - a.y;
+                }
+                if (position.y + a2.y < corners[2].y) {
+                    position.y = corners[2].y - a2.y;
+                }
+                transform.position = position;
+                Settings.OptionPosition = position;
+            }
+            base.OnMouseMove(p);
+        }
+
+        protected override void OnMouseUp(UIMouseEventParameter p) {
+            base.OnMouseUp(p);
+            m_startDrag = false;
+            MakePixelPerfect();
         }
 
         private static UIButton AddButton(UIComponent parent, string name) {

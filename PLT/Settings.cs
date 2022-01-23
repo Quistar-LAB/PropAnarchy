@@ -11,8 +11,8 @@ namespace PropAnarchy.PLT {
         internal static bool m_angleFlip180 = false;
         internal static bool m_showUndoPreview = true;
         internal static bool m_verticalLayout = false;
-        internal static float m_optionXPos = 0f;
-        internal static float m_optionYPos = 0f;
+        internal static float m_optionXPos = float.NaN;
+        internal static float m_optionYPos = float.NaN;
 
         internal static Color m_PLTColor_default = new Color32(39, 130, 204, 128);
         internal static Color m_PLTColor_defaultSnapZones = new Color32(39, 130, 204, 255);

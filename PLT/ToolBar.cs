@@ -158,16 +158,14 @@ namespace PropAnarchy.PLT {
             GetPropToolAPI getPropTool = ToolsModifierControl.GetCurrentTool<PropTool>;
             GetTreeToolAPI getTreeTool = ToolsModifierControl.GetCurrentTool<TreeTool>;
             GetPropLineToolAPI getPropLineTool = ToolsModifierControl.GetCurrentTool<PropLineTool>;
-            //GetBulldozeToolAPI getBulldozeTool = ToolsModifierControl.GetCurrentTool<BulldozeTool>;
             UIPanel brushPanel = m_brushPanel;
-            //WaitForSeconds wait = new WaitForSeconds(0.2f);
-            WaitForEndOfFrame wait = new WaitForEndOfFrame();
+            WaitForSeconds wait = new WaitForSeconds(0.2f);
+            //WaitForEndOfFrame wait = new WaitForEndOfFrame();
             while (true) {
                 yield return wait;
                 propTool = getPropTool();
                 treeTool = getTreeTool();
                 PropLineTool propLineTool = getPropLineTool();
-                //BulldozeTool bulldozeTool = getBulldozeTool();
                 if (propTool is null && treeTool is null && propLineTool is null) {
                     if (toolBar.isVisibleSelf) {
                         toolBar.Hide();

@@ -116,6 +116,7 @@
     <Compile Include="UI\UIFancySlider.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Localization\PropAnarchy.nl.locale" />
     <None Include="Localization\PropAnarchy.de.locale" />
     <None Include="Localization\PropAnarchy.ru.locale" />
     <None Include="Localization\PropAnarchy.fr.locale" />

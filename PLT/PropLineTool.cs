@@ -387,13 +387,13 @@ namespace PropAnarchy.PLT {
 
         protected override void OnEnable() {
             base.OnEnable();
-            m_optionPanel.Enable();
+            m_optionPanel?.Enable();
             //ResetPLT();
         }
 
         protected override void OnDisable() {
             base.OnDisable();
-            m_optionPanel.Disable();
+            m_optionPanel?.Disable();
             ResetPLT();
         }
 

@@ -181,12 +181,26 @@ namespace PropAnarchy.PLT {
             Vector3 yAxis = EMath.Vector3Up;
             int itemCount = ItemInfo.Count; ;
             if (fenceMode) {
-                float offsetAngle = Mathf.Deg2Rad * (((ItemInfo.Height > ItemInfo.Width ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.Angle) * Mathf.Rad2Deg % 360f);
+                float offsetAngle;
+                if (Settings.AngleFlip180) {
+                    offsetAngle = Mathf.Deg2Rad * (((ItemInfo.Height > ItemInfo.Width ? Mathf.PI / 2f : 0f) + Mathf.PI + ItemInfo.Angle) * Mathf.Rad2Deg % 360f);
+                } else if (Settings.AngleFlip90) {
+                    offsetAngle = Mathf.Deg2Rad * (((ItemInfo.Height > ItemInfo.Width ? Mathf.PI / 2f : 0f) + (Mathf.PI / 2f) + ItemInfo.Angle) * Mathf.Rad2Deg % 360f);
+                } else {
+                    offsetAngle = Mathf.Deg2Rad * (((ItemInfo.Height > ItemInfo.Width ? Mathf.PI / 2f : 0f) + ItemInfo.Angle) * Mathf.Rad2Deg % 360f);
+                }
                 for (int i = 0; i < itemCount; i++) {
                     items[i].m_angle = items[i].m_direction.AngleSigned(xAxis, yAxis) + Mathf.PI + offsetAngle;
                 }
             } else {
-                float angle = Mathf.Deg2Rad * (((ItemInfo.Height > ItemInfo.Width ? Mathf.PI / 2f : 0f) + (Settings.AngleFlip180 ? Mathf.PI : 0f) + ItemInfo.Angle) * Mathf.Rad2Deg % 360f);
+                float angle;
+                if (Settings.AngleFlip180) {
+                    angle = Mathf.Deg2Rad * (((ItemInfo.Height > ItemInfo.Width ? Mathf.PI / 2f : 0f) + Mathf.PI + ItemInfo.Angle) * Mathf.Rad2Deg % 360f);
+                } else if (Settings.AngleFlip90) {
+                    angle = Mathf.Deg2Rad * (((ItemInfo.Height > ItemInfo.Width ? Mathf.PI / 2f : 0f) + (Mathf.PI / 2f) + ItemInfo.Angle) * Mathf.Rad2Deg % 360f);
+                } else {
+                    angle = Mathf.Deg2Rad * (((ItemInfo.Height > ItemInfo.Width ? Mathf.PI / 2f : 0f) + ItemInfo.Angle) * Mathf.Rad2Deg % 360f);
+                }
                 switch (Settings.AngleMode) {
                 case AngleMode.Dynamic:
                     for (int i = 0; i < itemCount; i++) {
