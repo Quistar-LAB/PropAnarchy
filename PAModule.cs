@@ -20,7 +20,7 @@ namespace PropAnarchy {
     public sealed class PAModule : ILoadingExtension, IUserMod {
         private const string m_modName = @"Prop Anarchy";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.7.1";
+        internal const string m_modVersion = @"0.7.3";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
@@ -58,7 +58,10 @@ namespace PropAnarchy {
             }
         }
 
-        public PAModule() {
+        #region UserMod
+        public string Name => m_modName + ' ' + m_modVersion;
+        public string Description => m_modDesc;
+        public void OnEnabled() {
             try {
                 CreateDebugFile();
             } catch (Exception e) {
@@ -73,12 +76,6 @@ namespace PropAnarchy {
             } catch (Exception e) {
                 UnityEngine.Debug.LogException(e);
             }
-        }
-
-        #region UserMod
-        public string Name => m_modName + ' ' + m_modVersion;
-        public string Description => m_modDesc;
-        public void OnEnabled() {
             PALocale.Init();
             for (int loadTries = 0; loadTries < 2; loadTries++) {
                 if (LoadSettings()) break; // Try 2 times, and if still fails, then use default settings
@@ -229,8 +226,8 @@ namespace PropAnarchy {
                 PLT.Settings.m_linearFenceFill = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"LinearFenceFill"));
                 PLT.Settings.m_useMeshCenterCorrection = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"UseMeshCenterCorrection"));
                 PLT.Settings.m_verticalLayout = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"VerticalLayout"));
-                PLT.Settings.m_optionXPos = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PLTOptionXPos"));
-                PLT.Settings.m_optionYPos = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PLTOptionYPos"));
+                PLT.Settings.m_optionXPos = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PLTOptionXPos"), System.Globalization.NumberStyles.Float);
+                PLT.Settings.m_optionYPos = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"PLTOptionYPos"), System.Globalization.NumberStyles.Float);
                 TransparencyLODFix.Settings.m_hideClouds = bool.Parse(xmlConfig.DocumentElement.GetAttribute(@"HideClouds"));
                 TransparencyLODFix.Settings.m_lodFactorMultiplierProps = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"LodFactorMultiplierProps"), System.Globalization.NumberStyles.Float);
                 TransparencyLODFix.Settings.m_distanceOffsetProps = float.Parse(xmlConfig.DocumentElement.GetAttribute(@"DistanceOffsetProps"), System.Globalization.NumberStyles.Float);
