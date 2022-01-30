@@ -530,8 +530,9 @@ namespace PropAnarchy.PLT {
             perfectCircle.eventActiveStateIndexChanged += (c, index) => Settings.PerfectCircles = index == 1;
             linearFence.eventActiveStateIndexChanged += (c, index) => Settings.LinearFenceFill = index == 1;
 
-            if (Settings.m_optionXPos == float.NaN && Settings.m_optionYPos == float.NaN) {
+            if (float.IsNaN(Settings.m_optionXPos) || float.IsNaN(Settings.m_optionYPos)) {
                 absolutePosition = new Vector3(Screen.width - size.x - 40f, 200f);
+                Settings.OptionPosition = transform.position;
             } else {
                 transform.position = Settings.OptionPosition;
             }
@@ -585,6 +586,7 @@ namespace PropAnarchy.PLT {
                     position.y = corners[2].y - a2.y;
                 }
                 transform.position = position;
+                m_lastPosition = vector;
                 Settings.OptionPosition = position;
             }
             base.OnMouseMove(p);
