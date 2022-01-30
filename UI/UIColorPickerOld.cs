@@ -39,7 +39,7 @@ namespace PropAnarchy.UI {
                 white.b = 0f;
                 float num = H * 6f;
                 int num2 = (int)Mathf.Floor(num);
-                float num3 = num - (float)num2;
+                float num3 = num - num2;
                 float num4 = V * (1f - S);
                 float num5 = V * (1f - S * num3);
                 float num6 = V * (1f - S * (1f - num3));
