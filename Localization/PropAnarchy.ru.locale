@@ -8,65 +8,44 @@
 <resources>
   <!-- Painter Translation -->
   <string name="PropPainter">Prop Painter</string>
-  <string name="PainterTooltip">Customize Prop Color</string>
+  <string name="PainterTooltip">Настроить цвет</string>
   <!-- PLT Specific Translation -->
   <string name="PropLineTool">Prop Line Tool</string>
-  <string name="SpacingFieldTooltip">
-    Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.
-    Right click to reset to default spacing
-  </string>
-  <string name="AnglefieldTooltip">
-    Scroll mouse wheel to adjust value. Hold ALT for ±0.1, CTRL for ±5.
-    Right click to reset to 0&#xb0;
-  </string>
-  <string name="PLTToggleFenceMode">Toggle Fence Mode</string>
-  <string name="PLTToggleSingleMode">Toggle Single Mode</string>
-  <string name="PLTToggleStraightMode">Toggle Straight Mode</string>
-  <string name="PLTToggleCircleMode">Toggle Circle Mode</string>
-  <string name="PLTToggleCurveMode">Toggle Curve Mode</string>
-  <string name="PLTToggleFreeformMode">Toggle Freeform Mode</string>
-  <string name="PLTToggleControlPanel">Show/Hide Option Panel</string>
-  <string name="PLTTitleBar">Prop Line Tool Settings</string>
+  <string name="SpacingFieldTooltip">Прокрутите колесо мыши для настройки значения. Удерживайте ALT для ±0.1, CTRL для ±5.&#xA;Правая кнопка мыши сбрасывает значения по умолчанию.</string>
+  <string name="AnglefieldTooltip">Прокрутите колесо мыши для настройки значения. Удерживайте ALT для ±0.1, CTRL для ±5.&#xA;Нажмите правой кнопкой мыши для сброса к 0&#xb0;</string>
+  <string name="PLTToggleFenceMode">Заборное размещение</string>
+  <string name="PLTToggleSingleMode">Точечное размещение</string>
+  <string name="PLTToggleStraightMode">Прямое размещение</string>
+  <string name="PLTToggleCircleMode">Круговое размещение</string>
+  <string name="PLTToggleCurveMode">Изогнутое размещение</string>
+  <string name="PLTToggleFreeformMode">Произвольное размещение</string>
+  <string name="PLTToggleControlPanel">Открыть/Закрыть панель опций</string>
+  <string name="PLTTitleBar">Prop Line Tool настройки</string>
   <string name="PLTParameters">Вычисления</string>
   <string name="PLTOptions">Опции</string>
-  <string name="PLTItemWiseTooltip">
-    Поэлементное размещение
-    Размещайте по одному элементу вдоль кривой
-  </string>
-  <string name="PLTSpacingTooltip">
-    Интервальное размещение
-    Размещайте предметы с дискретными интервалами
-  </string>
+  <string name="PLTItemWiseTooltip">Поэлементное размещение&#xA;Размещайте по одному элементу вдоль кривой</string>
+  <string name="PLTSpacingTooltip">Интервальное размещение&#xA;Размещайте предметы с дискретными интервалами</string>
   <string name="PLTDecouplePrevSegment">Отделить от предыдущего сегмента</string>
   <string name="PLTSpacingTitle">Отступ</string>
   <string name="PLTAutoDefaultSpacing">Автоматический интервал</string>
-  <string name="PLTAutoDefaultSpacingTooltip">
-    Если включено, автоматически устанавливает интервал по умолчанию всякий раз, когда выбран другой тип реквизит/дерева.
-    Интервал по-прежнему будет автоматически устанавливаться по умолчанию при переключении режима забора
-  </string>
+  <string name="PLTAutoDefaultSpacingTooltip">Если включено, автоматически устанавливает интервал по умолчанию всякий раз, когда выбран другой тип реквизит/дерева.&#xA;Интервал по-прежнему будет автоматически устанавливаться по умолчанию при переключении режима забора</string>
   <string name="PLTAngleTitle">Угол</string>
-  <string name="PLTAngleDynamicTooltip">Calculate angles dynamically to follow direction of the curve</string>
-  <string name="PLTAngleSingleTooltip">Uses static angle for every asset along the curve</string>
-  <string name="PLTFlip180Tooltip">Rotate props by 180&#xb0; without rotating the change-angle handle in Lock Mode</string>
-  <string name="PLTFlip90Tooltip">Rotate props by 90&#xb0; without rotating the change-angle handle in Lock Mode</string>
+  <string name="PLTAngleDynamicTooltip">Рассчитывать динамический угол по направлению кривой</string>
+  <string name="PLTAngleSingleTooltip">Рассчитывать статический угол вдоль кривой</string>
+  <string name="PLTFlip180Tooltip">Повернуть реквизит на 180&#xb0; без поворота смены угла в режиме блокировки</string>
+  <string name="PLTFlip90Tooltip">Повернуть реквизит на 90&#xb0; без поворота смены угла в режиме блокировки</string>
   <string name="PLTRelativeAngle">Относительный угол</string>
   <!-- PLT Calculator Specific Translation -->
-  <string name="PLTDefaultTooltip">Sets current spacing to default value</string>
-  <string name="PLTLengthTooltip">Sets current spacing to asset length</string>
-  <string name="PLTWidthTooltip">Sets current spacing to asset width</string>
+  <string name="PLTDefaultTooltip">Восстановить параметры по умолчанию</string>
+  <string name="PLTLengthTooltip">Устанавить интервал по длине</string>
+  <string name="PLTWidthTooltip">Устанавить интервал по ширине</string>
   <!-- PLT Option Specific Translation -->
   <string name="PLTShowUndoPreview">Предварительный просмотр</string>
   <string name="PLTShowUndoPreviewTooltip">Выделяет, какие элементы будут удалены в следующей команде \"Отменить\" при удерживании клавиши [Ctrl]</string>
   <string name="PLTMeshCenterCorrection">Центровать объект</string>
-  <string name="PLTMeshCenterCorrectionTooltip">
-    Попытка центрировать предметы в пределах их посадочного места.
-    Хорошо для реквизитов, которые не центрируются в пределах их границ
-  </string>
+  <string name="PLTMeshCenterCorrectionTooltip">Попытка центрировать предметы в пределах их посадочного места.&#xA;Хорошо для реквизитов, которые не центрируются в пределах их границ</string>
   <string name="PLTPerfectCircle">Идеальный круг</string>
-  <string name="PLTPerfectCircleTooltip">
-    Если включено, круги привязываются к ближайшему размеру, который идеально подойдёт для всех элементов кривой.
-    Ближайший размер зависит от параметра интервала
-  </string>
+  <string name="PLTPerfectCircleTooltip">Если включено, круги привязываются к ближайшему размеру, который идеально подойдёт для всех элементов кривой.&#xA;Ближайший размер зависит от параметра интервала</string>
   <string name="PLTLinearFence">Линейное заполнение забора</string>
   <string name="PLTLinearFenceTooltip">При рисовании прямых заборов, перекрывает финальную часть до конца в точном положении мыши</string>
   <!-- Misc Props -->
@@ -117,10 +96,7 @@
   <string name="EnableCustomLimit">Включить настройку лимита реквизитов</string>
   <string name="MaxPropLimitTitle">Настройка лимита реквизитов</string>
   <string name="MaxPropLimit">Максимум лимит реквизитов:  {0} реквизитов</string>
-  <string name="Important">
-    Важно! Должен быть установлен перед запуском/загрузкой игры.
-    Обратите внимание, что увеличение лимита реквизитов может привести к незначительным последствиям для производительности. Хотя EML оптимизирован для того, чтобы сделать реквизиты быстрее, чем ванильная игра, эта оптимизация была сосредоточена на увеличении стоимости повышенного лимита. Лучше всего увеличить его постепенно, так как требования вашего компьютера в игре возрастают
-  </string>
+  <string name="Important">Важно! Должен быть установлен перед запуском/загрузкой игры.&#xA;Обратите внимание, что увеличение лимита реквизитов может привести к незначительным последствиям для производительности. Хотя EML оптимизирован для того, чтобы сделать реквизиты быстрее, чем ванильная игра, эта оптимизация была сосредоточена на увеличении стоимости повышенного лимита. Лучше всего увеличить его постепенно, так как требования вашего компьютера в игре возрастают</string>
   <!-- Tree Snapping specific -->
   <string name="PropSnap">Prop Snapping</string>
   <string name="PropSnapLabel">Эта опция позволяет деревьям свободно перемещаться и позволяет привязывать деревья к зданиям и объектам</string>
@@ -131,3 +107,4 @@
   <string name="isEnabled">включено</string>
   <string name="isDisabled">отключено</string>
 </resources>
+
