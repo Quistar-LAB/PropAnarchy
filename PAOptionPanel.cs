@@ -247,6 +247,7 @@ namespace PropAnarchy {
             cb.text = name;
             cb.height += 20f;
             cb.isChecked = defaultVal;
+            cb.width = cb.text.Length;
             return cb;
         }
 
