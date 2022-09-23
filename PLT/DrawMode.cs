@@ -1,6 +1,5 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
-using EManagersLib;
 using PropAnarchy.PLT.Extensions;
 using PropAnarchy.PLT.MathUtils;
 using PropAnarchy.PLT.Modes;
@@ -139,7 +138,7 @@ namespace PropAnarchy.PLT {
             int itemIndex = 0;
             Randomizer randomizer;
             if (prefab is PropInfo propInfo) {
-                foreach (uint likelyID in EPropManager.m_props.NextFreeItems(numItems)) {
+                foreach (uint likelyID in EManagersLib.EPropManager.m_props.NextFreeItems(numItems)) {
                     randomizer = new Randomizer((int)likelyID);
                     items[itemIndex].m_finalPrefab = propInfo.GetVariation(ref randomizer);
                     items[itemIndex].m_color = propInfo.GetColor(ref randomizer);
@@ -177,8 +176,8 @@ namespace PropAnarchy.PLT {
             SegmentState.AllItemsValid = validPlacement;
         }
         private static void CalculateAllAnglesBase(ItemInfo.ItemData[] items, bool fenceMode) {
-            Vector3 xAxis = EMath.Vector3Right;
-            Vector3 yAxis = EMath.Vector3Up;
+            Vector3 xAxis = EManagersLib.EMath.Vector3Right;
+            Vector3 yAxis = EManagersLib.EMath.Vector3Up;
             int itemCount = ItemInfo.Count; ;
             if (fenceMode) {
                 float offsetAngle;

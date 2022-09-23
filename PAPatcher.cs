@@ -12,7 +12,7 @@ namespace PropAnarchy {
         private static void ActionAddPostfix(HashSet<Instance> selection) => PAPainter.ActionAddHandler?.Invoke(selection);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ActionClonePostfix(Dictionary<Instance, Instance> ___m_origToCloneUpdate) => PAPainter.ActionCloneHandler?.Invoke(___m_origToCloneUpdate);
+        private static void ActionClonePostfix(Dictionary<Instance, Instance> ___m_origToClone) => PAPainter.ActionCloneHandler?.Invoke(___m_origToClone);
 
         internal static void EnablePatches() {
             //Harmony harmony = new Harmony(HARMONYID);
