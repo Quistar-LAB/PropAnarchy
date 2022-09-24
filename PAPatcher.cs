@@ -28,7 +28,7 @@ namespace PropAnarchy {
                 PAModule.PALog(e.Message);
             }
             try {
-                harmony.Patch(AccessTools.Method(typeof(CloneActionBase), nameof(CloneActionBase.Do)),
+                harmony.Patch(AccessTools.Method(typeof(CloneActionBase), nameof(CloneActionBase.DoProcess)),
                     postfix: new HarmonyMethod(typeof(PAPatcher), nameof(ActionClonePostfix)));
             } catch (Exception e) {
                 PAModule.PALog("Failed to patch MoveIt::CloneActionBase::Do()");
@@ -39,7 +39,7 @@ namespace PropAnarchy {
         internal static void DisablePatches() {
             Harmony harmony = new Harmony(HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(MyExtensions), nameof(MyExtensions.AddObject)), HarmonyPatchType.Postfix, HARMONYID);
-            harmony.Unpatch(AccessTools.Method(typeof(CloneActionBase), nameof(CloneActionBase.Do)), HarmonyPatchType.Postfix, HARMONYID);
+            harmony.Unpatch(AccessTools.Method(typeof(CloneActionBase), nameof(CloneActionBase.DoProcess)), HarmonyPatchType.Postfix, HARMONYID);
         }
     }
 }
