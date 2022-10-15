@@ -18,9 +18,9 @@ using UnityEngine;
 
 namespace PropAnarchy {
     public sealed class PAModule : ILoadingExtension, IUserMod {
-        private const string m_modName = @"Prop Anarchy";
+        private const string m_modName = @"Prop Anarchy (temp fix by algernon)";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.7.5";
+        internal const string m_modVersion = @"0.7.5.1";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
