@@ -4,7 +4,7 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Copyright>Copyright © 2021 (algernon @ 2022)</Copyright>
 		<Product>Prop Anarchy (temp fix)</Product>
-		<Version>0.7.5.1</Version>
+		<Version>0.7.5.2</Version>
 		<ManagedDLLPath>$(MSBuildProgramFiles32)/Steam/steamapps/common/Cities_Skylines/Cities_Data/Managed</ManagedDLLPath>
 		<EMLPath>$(MSBuildProgramFiles32)/Steam/steamapps/workshop/content/255710/2696146165</EMLPath>
 		<AssemblySearchPaths>
