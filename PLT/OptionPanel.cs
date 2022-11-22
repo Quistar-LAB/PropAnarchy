@@ -530,11 +530,23 @@ namespace PropAnarchy.PLT {
             perfectCircle.eventActiveStateIndexChanged += (c, index) => Settings.PerfectCircles = index == 1;
             linearFence.eventActiveStateIndexChanged += (c, index) => Settings.LinearFenceFill = index == 1;
 
+            float maxX = Screen.width - size.x;
+            float maxY = Screen.height - size.y;
+
             if (float.IsNaN(Settings.m_optionXPos) || float.IsNaN(Settings.m_optionYPos)) {
-                absolutePosition = new Vector3(Screen.width - size.x - 40f, 200f);
+                absolutePosition = new Vector3(maxX - 40f, 200f);
                 Settings.OptionPosition = transform.position;
             } else {
                 transform.position = Settings.OptionPosition;
+            }
+
+            if (absolutePosition.x > maxX) {
+                absolutePosition = new Vector3(maxX, absolutePosition.y);
+            }
+
+            if (absolutePosition.y > maxY)
+            {
+                absolutePosition = new Vector3(absolutePosition.x, maxY);
             }
         }
 
