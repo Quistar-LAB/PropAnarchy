@@ -1,239 +1,120 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F83EF781-03A4-4374-A980-9EF9EFB9D63A}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PropAnarchy</RootNamespace>
-    <AssemblyName>PropAnarchy</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>false</Deterministic>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;ENABLEPROPANARCHY</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="CitiesHarmony.API, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\CitiesHarmony.API.2.0.0\lib\net35\CitiesHarmony.API.dll</HintPath>
-    </Reference>
-    <Reference Include="CitiesHarmony.Harmony, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\CitiesHarmony.Harmony.2.0.4\lib\net35\CitiesHarmony.Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="ColossalManaged">
-      <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\ColossalManaged.dll</HintPath>
-    </Reference>
-    <Reference Include="EManagersLib">
-      <HintPath>C:\Users\Quistar\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\EManagersLib\EManagersLib.dll</HintPath>
-    </Reference>
-    <Reference Include="ICities">
-      <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\ICities.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Simd">
-      <HintPath>C:\Program Files (x86)\Mono-2.6.4\lib\mono\2.0\Mono.Simd.dll</HintPath>
-    </Reference>
-    <Reference Include="MoveIt, Version=2.9.2.42170, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\MoveIt.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml" />
-    <Reference Include="UIIndicator">
-      <HintPath>C:\Users\Quistar\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\EManagersLib\UIIndicator.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AdaptivePropVisibility\Patcher.cs" />
-    <Compile Include="AdditiveShader\AdditiveShaderManager.cs" />
-    <Compile Include="AdditiveShader\ManagedAsset.cs" />
-    <Compile Include="AdditiveShader\ShaderProfile.cs" />
-    <Compile Include="PAOptionPanel.cs" />
-    <Compile Include="PATerrainConformManager.cs" />
-    <Compile Include="Localization\DefaultLocale.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DefaultLocale.resx</DependentUpon>
-    </Compile>
-    <Compile Include="PAPatcher.cs" />
-    <Compile Include="PAPainter.cs" />
-    <Compile Include="DecalPropFix\DecalPropFix.cs" />
-    <Compile Include="PAUtils.cs" />
-    <Compile Include="PAScaleManager.cs" />
-    <Compile Include="PAModule.cs" />
-    <Compile Include="PLT\OptionPanel.cs" />
-    <Compile Include="PLT\Extensions\Array32Extension.cs" />
-    <Compile Include="PLT\MathUtils\BezierXZ.cs" />
-    <Compile Include="PLT\MathUtils\CircleXZ.cs" />
-    <Compile Include="PLT\ControlPoint.cs" />
-    <Compile Include="PLT\DrawMode.cs" />
-    <Compile Include="PLT\Extensions\Bezier3Extension.cs" />
-    <Compile Include="PLT\Extensions\Segment3Extension.cs" />
-    <Compile Include="PLT\Extensions\Vector3Extensions.cs" />
-    <Compile Include="PLT\Modes\DrawCircle.cs" />
-    <Compile Include="PLT\Modes\DrawCurve.cs" />
-    <Compile Include="PLT\Modes\DrawFreeform.cs" />
-    <Compile Include="PLT\Modes\DrawStraight.cs" />
-    <Compile Include="PLT\PlacementError.cs" />
-    <Compile Include="PLT\PropLineTool.cs" />
-    <Compile Include="PLT\SegmentState.cs" />
-    <Compile Include="PLT\MathUtils\SegmentXZ.cs" />
-    <Compile Include="PLT\Settings.cs" />
-    <Compile Include="PLT\ToolBar.cs" />
-    <Compile Include="PLT\UndoManager.cs" />
-    <Compile Include="PLT\MathUtils\VectorXZ.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PAKeyBinding.cs" />
-    <Compile Include="PALocale.cs" />
-    <Compile Include="TransparencyLODFix\Settings.cs" />
-    <Compile Include="TransparencyLODFix\TransparencyLODFix.cs" />
-    <Compile Include="UI\UIColorPicker.cs" />
-    <Compile Include="UI\UIColorPickerOld.cs" />
-    <Compile Include="UI\UIFancySlider.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Localization\PropAnarchy.nl.locale" />
-    <None Include="Localization\PropAnarchy.de.locale" />
-    <None Include="Localization\PropAnarchy.ru.locale" />
-    <None Include="Localization\PropAnarchy.fr.locale" />
-    <None Include="Localization\PropAnarchy.es.locale" />
-    <None Include="Localization\PropAnarchy.ko.locale" />
-    <None Include="Localization\PropAnarchy.pt-BR.locale" />
-    <None Include="Localization\PropAnarchy.ja.locale" />
-    <None Include="Localization\PropAnarchy.zh-TW.locale" />
-    <None Include="Localization\PropAnarchy.zh-CN.locale" />
-    <None Include="Localization\PropAnarchy.it.locale" />
-    <None Include="Localization\PropAnarchy.en.locale" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\DefaultLocale.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>DefaultLocale.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\ErrorProne.NET.Core.dll" />
-    <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\ErrorProne.Net.StructAnalyzers.dll" />
-    <Analyzer Include="packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\RuntimeContracts.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="LICENSE" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\leftSprite.png" />
-    <EmbeddedResource Include="Resources\midSprite.png" />
-    <EmbeddedResource Include="Resources\rightSprite.png" />
-    <EmbeddedResource Include="Resources\slider.png" />
-    <EmbeddedResource Include="Resources\thumb.png" />
-    <EmbeddedResource Include="Resources\treelimitbg.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneDisabled.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneFocused.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOnePressed.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroDisabled.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroFocused.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroPressed.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeOne.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_FenceModeZero.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOne.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneDisabled.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneFocused.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateOnePressed.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZero.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroDisabled.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroFocused.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroPressed.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOne.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneDisabled.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneFocused.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOnePressed.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZero.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroDisabled.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroFocused.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroPressed.png" />
-    <EmbeddedResource Include="PLT\Icons\Angle.png" />
-    <EmbeddedResource Include="PLT\Icons\AngleDynamic.png" />
-    <EmbeddedResource Include="PLT\Icons\AngleDynamicHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\AngleDynamicPressed.png" />
-    <EmbeddedResource Include="PLT\Icons\AngleSingle.png" />
-    <EmbeddedResource Include="PLT\Icons\AngleSingleHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\AngleSinglePressed.png" />
-    <EmbeddedResource Include="PLT\Icons\AutoSpacing.png" />
-    <EmbeddedResource Include="PLT\Icons\AutoSpacingHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\AutoSpacingPressed.png" />
-    <EmbeddedResource Include="PLT\Icons\Default.png" />
-    <EmbeddedResource Include="PLT\Icons\DefaultHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\DefaultPressed.png" />
-    <EmbeddedResource Include="PLT\Icons\Flip180.png" />
-    <EmbeddedResource Include="PLT\Icons\Flip180Hovered.png" />
-    <EmbeddedResource Include="PLT\Icons\Flip180Pressed.png" />
-    <EmbeddedResource Include="PLT\Icons\Flip90.png" />
-    <EmbeddedResource Include="PLT\Icons\Flip90Hovered.png" />
-    <EmbeddedResource Include="PLT\Icons\Flip90Pressed.png" />
-    <EmbeddedResource Include="PLT\Icons\ItemWise.png" />
-    <EmbeddedResource Include="PLT\Icons\ItemWiseHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\ItemWisePressed.png" />
-    <EmbeddedResource Include="PLT\Icons\Length.png" />
-    <EmbeddedResource Include="PLT\Icons\LengthHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\LengthPressed.png" />
-    <EmbeddedResource Include="PLT\Icons\LinearFence.png" />
-    <EmbeddedResource Include="PLT\Icons\LinearFenceHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\LinearFencePressed.png" />
-    <EmbeddedResource Include="PLT\Icons\MeshCenter.png" />
-    <EmbeddedResource Include="PLT\Icons\MeshCenterHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\MeshCenterPressed.png" />
-    <EmbeddedResource Include="PLT\Icons\PerfectCircle.png" />
-    <EmbeddedResource Include="PLT\Icons\PerfectCircleHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\PerfectCirclePressed.png" />
-    <EmbeddedResource Include="PLT\Icons\SpacingTitle.png" />
-    <EmbeddedResource Include="PLT\Icons\Spacing.png" />
-    <EmbeddedResource Include="PLT\Icons\SpacingHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\SpacingPressed.png" />
-    <EmbeddedResource Include="PLT\Icons\TextBorder.png" />
-    <EmbeddedResource Include="PLT\Icons\Width.png" />
-    <EmbeddedResource Include="PLT\Icons\WidthHovered.png" />
-    <EmbeddedResource Include="PLT\Icons\WidthPressed.png" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>if not exist "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)" mkdir "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
-if exist "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)" del "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)"
-xcopy /y "$(TargetPath)" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
-xcopy /y "$(TargetDir)\CitiesHarmony.API.dll" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
-xcopy /y "$(TargetDir)\UIIndicator.dll" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
-if not exist "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\Locale" mkdir "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\Locale"
-xcopy "$(ProjectDir)Localization\*.locale" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\Locale" /e /y /i /r</PostBuildEvent>
-  </PropertyGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net35</TargetFramework>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Copyright>Copyright © 2021 (algernon @ 2022)</Copyright>
+		<Product>Prop Anarchy (temp fix)</Product>
+		<Version>0.7.5.2</Version>
+		<ManagedDLLPath>$(MSBuildProgramFiles32)/Steam/steamapps/common/Cities_Skylines/Cities_Data/Managed</ManagedDLLPath>
+		<EMLPath>$(MSBuildProgramFiles32)/Steam/steamapps/workshop/content/255710/2696146165</EMLPath>
+		<AssemblySearchPaths>
+			$(AssemblySearchPaths);
+			$(ManagedDLLPath);
+			$(EMLPath)
+		</AssemblySearchPaths>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="CitiesHarmony.API" Version="2.1.0" />
+		<Reference Include="Assembly-CSharp" />
+		<Reference Include="ColossalManaged" />
+		<Reference Include="EManagersLib" />
+		<Reference Include="ICities" />
+		<Reference Include="MoveIt" />
+		<Reference Include="UIIndicator" />
+		<Reference Include="UnityEngine" />
+	</ItemGroup>
+	<ItemGroup>
+		<_Locales Include="$(ProjectDir)Localization\*.locale" />
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Include="Resources\leftSprite.png" />
+	  <EmbeddedResource Include="Resources\midSprite.png" />
+	  <EmbeddedResource Include="Resources\rightSprite.png" />
+	  <EmbeddedResource Include="Resources\slider.png" />
+	  <EmbeddedResource Include="Resources\thumb.png" />
+	  <EmbeddedResource Include="Resources\treelimitbg.png" />
+	</ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneDisabled.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneFocused.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_FenceModeOneHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_FenceModeOnePressed.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroDisabled.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroFocused.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_FenceModeZeroPressed.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_FenceModeOne.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_FenceModeZero.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_MultiStateOne.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneDisabled.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneFocused.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_MultiStateOneHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_MultiStateOnePressed.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_MultiStateZero.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroDisabled.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroFocused.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_MultiStateZeroPressed.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOne.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneDisabled.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneFocused.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOneHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_ToggleCPOnePressed.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZero.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroDisabled.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroFocused.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\PLT_ToggleCPZeroPressed.png" />
+		<EmbeddedResource Include="PLT\Icons\Angle.png" />
+		<EmbeddedResource Include="PLT\Icons\AngleDynamic.png" />
+		<EmbeddedResource Include="PLT\Icons\AngleDynamicHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\AngleDynamicPressed.png" />
+		<EmbeddedResource Include="PLT\Icons\AngleSingle.png" />
+		<EmbeddedResource Include="PLT\Icons\AngleSingleHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\AngleSinglePressed.png" />
+		<EmbeddedResource Include="PLT\Icons\AutoSpacing.png" />
+		<EmbeddedResource Include="PLT\Icons\AutoSpacingHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\AutoSpacingPressed.png" />
+		<EmbeddedResource Include="PLT\Icons\Default.png" />
+		<EmbeddedResource Include="PLT\Icons\DefaultHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\DefaultPressed.png" />
+		<EmbeddedResource Include="PLT\Icons\Flip180.png" />
+		<EmbeddedResource Include="PLT\Icons\Flip180Hovered.png" />
+		<EmbeddedResource Include="PLT\Icons\Flip180Pressed.png" />
+		<EmbeddedResource Include="PLT\Icons\Flip90.png" />
+		<EmbeddedResource Include="PLT\Icons\Flip90Hovered.png" />
+		<EmbeddedResource Include="PLT\Icons\Flip90Pressed.png" />
+		<EmbeddedResource Include="PLT\Icons\ItemWise.png" />
+		<EmbeddedResource Include="PLT\Icons\ItemWiseHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\ItemWisePressed.png" />
+		<EmbeddedResource Include="PLT\Icons\Length.png" />
+		<EmbeddedResource Include="PLT\Icons\LengthHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\LengthPressed.png" />
+		<EmbeddedResource Include="PLT\Icons\LinearFence.png" />
+		<EmbeddedResource Include="PLT\Icons\LinearFenceHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\LinearFencePressed.png" />
+		<EmbeddedResource Include="PLT\Icons\MeshCenter.png" />
+		<EmbeddedResource Include="PLT\Icons\MeshCenterHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\MeshCenterPressed.png" />
+		<EmbeddedResource Include="PLT\Icons\PerfectCircle.png" />
+		<EmbeddedResource Include="PLT\Icons\PerfectCircleHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\PerfectCirclePressed.png" />
+		<EmbeddedResource Include="PLT\Icons\SpacingTitle.png" />
+		<EmbeddedResource Include="PLT\Icons\Spacing.png" />
+		<EmbeddedResource Include="PLT\Icons\SpacingHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\SpacingPressed.png" />
+		<EmbeddedResource Include="PLT\Icons\TextBorder.png" />
+		<EmbeddedResource Include="PLT\Icons\Width.png" />
+		<EmbeddedResource Include="PLT\Icons\WidthHovered.png" />
+		<EmbeddedResource Include="PLT\Icons\WidthPressed.png" />
+	</ItemGroup>
+	<Target Name="DeployToModDirectory" AfterTargets="Build">
+		<PropertyGroup>
+			<DeployDir>$(LOCALAPPDATA)/Colossal Order/Cities_Skylines/Addons/Mods/$(SolutionName)/</DeployDir>
+		</PropertyGroup>
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" />
+		<Copy SourceFiles="$(TargetDir)/CitiesHarmony.API.dll" DestinationFolder="$(DeployDir)" />
+		<Copy SourceFiles="$(TargetDir)/UIIndicator.dll" DestinationFolder="$(DeployDir)" />
+		<Copy SourceFiles="@(_Locales)" DestinationFolder="$(DeployDir)/Locale" />
+	</Target>
 </Project>

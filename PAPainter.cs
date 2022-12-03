@@ -131,6 +131,7 @@ namespace PropAnarchy {
 
                     ActionCloneHandler = (clonedOrigin) => {
                         smInstance.AddAction(() => {
+                            if (clonedOrigin == null) return;
                             foreach (KeyValuePair<Instance, Instance> x in clonedOrigin) {
                                 if (x.Key.id.Type != InstanceType.Prop) return;
                                 props[x.Value.id.GetProp32()].m_color = props[x.Key.id.GetProp32()].m_color;

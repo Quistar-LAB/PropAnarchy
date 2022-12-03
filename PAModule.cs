@@ -18,9 +18,9 @@ using UnityEngine;
 
 namespace PropAnarchy {
     public sealed class PAModule : ILoadingExtension, IUserMod {
-        private const string m_modName = @"Prop Anarchy";
+        private const string m_modName = @"Prop Anarchy (temp fix by algernon)";
         private const string m_modDesc = @"Extends the Prop Framework";
-        internal const string m_modVersion = @"0.7.5";
+        internal const string m_modVersion = @"0.7.5.2";
         internal const string m_AssemblyVersion = m_modVersion + @".*";
         private const string m_debugLogFile = @"00PropAnarchyDebug.log";
         internal const string KeybindingConfigFile = @"PropAnarchyKeyBindSetting";
@@ -185,6 +185,16 @@ namespace PropAnarchy {
                     }
                 }
             }
+
+            // Fix for prop snapping issues if buffer is at the standard size.
+            // Since we can't recreate the original height, we clear the fixed height flag instead to at least restore them to terrain height (from 0).
+            EPropInstance[] propBuffer = EPropManager.m_props.m_buffer;
+            for (int i = 0; i < propBuffer.Length; i++) {
+                if (propBuffer[i].m_posY == 0) {
+                    propBuffer[i].m_flags &= ~(ushort)EPropInstance.Flags.FixedHeight & 0xFFFF;
+                }
+            }
+
             // The original mods created a new GameObject for running additive shader routines. I'm opting
             // to just use existing GameObject and add a coroutine so it doesn't stress Update()
             UpdateCustomPrefabs(); // This thread handles initialization of Additive Shader asset and Decal Prop Fix
